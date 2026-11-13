@@ -290,7 +290,7 @@
     const all = scopeDamages(e, tp, roId);
     const list = all.filter((d) => (ui.tab === "mbv") === (d.l1 === MBV)).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
     const dis = ro ? " disabled" : "";
-    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions"><button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
+    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions">${ui.tab === "prest" ? `<button class="btn" data-act="import-doc"${dis}>Importer un devis ou une facture</button>` : ""}<button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
       <div class="filters"><div class="fld"><label for="dm-tp">Tiers</label>${sel("dm-tp", "dm-tp", c.thirdParties.map((t) => ({ value: t.id, label: t.name + (t.insured ? " (assuré)" : "") })), tp.id)}</div>
       ${tp.insured ? `<div class="fld"><label for="dm-ro">Objet de risque</label>${sel("dm-ro", "dm-ro", c.riskObjects.map((r) => ({ value: r.id, label: roLabel(c, r.id) })), roId)}</div>` : ""}
       <div class="fld"><label for="dm-claimed">Montant réclamé €</label><input id="dm-claimed" class="num" inputmode="decimal" data-chg="claimed" value="${n2(k.claimedAmount)}"${dis}></div>
@@ -315,7 +315,7 @@
         if (l2 !== null && l2 !== "N/A") rows += `<tr class="l2"><td colspan="4">${h(l2)}</td>${totals(g2)}<td></td><td></td></tr>`;
         for (const d of g2) {
           const better = d.csr && db.refs.prices.some((p) => p.csr === d.csr && num(p.co2) < num(d.co2));
-          rows += `<tr class="l3"><td><button class="link ln" data-act="${d.l1 === MBV ? "edit-mbv" : "edit-dmg"}" data-id="${d.id}">${h(d.name)}</button>${d.csr && !better ? ' <span class="leaf" title="Prestation la moins carbonée de sa catégorie">éco</span>' : ""}${d.l1 === MBV ? `<br><small class="muted">${h([d.goodStatus, d.proof].filter(Boolean).join(" · "))}</small>` : ""}</td>
+          rows += `<tr class="l3"><td><button class="link ln" data-act="${d.l1 === MBV ? "edit-mbv" : "edit-dmg"}" data-id="${d.id}">${h(d.name)}</button>${d.csr && !better ? ' <span class="leaf" title="Prestation la moins carbonée de sa catégorie">éco</span>' : ""}${d.l1 === MBV ? `<br><small class="muted">${h([d.goodStatus, d.proof].filter(Boolean).join(" · "))}</small>` : ""}${d.source ? `<br><small class="muted">${h(d.source)}</small>` : ""}</td>
             <td>${h(room(d.roomId))}</td><td class="r">${d.l1 === RSE ? "1 %" : qty(d.qty) + " " + h(d.um || "")}</td><td class="r">${eur(d.unit)}</td><td class="r">${eur(d.priceNoVAT)}</td><td class="r">${pct(d.vat)} %</td><td class="r">${eur(d.priceWithVAT)}</td>
             <td class="r">${d.l1 === RSE ? "" : pct(d.obsPct) + " %"}</td><td class="r">${d.l1 === RSE ? "" : eur(d.obsAmount)}</td><td class="r">${eur(d.priceWithObs)}</td><td>${h(d.mode)}</td>
             <td class="acts">${ro ? "" : `<button class="btn sm ghost" data-act="dup-dmg" data-id="${d.id}" title="Dupliquer">Dupliquer</button><button class="btn sm ghost danger-t" data-act="del-dmg" data-id="${d.id}">Supprimer</button>`}</td></tr>`;
@@ -934,6 +934,7 @@
   document.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && ev.target.matches && ev.target.matches("input[data-chg]")) ev.target.blur(); });
   $("#dlg").addEventListener("cancel", () => setTimeout(() => (dlg().innerHTML = ""), 0));
 
-  window.ECApp = { get db() { return db; }, ui, render, seedDemo };
+  window.ECApp = { get db() { return db; }, ui, render, seedDemo, acts,
+    api: { cur, est, dmgScope, getCalc, scopeDamages, touch, benefitOf, possibleBeneficiaries, roLabel, dlg, closeDlg, toast, h, eur, n2, qty, parseNum, uid, readOnly, L } };
   render();
 })();

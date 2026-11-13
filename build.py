@@ -15,7 +15,9 @@ page = "\n".join([
     read("body.html"),
     "<script>\n" + read("calc.js") + "</script>",
     "<script>\n" + read("data.js") + "</script>",
+    "<script>\n" + read("extract.js") + "</script>",
     "<script>\n" + read("app.js") + "</script>",
+    "<script>\n" + read("import.js") + "</script>",
 ])
 
 (root / "dist").mkdir(exist_ok=True)

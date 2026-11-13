@@ -157,6 +157,15 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); } .toast.err { background: var(--err); color: var(--surface); }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
 @media print { .top, .pager, .actions, .tabs, .estbar, .toast { display: none !important; } body { background: #fff; } .panel { box-shadow: none; } }
+
+/* Import de devis / facture */
+.banner.ok { background: var(--ok-bg); color: var(--ok); } .banner.info { background: var(--surface-2); color: var(--ink-2); }
+.warn-t { color: var(--warn); display: block; }
+.imp-tw { border: 1px solid var(--line); border-radius: 8px; max-height: 44vh; overflow: auto; }
+.imp-tw th { position: sticky; top: 0; z-index: 1; }
+.imp-tw td { padding: 6px 8px; } .imp-tw .ir-name { min-width: 320px; } .imp-tw .ir-nat { min-width: 190px; } .imp-tw .ir-um { min-width: 68px; } .imp-tw .ir-pu { min-width: 96px; }
+.imp-tw tr.off td { opacity: .45; }
+dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
 </style>
 <header class="top">
   <div class="wrap">
@@ -714,6 +723,191 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
 })(typeof window !== "undefined" ? window : globalThis);
 </script>
 <script>
+/* Lecture d'un devis ou d'une facture : repère les lignes chiffrées dans le texte du document.
+   Fonctions pures (testables sous Node). Les colonnes sont séparées par des tabulations quand
+   le texte vient d'un PDF ; un texte collé, séparé par de simples espaces, est aussi accepté. */
+(function (root) {
+  "use strict";
+
+  const VAT_RATES = [0, 2.1, 5.5, 8.5, 10, 20];
+  const UNITS = [
+    [/^(m²|m2|m\^2|mq)$/i, "m²"], [/^(m3|m³)$/i, "m3"], [/^(ml|m|mètres?|metres?|ml\.)$/i, "ml"],
+    [/^(h|hr|hrs|heures?)$/i, "H"], [/^(f|ff|fft|forf|forfait|forfaits|ft)$/i, "FFT"],
+    [/^(u|un|unité|unités|unite|pce|pces|pièce|pièces|piece|ens|ensemble|lot|j|jour|jours)\.?$/i, "U"],
+  ];
+  const SKIP = /^(sous[- ]?total|total|totaux|t\.?v\.?a\b|net\s+[àa]\s+payer|acompte|montant|base\s+h\.?t|remise|escompte|page\b|siret|siren|iban|bic|t[ée]l\b|t[ée]l[ée]phone|fax|capital|r\.?c\.?s|ape\b|naf\b|n°\s*tva|date\b|devis\b|facture\b|validit[ée]|conditions|r[èe]glement|[ée]ch[ée]ance|bon\s+pour|signature|report\b|d[ée]signation|description|libell[ée]|r[ée]f[ée]rence\b|quantit[ée]|qt[ée]\b|code\s+client|client\b|adresse)/i;
+
+  const near = (a, b) => Math.abs(a - b) <= Math.max(0.02, Math.abs(b) * 0.005);
+  const r2 = (x) => Math.round(x * 100 + 1e-9) / 100;
+
+  // "1 234,56" · "1.234,56" · "1234.56" · "12,5"
+  function toNumber(s) {
+    let t = String(s).replace(/[\s  €]/g, "");
+    if (t.includes(",") && t.includes(".")) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
+    else if (t.includes(",")) t = t.replace(",", ".");
+    else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
+    const v = parseFloat(t);
+    return isFinite(v) ? v : null;
+  }
+  const NUM_GROUPED = /-?\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?|-?\d+(?:[.,]\d+)?/g; // séparateur de milliers accepté
+  const NUM_PLAIN = /-?\d+(?:[.,]\d+)?/g;
+  const isNumTok = (t) => /^-?\d+(?:[.,]\d+)*$/.test(t);
+  const unitOf = (t) => { const u = UNITS.find(([re]) => re.test(t)); return u ? u[1] : null; };
+  const isFiller = (t) => /^(€|eur|euros?|%|x|×|\*|=|:|ht|h\.t\.?|ttc|t\.t\.c\.?|-)$/i.test(t);
+
+  // Cherche quantité × prix unitaire = total parmi les nombres de fin de ligne
+  function findTriple(nums) {
+    for (let k = nums.length - 1; k >= 2; k--)
+      for (let j = k - 1; j >= 1; j--)
+        for (let i = j - 1; i >= 0; i--)
+          if (nums[i] > 0 && nums[j] >= 0 && near(nums[i] * nums[j], nums[k])) return { i, j, k };
+    return null;
+  }
+
+  function parseLine(raw) {
+    let s = raw.replace(/ | /g, " ").replace(/^[\s\-•*·]+/, "").trim();
+    if (!s) return null;
+    // "20m²" → "20 m²", "12,50€" → "12,50 €"
+    s = s.replace(/(\d)(m²|m2|m3|m³|ml|€|%)(?=\s|$)/gi, "$1 $2");
+    const cells = s.split(/\t+| {2,}/).map((c) => c.trim()).filter(Boolean);
+    const toks = cells.join(" \t ").split(/ +/).filter(Boolean);
+    // fin de ligne faite uniquement de nombres, unités et symboles
+    let cut = toks.length;
+    while (cut > 0) {
+      const t = toks[cut - 1];
+      if (t === "\t" || isNumTok(t) || isFiller(t) || (unitOf(t) && cut - 1 > 0) || /^\d+(?:[.,]\d+)?%$/.test(t)) cut--;
+      else break;
+    }
+    // la désignation garde ses propres nombres ("Peinture 2 couches")
+    while (cut < toks.length && (toks[cut] === "\t" || isFiller(toks[cut]))) cut++;
+    const name = toks.slice(0, cut).filter((t) => t !== "\t").join(" ").replace(/[\s:;,.\-]+$/, "").trim();
+    const tailToks = toks.slice(cut);
+    if (!tailToks.some(isNumTok) && !tailToks.some((t) => /\d%$/.test(t))) return { text: s };
+
+    let unit = null, vat = null;
+    const hasCurrency = tailToks.some((t) => /^(€|eur|euros?)$/i.test(t));
+    const kept = [];
+    tailToks.forEach((t, idx) => {
+      const pm = t.match(/^(\d+(?:[.,]\d+)?)%$/);
+      if (pm) { vat = toNumber(pm[1]); return; }
+      if (t === "%" && kept.length && isNumTok(kept[kept.length - 1])) { vat = toNumber(kept.pop()); return; }
+      const u = !isNumTok(t) && unitOf(t);
+      if (u) { if (!unit) unit = u; kept.push("\t"); return; }
+      if (isFiller(t)) { kept.push("\t"); return; }
+      kept.push(t);
+    });
+    const tail = kept.join(" ");
+    const hasDecimals = /\d[.,]\d{2}(?!\d)/.test(tail);
+    const read = (re) => tail.split("\t").flatMap((cell) => (cell.match(re) || []).map(toNumber)).filter((x) => x !== null);
+    let nums, tri;
+    if (cells.length > 1) {
+      // vraies colonnes : "2 450,00" dans une cellule est un seul montant
+      nums = read(NUM_GROUPED); tri = findTriple(nums);
+    } else {
+      // espaces simples : "2 150,00 300,00" se lit 2 × 150 = 300, "1 234,56 1 234,56" un montant répété
+      const g = read(NUM_GROUPED), tg = findTriple(g), pl = read(NUM_PLAIN), tp = findTriple(pl);
+      const useGrouped = (g.length === 2 && near(g[0], g[1])) || (tg && tp ? g[tg.k] > pl[tp.k] : !tp);
+      if (useGrouped) { nums = g; tri = tg; } else { nums = pl; tri = tp; }
+    }
+
+    let qty, unitPrice, total, check = false;
+    if (tri) {
+      qty = nums[tri.i]; unitPrice = nums[tri.j]; total = nums[tri.k];
+      if (vat === null) { const rest = nums.filter((_, x) => x !== tri.i && x !== tri.j && x !== tri.k).find((x) => VAT_RATES.includes(x) && x > 0); if (rest !== undefined) vat = rest; }
+    } else if (nums.length === 1) {
+      if (!hasDecimals && !hasCurrency && !unit) return { text: s };
+      qty = 1; unitPrice = nums[0]; total = nums[0];
+    } else if (nums.length === 2) {
+      if (!hasDecimals && !hasCurrency) return { text: s };
+      if (near(nums[0], nums[1])) { qty = 1; unitPrice = nums[1]; total = nums[1]; }
+      else { qty = nums[0]; unitPrice = nums[1]; total = r2(qty * unitPrice); check = true; }
+    } else {
+      // pas de produit cohérent : on retient le dernier montant comme total
+      if (!hasDecimals && !hasCurrency) return { text: s };
+      total = nums[nums.length - 1]; qty = 1; unitPrice = total; check = true;
+    }
+    if (!(unitPrice > 0) && !(total > 0)) return { text: s };
+    return { name, qty, unit, unitPrice, vat, total: r2(total), check };
+  }
+
+  function lastAmount(line) {
+    const m = line.replace(/ | /g, " ").match(NUM_GROUPED);
+    if (!m) return null;
+    const dec = m.filter((x) => /[.,]\d{2}$/.test(x));
+    return toNumber((dec.length ? dec : m).pop());
+  }
+
+  function parseQuoteText(text) {
+    const lines = String(text || "").replace(/;/g, "\t").split(/\r?\n/).map((l) => l.replace(/\s+$/, ""));
+    const out = { kind: null, supplier: null, number: null, date: null, totals: { ht: null, vat: null, ttc: null }, lines: [] };
+    let pending = null;
+    for (const raw of lines) {
+      const s = raw.trim();
+      if (!s) { pending = null; continue; }
+      if (!out.supplier && /[A-Za-zÀ-ÿ]{3}/.test(s) && !SKIP.test(s)) out.supplier = s.split(/\t| {2,}/)[0].trim().slice(0, 60);
+      if (!out.kind) { const k = s.match(/\b(facture|devis)\b/i); if (k) out.kind = k[1].toLowerCase(); }
+      if (!out.number) { const n = s.match(/\b(?:facture|devis)\s*(?:n[°ºo]\.?|num[ée]ro|#)?\s*[:#]?\s*([A-Z0-9][\w\-\/]*\d[\w\-\/]*)/i); if (n) out.number = n[1]; }
+      if (!out.date) { const d = s.match(/\b(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4})\b/); if (d) out.date = d[1]; }
+      if (/total\s*(g[ée]n[ée]ral\s*)?t\.?\s*t\.?\s*c|net\s+[àa]\s+payer|montant\s*t\.?t\.?c/i.test(s)) { out.totals.ttc = lastAmount(s); pending = null; continue; }
+      if (/(total|montant|base)\s*(g[ée]n[ée]ral\s*)?h\.?\s*t/i.test(s) && !/sous/i.test(s)) { out.totals.ht = lastAmount(s); pending = null; continue; }
+      if (/^(total\s*)?(montant\s*)?t\.?v\.?a/i.test(s)) { out.totals.vat = lastAmount(s); pending = null; continue; }
+      if (SKIP.test(s)) { pending = null; continue; }
+      const p = parseLine(raw);
+      if (!p) continue;
+      if (p.text !== undefined) { if (/[A-Za-zÀ-ÿ]{3}/.test(p.text)) pending = p.text.replace(/\t/g, " "); continue; } // seule la dernière ligne de texte sert de désignation
+      if (p.name.replace(/[^A-Za-zÀ-ÿ]/g, "").length < 3) {
+        if (!pending) continue; // montant isolé sans désignation
+        p.name = (pending + " " + p.name).trim();
+      }
+      pending = null;
+      out.lines.push(p);
+    }
+    out.linesTotal = r2(out.lines.reduce((a, l) => a + l.total, 0));
+    return out;
+  }
+
+  /* Texte d'une page PDF à partir des fragments positionnés (pdf.js) :
+     même ordonnée = même ligne, grand écart horizontal = changement de colonne. */
+  function itemsToText(items) {
+    const rows = [];
+    for (const it of items) {
+      if (!it.str || !it.str.trim()) continue;
+      const row = rows.find((r) => Math.abs(r.y - it.y) <= Math.max(2, (it.h || 8) * 0.35));
+      if (row) row.items.push(it); else rows.push({ y: it.y, items: [it] });
+    }
+    rows.sort((a, b) => b.y - a.y);
+    return rows.map((r) => {
+      r.items.sort((a, b) => a.x - b.x);
+      let line = "", end = null;
+      for (const it of r.items) {
+        if (end !== null) { const gap = it.x - end; line += gap > Math.max(7, (it.h || 8) * 0.9) ? "\t" : gap > 0.8 ? " " : ""; }
+        line += it.str.trim(); end = it.x + (it.w || 0);
+      }
+      return line;
+    }).join("\n");
+  }
+
+  // Réponse JSON de l'analyse par Claude → même structure que parseQuoteText
+  function fromModel(j) {
+    const n = (x) => (typeof x === "number" && isFinite(x) ? x : typeof x === "string" ? toNumber(x) : null);
+    const out = { kind: j && /fact/i.test(j.kind || "") ? "facture" : j && j.kind ? "devis" : null, supplier: (j && j.supplier) || null, number: (j && j.number) || null, date: (j && j.date) || null,
+      totals: { ht: n(j && j.totalHT), vat: null, ttc: n(j && j.totalTTC) }, lines: [] };
+    for (const l of (j && Array.isArray(j.lines) ? j.lines : [])) {
+      const total = n(l.totalHT), q = n(l.quantity), pu = n(l.unitPriceHT);
+      if (!l.designation || (total === null && pu === null)) continue;
+      const qty = q > 0 ? q : 1, unitPrice = pu !== null ? pu : r2(total / qty);
+      out.lines.push({ name: String(l.designation).trim(), qty, unit: l.unit ? unitOf(String(l.unit).trim()) || null : null, unitPrice, vat: n(l.vatRate), total: total !== null ? r2(total) : r2(qty * unitPrice), check: total !== null && !near(qty * unitPrice, total) });
+    }
+    out.linesTotal = r2(out.lines.reduce((a, l) => a + l.total, 0));
+    return out;
+  }
+
+  const api = { parseQuoteText, parseLine, itemsToText, fromModel, toNumber };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  root.ECExtract = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+<script>
 /* Eureka Chiffrage — interface web. État conservé dans le navigateur (localStorage). */
 (function () {
   "use strict";
@@ -1006,7 +1200,7 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
     const all = scopeDamages(e, tp, roId);
     const list = all.filter((d) => (ui.tab === "mbv") === (d.l1 === MBV)).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
     const dis = ro ? " disabled" : "";
-    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions"><button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
+    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions">${ui.tab === "prest" ? `<button class="btn" data-act="import-doc"${dis}>Importer un devis ou une facture</button>` : ""}<button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
       <div class="filters"><div class="fld"><label for="dm-tp">Tiers</label>${sel("dm-tp", "dm-tp", c.thirdParties.map((t) => ({ value: t.id, label: t.name + (t.insured ? " (assuré)" : "") })), tp.id)}</div>
       ${tp.insured ? `<div class="fld"><label for="dm-ro">Objet de risque</label>${sel("dm-ro", "dm-ro", c.riskObjects.map((r) => ({ value: r.id, label: roLabel(c, r.id) })), roId)}</div>` : ""}
       <div class="fld"><label for="dm-claimed">Montant réclamé €</label><input id="dm-claimed" class="num" inputmode="decimal" data-chg="claimed" value="${n2(k.claimedAmount)}"${dis}></div>
@@ -1031,7 +1225,7 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
         if (l2 !== null && l2 !== "N/A") rows += `<tr class="l2"><td colspan="4">${h(l2)}</td>${totals(g2)}<td></td><td></td></tr>`;
         for (const d of g2) {
           const better = d.csr && db.refs.prices.some((p) => p.csr === d.csr && num(p.co2) < num(d.co2));
-          rows += `<tr class="l3"><td><button class="link ln" data-act="${d.l1 === MBV ? "edit-mbv" : "edit-dmg"}" data-id="${d.id}">${h(d.name)}</button>${d.csr && !better ? ' <span class="leaf" title="Prestation la moins carbonée de sa catégorie">éco</span>' : ""}${d.l1 === MBV ? `<br><small class="muted">${h([d.goodStatus, d.proof].filter(Boolean).join(" · "))}</small>` : ""}</td>
+          rows += `<tr class="l3"><td><button class="link ln" data-act="${d.l1 === MBV ? "edit-mbv" : "edit-dmg"}" data-id="${d.id}">${h(d.name)}</button>${d.csr && !better ? ' <span class="leaf" title="Prestation la moins carbonée de sa catégorie">éco</span>' : ""}${d.l1 === MBV ? `<br><small class="muted">${h([d.goodStatus, d.proof].filter(Boolean).join(" · "))}</small>` : ""}${d.source ? `<br><small class="muted">${h(d.source)}</small>` : ""}</td>
             <td>${h(room(d.roomId))}</td><td class="r">${d.l1 === RSE ? "1 %" : qty(d.qty) + " " + h(d.um || "")}</td><td class="r">${eur(d.unit)}</td><td class="r">${eur(d.priceNoVAT)}</td><td class="r">${pct(d.vat)} %</td><td class="r">${eur(d.priceWithVAT)}</td>
             <td class="r">${d.l1 === RSE ? "" : pct(d.obsPct) + " %"}</td><td class="r">${d.l1 === RSE ? "" : eur(d.obsAmount)}</td><td class="r">${eur(d.priceWithObs)}</td><td>${h(d.mode)}</td>
             <td class="acts">${ro ? "" : `<button class="btn sm ghost" data-act="dup-dmg" data-id="${d.id}" title="Dupliquer">Dupliquer</button><button class="btn sm ghost danger-t" data-act="del-dmg" data-id="${d.id}">Supprimer</button>`}</td></tr>`;
@@ -1650,8 +1844,220 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
   document.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && ev.target.matches && ev.target.matches("input[data-chg]")) ev.target.blur(); });
   $("#dlg").addEventListener("cancel", () => setTimeout(() => (dlg().innerHTML = ""), 0));
 
-  window.ECApp = { get db() { return db; }, ui, render, seedDemo };
+  window.ECApp = { get db() { return db; }, ui, render, seedDemo, acts,
+    api: { cur, est, dmgScope, getCalc, scopeDamages, touch, benefitOf, possibleBeneficiaries, roLabel, dlg, closeDlg, toast, h, eur, n2, qty, parseNum, uid, readOnly, L } };
   render();
+})();
+</script>
+<script>
+/* Import d'un devis ou d'une facture dans le chiffrage : lecture du document, contrôle des lignes, intégration. */
+(function () {
+  "use strict";
+  const A = ECApp.api, { h, eur, n2, parseNum, toast } = A, { MBV, RSE, num, blank, r2 } = EC;
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  const $ = (s, el) => (el || document).querySelector(s);
+  let S = null; // état du dialogue en cours
+
+  const loadScript = (src) => new Promise((ok, ko) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => ko(new Error("load")); document.head.appendChild(el); });
+  async function pdfLib() {
+    if (!window.pdfjsLib) { await loadScript(PDFJS + "pdf.min.js"); await loadScript(PDFJS + "pdf.worker.min.js"); window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; }
+    return window.pdfjsLib;
+  }
+  const fileText = (f) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = ko; r.readAsText(f); });
+  const fileBytes = (f) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(new Uint8Array(r.result)); r.onerror = ko; r.readAsArrayBuffer(f); });
+  async function openPdf(file) { const lib = await pdfLib(); return lib.getDocument({ data: await fileBytes(file) }).promise; }
+  async function pdfText(pdf) {
+    const pages = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const tc = await (await pdf.getPage(i)).getTextContent();
+      pages.push(ECExtract.itemsToText(tc.items.map((it) => ({ str: it.str, x: it.transform[4], y: it.transform[5], w: it.width, h: it.height || Math.abs(it.transform[3]) }))));
+    }
+    return pages.join("\n");
+  }
+  async function pdfImages(pdf, max) {
+    const out = [];
+    for (let i = 1; i <= Math.min(pdf.numPages, max); i++) {
+      const page = await pdf.getPage(i), vp = page.getViewport({ scale: 1.7 }), cv = document.createElement("canvas");
+      cv.width = vp.width; cv.height = vp.height;
+      await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+      out.push(await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.85)));
+    }
+    return out;
+  }
+  const isPdf = (f) => /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name);
+  const isImage = (f) => /^image\//.test(f.type);
+
+  /* ----- Étape 1 : choix du document ----- */
+  function open() {
+    if (A.readOnly()) return;
+    const c = A.cur(), e = A.est(), { tp, roId } = A.dmgScope(c, e);
+    S = { c, e, tp, roId, doc: null, sample: null, label: "" };
+    const d = A.dlg();
+    d.innerHTML = `<div class="dlg-body"><h3>Importer un devis ou une facture</h3>
+      <p class="muted">Les lignes chiffrées du document sont repérées, vous les contrôlez, puis elles sont ajoutées aux prestations de ${h(tp.name)}${tp.insured ? " · " + h(A.roLabel(c, roId)) : ""}.</p>
+      <div class="fld"><label for="imp-doc-file">Document : PDF, image, ou fichier texte / CSV</label><input type="file" id="imp-doc-file" accept=".pdf,.txt,.csv,application/pdf,text/plain,text/csv,image/*"></div>
+      <div class="fld"><label for="imp-doc-text">Ou collez ici le texte du document</label><textarea id="imp-doc-text" rows="6" placeholder="Désignation   Qté   U   P.U. HT   TVA   Total HT"></textarea></div>
+      <p class="muted" id="imp-privacy">La lecture se fait dans ce navigateur : le document n'est envoyé nulle part.</p>
+      <p class="form-err" id="imp-status" role="status" hidden></p></div>
+      <div class="dlg-foot"><button class="btn ghost" data-act="dlg-close">Annuler</button><button class="btn" id="imp-ai" hidden>Analyser avec Claude</button><button class="btn primary" id="imp-run">Extraire les lignes</button></div>`;
+    $("#imp-run", d).onclick = () => run(false);
+    $("#imp-ai", d).onclick = () => run(true);
+    d.showModal();
+    // l'analyse par Claude n'existe que dans la page publiée sur claude.ai
+    if (window.claude && window.claude.use) window.claude.use("sample").then((fn) => {
+      if (!fn || !S || S.doc) return; S.sample = fn;
+      const b = $("#imp-ai", d); if (!b) return; b.hidden = false;
+      $("#imp-privacy", d).textContent = "« Extraire les lignes » lit le document dans ce navigateur, sans rien envoyer. « Analyser avec Claude » envoie son contenu à Claude : à réserver aux scans et aux photos, ou aux mises en page que la lecture locale ne comprend pas.";
+    }).catch(() => {});
+  }
+  function status(msg, busy) {
+    const p = $("#imp-status"); if (!p) return;
+    p.hidden = !msg; p.textContent = msg || ""; p.className = busy ? "muted" : "form-err";
+    ["#imp-run", "#imp-ai"].forEach((s) => { const b = $(s); if (b) b.disabled = !!busy; });
+  }
+  async function run(useAi) {
+    const d = A.dlg(), file = $("#imp-doc-file", d).files[0], pasted = $("#imp-doc-text", d).value.trim();
+    if (!file && !pasted) return status("Choisissez un document ou collez son texte.");
+    S.label = file ? file.name : "texte collé";
+    let text = pasted, pdf = null;
+    try {
+      if (!text && file) {
+        if (isPdf(file)) { status("Lecture du PDF…", true); pdf = await openPdf(file); text = (await pdfText(pdf)).trim(); }
+        else if (!isImage(file)) text = (await fileText(file)).trim();
+      }
+    } catch (err) {
+      return status(err && err.message === "load" ? "Le lecteur PDF n'a pas pu être chargé (connexion internet requise). Collez le texte du document à la place." : "Ce fichier n'a pas pu être lu. Vérifiez qu'il s'agit bien d'un PDF ou d'un fichier texte.");
+    }
+    if (useAi) return runAi(text, file, pdf);
+    if (!text) return status(file && isImage(file) ? "Une image ne peut pas être lue localement." + (S.sample ? " Utilisez « Analyser avec Claude »." : " Collez le texte du document, ou importez un PDF contenant du texte.")
+      : "Ce PDF est un scan : il ne contient pas de texte." + (S.sample ? " Utilisez « Analyser avec Claude »." : " Collez le texte du document à la place."));
+    const doc = ECExtract.parseQuoteText(text);
+    if (!doc.lines.length) return status("Aucune ligne chiffrée reconnue dans ce document." + (S.sample ? " Essayez « Analyser avec Claude »." : " Vérifiez que chaque ligne porte une désignation et un montant."));
+    review(doc);
+  }
+  async function runAi(text, file, pdf) {
+    const opts = { cache: false };
+    let prompt = "Tu lis un devis ou une facture d'artisan ou d'entreprise du bâtiment (document français). Extrais chaque ligne chiffrée de prestation ou de fourniture. Ignore les sous-totaux, totaux, acomptes, remises globales et mentions légales. " +
+      'Réponds uniquement par un objet JSON de cette forme : {"kind":"devis"|"facture","supplier":string|null,"number":string|null,"date":string|null,"totalHT":number|null,"totalTTC":number|null,"lines":[{"designation":string,"quantity":number,"unit":string|null,"unitPriceHT":number,"vatRate":number|null,"totalHT":number}]}. ' +
+      "Les montants sont des nombres hors taxes avec un point décimal. Si seul un montant TTC figure sur une ligne, convertis-le en HT avec son taux de TVA. Ne déduis rien qui ne soit pas écrit dans le document.";
+    try {
+      status("Analyse du document par Claude…", true);
+      if (text) prompt += "\n\nTexte du document (les tabulations séparent les colonnes) :\n" + text.slice(0, 60000);
+      else {
+        const lim = await S.sample.limits().catch(() => null);
+        if (!lim || !lim.images) return status("L'envoi d'images à Claude n'est pas disponible dans cette vue. Collez le texte du document.");
+        opts.images = pdf ? await pdfImages(pdf, lim.images.maxCount || 4) : [file];
+        prompt += "\n\nLe document est fourni en image" + (opts.images.length > 1 ? "s, une par page." : ".");
+      }
+      const doc = ECExtract.fromModel(await S.sample.json(prompt, opts));
+      if (!doc.lines.length) return status("Claude n'a trouvé aucune ligne chiffrée dans ce document.");
+      doc.byModel = true; review(doc);
+    } catch (err) {
+      const code = err && err.code;
+      status(code === "not_granted" ? "L'analyse par Claude n'a pas été autorisée. La lecture locale reste disponible." : code === "rate_limited" ? "Trop de demandes pour l'instant. Réessayez dans un moment." : code === "image_rejected" ? "Ce format d'image n'est pas accepté. Essayez un PDF, un JPEG ou un PNG." : "L'analyse par Claude a échoué. Réessayez, ou utilisez la lecture locale.");
+    }
+  }
+
+  /* ----- Étape 2 : contrôle des lignes ----- */
+  const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const STOP = new Set(["fourniture", "fournitures", "remplacement", "couches", "location", "jours", "dépose", "depose", "installation", "prestation", "travaux", "divers", "mise", "avec", "pour", "sans"]);
+  const words = (s) => norm(s).split(/[^a-z0-9]+/).filter((w) => w.length >= 5 && !STOP.has(w)).map((w) => w.slice(0, 6));
+  // Propose une nature d'après les mots de la désignation (détails et prestations du référentiel)
+  function guessNature(name, natures) {
+    const ws = new Set(words(name)); let best = null, score = 0;
+    for (const n of natures) { let sc = 0; n.kw2.forEach((w) => ws.has(w) && (sc += 2)); n.kw1.forEach((w) => ws.has(w) && (sc += 1)); if (sc > score) { score = sc; best = n; } }
+    return best ? best.value : "";
+  }
+  function review(doc) {
+    S.doc = doc;
+    const { c, e, tp } = S, d = A.dlg(), L = A.L;
+    const irsi = c.irsiEnabled ? "true" : "false";
+    const natures = ECApp.db.refs.benefits.filter((b) => b.l1 !== MBV && b.l1 !== RSE && (blank(b.rec) || b.rec === irsi)).map((b) => ({ value: b.l1 + "›" + b.l2, label: b.l1 + " › " + b.l2, kw2: words(b.l2),
+      kw1: [...new Set(ECApp.db.refs.prices.filter((p) => p.l1 === b.l1 && p.l2 === b.l2).flatMap((p) => words(p.name)))] }));
+    const natOpts = (sel, first) => `<option value="">${first}</option>` + natures.map((n) => `<option value="${h(n.value)}"${n.value === sel ? " selected" : ""}>${h(n.label)}</option>`).join("");
+    const kind = doc.kind === "facture" ? "Facture" : "Devis";
+    S.source = [kind, doc.number ? "n° " + doc.number : "", doc.supplier || ""].filter(Boolean).join(" ");
+    const defVat = blank(tp.vat) ? 20 : tp.vat;
+    const bens = [{ display: "" }].concat(A.possibleBeneficiaries(c));
+    const rows = doc.lines.map((l, i) => `<tr data-i="${i}"><td><input type="checkbox" class="ir-on" id="ir-on-${i}" checked aria-label="Retenir la ligne"></td>
+      <td><input class="ir-name" id="ir-name-${i}" value="${h(l.name)}" aria-label="Désignation">${l.check ? '<small class="warn-t">Quantité ou prix à vérifier</small>' : ""}</td>
+      <td><input class="num xs ir-qty" id="ir-qty-${i}" inputmode="decimal" value="${A.qty(l.qty)}" aria-label="Quantité"></td>
+      <td><select class="ir-um" id="ir-um-${i}" aria-label="Unité">${[""].concat(L.units).map((u) => `<option${u === (l.unit || "") ? " selected" : ""}>${u}</option>`).join("")}</select></td>
+      <td><input class="num ir-pu" id="ir-pu-${i}" inputmode="decimal" value="${n2(l.unitPrice)}" aria-label="Prix unitaire HT"></td>
+      <td><input class="num xs ir-vat" id="ir-vat-${i}" inputmode="decimal" value="${blank(l.vat) ? "" : String(l.vat).replace(".", ",")}" placeholder="${String(defVat).replace(".", ",")}" aria-label="TVA %"></td>
+      <td class="r ir-tot"></td>
+      <td><select class="ir-nat" id="ir-nat-${i}" aria-label="Nature">${natOpts(guessNature(l.name, natures), "Nature par défaut")}</select></td></tr>`).join("");
+    d.innerHTML = `<div class="dlg-body"><h3>Contrôler les lignes à intégrer</h3>
+      <p class="muted">${h(S.source)}${doc.date ? " du " + h(doc.date) : ""} · ${h(S.label)}${doc.byModel ? " · lu par Claude : vérifiez chaque montant avec le document" : ""}</p>
+      <p id="ir-check" class="banner"></p>
+      <div class="grid">
+        <div class="fld"><label for="ig-nat">Nature par défaut</label><select id="ig-nat">${natOpts("", "À choisir")}</select></div>
+        <div class="fld"><label for="ig-mode">Mode d'indemnisation</label><select id="ig-mode"><option value="IP">IP · indemnité pécuniaire</option><option value="REN">REN · réparation en nature</option></select></div>
+        <div class="fld"><label for="ig-obs">Vétusté %</label><input id="ig-obs" class="num" inputmode="decimal"></div>
+        <div class="fld"><label for="ig-room">Pièce</label><select id="ig-room"><option value="">—</option>${c.rooms.map((r) => `<option value="${r.id}">${h(r.name)}</option>`).join("")}</select></div>
+        <div class="fld"><label for="ig-ben">Bénéficiaire</label><select id="ig-ben">${bens.map((b) => `<option value="${h(b.display)}">${h(b.display || "—")}</option>`).join("")}</select></div>
+        <div class="fld"><label class="inline"><input type="checkbox" id="ig-claimed"> Reporter le total du document dans le montant réclamé</label></div>
+      </div>
+      <div class="tw imp-tw"><table><thead><tr><th></th><th>Désignation</th><th class="r">Qté</th><th>Unité</th><th class="r">Prix unitaire HT €</th><th class="r">TVA %</th><th class="r">Montant HT €</th><th>Nature</th></tr></thead><tbody id="ir-body">${rows}</tbody></table></div>
+      <p class="form-err" id="imp-status" hidden></p></div>
+      <div class="dlg-foot"><button class="btn ghost" data-act="dlg-close">Annuler</button><button class="btn ghost" id="imp-back">Autre document</button><button class="btn primary" id="imp-go"></button></div>`;
+    const body = $("#ir-body", d);
+    const refresh = () => {
+      let sum = 0, n = 0;
+      body.querySelectorAll("tr").forEach((tr) => {
+        const q = parseNum($(".ir-qty", tr).value), pu = parseNum($(".ir-pu", tr).value), t = q > 0 && pu >= 0 && pu !== null ? r2(q * pu) : null;
+        $(".ir-tot", tr).textContent = t === null ? "–" : eur(t);
+        const on = $(".ir-on", tr).checked; tr.classList.toggle("off", !on);
+        if (on) { n++; sum += num(t); }
+      });
+      sum = r2(sum);
+      const chk = $("#ir-check", d), ht = doc.totals.ht;
+      const ok = !blank(ht) && Math.abs(sum - ht) < 0.015;
+      chk.className = "banner " + (blank(ht) ? "info" : ok ? "ok" : "warn");
+      chk.textContent = `${n} ligne${n > 1 ? "s" : ""} retenue${n > 1 ? "s" : ""} pour ${eur(sum)} HT. ` + (blank(ht) ? "Le total HT du document n'a pas été repéré : comparez avec le document." : ok ? `Identique au total HT du document.` : `Le document annonce ${eur(ht)} HT : écart de ${eur(r2(sum - ht))}.`);
+      $("#imp-go", d).textContent = n ? `Intégrer ${n} ligne${n > 1 ? "s" : ""} au chiffrage` : "Aucune ligne retenue"; $("#imp-go", d).disabled = !n;
+      S.sum = sum;
+    };
+    body.addEventListener("input", refresh); body.addEventListener("change", refresh); refresh();
+    $("#imp-back", d).onclick = open;
+    $("#imp-go", d).onclick = integrate;
+  }
+
+  function integrate() {
+    const { c, e, tp, roId, doc } = S, d = A.dlg();
+    const fail = (msg, el) => { const p = $("#imp-status", d); p.hidden = false; p.textContent = msg; if (el) el.focus(); };
+    const defNat = $("#ig-nat", d).value, mode = $("#ig-mode", d).value, obs = parseNum($("#ig-obs", d).value);
+    if (obs === undefined || (obs !== null && (obs < 0 || obs > 100))) return fail("La vétusté doit être un pourcentage entre 0 et 100.", $("#ig-obs", d));
+    const defVat = blank(tp.vat) ? 20 : tp.vat, list = [];
+    for (const tr of d.querySelectorAll("#ir-body tr")) {
+      if (!$(".ir-on", tr).checked) continue;
+      const name = $(".ir-name", tr).value.trim(), q = parseNum($(".ir-qty", tr).value), pu = parseNum($(".ir-pu", tr).value), vat = parseNum($(".ir-vat", tr).value), nat = $(".ir-nat", tr).value || defNat;
+      if (!name) return fail("Une ligne retenue n'a pas de désignation.", $(".ir-name", tr));
+      if (!(q > 0)) return fail(`« ${name} » : la quantité doit être supérieure à 0.`, $(".ir-qty", tr));
+      if (pu === null || pu === undefined || pu < 0) return fail(`« ${name} » : le prix unitaire n'est pas valide.`, $(".ir-pu", tr));
+      if (vat === undefined || (vat !== null && (vat < 0 || vat >= 100))) return fail(`« ${name} » : la TVA doit être un pourcentage entre 0 et 100.`, $(".ir-vat", tr));
+      if (!nat) return fail("Choisissez une nature par défaut, ou une nature sur chaque ligne.", $("#ig-nat", d));
+      list.push({ name, q, pu, vat: vat === null ? defVat : vat, um: $(".ir-um", tr).value, nat });
+    }
+    const calc = A.getCalc(e, tp.id, roId, true);
+    for (const x of list) {
+      const [l1, l2] = x.nat.split("›");
+      const a = EC.damageAmounts({ l1, qty: x.q, unit: x.pu, vat: x.vat, obsPct: obs }, calc.taxRegime);
+      const dm = { id: A.uid(), calculationId: calc.id, thirdPartyId: tp.id, riskObjectId: roId, l1, l2, name: x.name, repairer: "Hors bordereau", mode, qty: x.q, um: x.um, unit: x.pu, vat: x.vat,
+        obsPct: EC.r1(a.obsPct), obsAmount: a.obsAmount, priceWithObs: a.priceWithObs, priceNoVAT: a.priceNoVAT, priceWithVAT: a.priceWithVAT,
+        beneficiaryName: $("#ig-ben", d).value, roomId: $("#ig-room", d).value || null, co2: null, csr: null, source: S.source };
+      dm.lineIndex = EC.nextLineIndex(A.scopeDamages(e, tp, roId).filter((y) => y.l1 !== MBV), l1, l2);
+      dm.irsiAmount = EC.irsiAmount(A.benefitOf(l1, l2), dm);
+      e.damages.push(dm);
+    }
+    if ($("#ig-claimed", d).checked) calc.claimedAmount = !blank(doc.totals.ttc) ? doc.totals.ttc : !blank(doc.totals.ht) ? doc.totals.ht : S.sum;
+    A.touch(e, calc);
+    ECApp.ui.tab = "prest"; S = null;
+    A.closeDlg(); ECApp.render();
+    toast(`${list.length} ligne${list.length > 1 ? "s" : ""} intégrée${list.length > 1 ? "s" : ""} au chiffrage`);
+  }
+
+  ECApp.acts["import-doc"] = () => { open(); return false; };
 })();
 </script>
 </body>

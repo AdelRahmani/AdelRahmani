@@ -21,6 +21,16 @@ Parcours : Infos générales → Parties prenantes → Localisations → Estimat
 
 Le moteur est dans `src/calc.js`, sans dépendance au navigateur.
 
+## Import d'un devis ou d'une facture
+
+Dans Dommages, « Importer un devis ou une facture » lit un PDF, un fichier texte / CSV ou un texte collé, repère les lignes chiffrées (désignation, quantité, unité, prix unitaire HT, TVA) et les propose au contrôle avant intégration.
+
+- La lecture se fait dans le navigateur (`src/extract.js`) ; le PDF est lu avec pdf.js, chargé depuis un CDN à la première utilisation.
+- Le total des lignes retenues est comparé au total HT du document.
+- Une nature est proposée par ligne d'après le référentiel ; mode d'indemnisation, vétusté, pièce et bénéficiaire s'appliquent à tout l'import.
+- Les lignes intégrées portent l'origine du document et suivent les mêmes règles de calcul que les prestations saisies à la main.
+- Sur la page publiée dans claude.ai, « Analyser avec Claude » lit aussi les scans et les photos. C'est le seul cas où le contenu du document quitte le navigateur.
+
 ## Ce qui diffère de l'app Power Apps
 
 - Pas de connexion à ProsPecT / Eureka ni à Dataverse : le dossier est créé à la main ou importé en JSON.
@@ -32,6 +42,8 @@ Le moteur est dans `src/calc.js`, sans dépendance au navigateur.
 
 ```
 python3 build.py          # assemble src/ en index.html
-node tests/calc.test.js   # règles de calcul
-node tests/e2e.js         # parcours complet dans Chromium (Playwright)
+node tests/calc.test.js      # règles de calcul
+node tests/extract.test.js   # lecture des lignes d'un devis
+node tests/e2e.js            # parcours complet dans Chromium (Playwright)
+node tests/import.e2e.js     # import d'un devis PDF et d'un texte collé
 ```
