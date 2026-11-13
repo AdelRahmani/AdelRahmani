@@ -1,0 +1,37 @@
+# Eureka Chiffrage — version web
+
+Recréation en page web autonome d'Eureka Chiffrage (app Power Apps canvas, v2.7.4.0) : chiffrage des dommages et calcul de l'indemnisation, de la création du dossier à la synthèse.
+
+## Utilisation
+
+Ouvrir `index.html` dans un navigateur. Aucune installation, aucun serveur. Les dossiers sont enregistrés dans le navigateur (localStorage) ; l'export JSON permet de les sauvegarder ou de les transférer.
+
+Parcours : Infos générales → Parties prenantes → Localisations → Estimations → Dommages (prestations, mobilier) → Garanties → Bénéficiaires → Indemnisations → Synthèse.
+
+## Règles de calcul reprises de l'app d'origine
+
+- Ligne de prestation : montant HT = quantité × prix unitaire ; TTC = HT × (1 + TVA) ; vétusté calculée sur le montant du régime fiscal du règlement (HT ou TTC), en % ou en montant saisi (le montant remplace le %).
+- Bonification RSE : 1 % des prestations en réparation en nature retenues.
+- Vétusté transverse par nature, bascule HT/TTC avec recalcul des lignes et remise à zéro des ventilations concernées.
+- Mobilier et biens volés : saisie HT ou TTC, vétusté en % ou en montant, indemnité pécuniaire.
+- Indemnisation : regroupement des dommages de l'assuré par objet de risque, nature, détail, mode et bénéficiaire ; vétusté contractuelle récupérable (assiette valeur à neuf ou vétusté déduite) ; indemnité immédiate et différée selon le mode REN / IP ; plafond par ligne et plafond par nature réparti au prorata ; remise, pénalités, franchise.
+- Contrôles : franchise obligatoire, indemnités ≤ plafonds, indemnités ≤ dommages, position de l'assuré, ventilation complète des dommages couverts.
+- Statuts de l'estimation : brouillon, vérifiée, exportée, communiquée, figée. Toute modification repasse en brouillon ; une estimation exportée est verrouillée et se duplique pour être modifiée.
+- Assiette IRSI : somme des montants IRSI des calculs inclus et actifs.
+
+Le moteur est dans `src/calc.js`, sans dépendance au navigateur.
+
+## Ce qui diffère de l'app Power Apps
+
+- Pas de connexion à ProsPecT / Eureka ni à Dataverse : le dossier est créé à la main ou importé en JSON.
+- Les référentiels (natures, bordereaux de prix, réparateurs) fournis sont des exemples. Ils se remplacent depuis l'écran Référentiels (import JSON, ou CSV pour un bordereau).
+- L'export Excel est remplacé par un export CSV (séparateur `;`, lisible par Excel).
+- La zone tarifaire se choisit sur le dossier au lieu d'être déduite du département du réparateur.
+
+## Développement
+
+```
+python3 build.py          # assemble src/ en index.html
+node tests/calc.test.js   # règles de calcul
+node tests/e2e.js         # parcours complet dans Chromium (Playwright)
+```
