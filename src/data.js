@@ -71,7 +71,14 @@
     { name: "AUTOREPARATION", description: "Travaux réalisés par l'assuré" },
   ];
 
-  const refs = { benefits, prices, repairers };
+  // Barèmes de vétusté d'exemple : taux par an, franchise en années, plafond. À remplacer par les barèmes contractuels.
+  const o = (l1, l2, ratePerYear, franchiseYears, maxPct) => ({ l1, l2, ratePerYear, franchiseYears, maxPct });
+  const obsolescence = [
+    o("Embellissements", "Peinture", 10, 0, 80), o("Embellissements", "Revêtements de sols", 7, 0, 70), o("Embellissements", "Revêtements muraux", 10, 0, 80), o("Embellissements", "Plafonds", 5, 0, 60),
+    o("Immobilier", "", 3, 5, 50), o("Immobilier", "Menuiserie", 3, 2, 60), o("Immobilier", "Plomberie - Sanitaire", 4, 2, 60), o("Immobilier", "Électricité", 4, 2, 60),
+    o(MBV, "Mobilier", 10, 0, 80), o(MBV, "Électroménager", 10, 1, 80), o(MBV, "Hi-fi - Vidéo - Informatique", 20, 0, 80), o(MBV, "Vêtements et linge", 20, 0, 80), o(MBV, "Matériel professionnel", 15, 0, 80),
+  ];
+  const refs = { benefits, prices, repairers, obsolescence };
 
   const LISTS = {
     caseTypes: ["DDE", "Incendie", "Vol", "Dommages électriques", "Bris de glace", "Tempête/Neige/Grêle", "Inondation", "Autre sinistre"],

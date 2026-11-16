@@ -91,4 +91,8 @@ assert.strictEqual(EC.verifyEstimate({ ...full, position: null }).errors.length,
 const m = EC.roomMeasures({ length: 3.6, width: 2.8, height: 2.5, openings: [{ type: "Porte", width: 0.83, height: 2.04 }] });
 eq(m.floor, 10.08, "sol"); eq(m.perimeter, 12.8, "périmètre"); eq(m.walls, 30.31, "murs"); eq(m.skirting, 11.97, "plinthes");
 eq(EC.roomMeasures({ surface: 20, height: 2.5 }).length, 5.69, "nombre d'or");
+// Barème de vétusté : 10 % par an après 1 an de franchise, plafonné à 80 %
+const rule = { ratePerYear: 10, franchiseYears: 1, maxPct: 80 };
+eq(EC.scaleObsolescence(rule, 4), 30, "barème 4 ans"); eq(EC.scaleObsolescence(rule, 0.5), 0, "barème sous franchise"); eq(EC.scaleObsolescence(rule, 20), 80, "barème plafonné");
+assert.strictEqual(EC.scaleObsolescence(null, 3), null); assert.strictEqual(EC.yearsBetween("2022-11-15", "2026-10-02"), 3); assert.strictEqual(EC.yearsBetween("2022-10-02", "2026-10-02"), 4); assert.strictEqual(EC.yearsBetween("", "2026-10-02"), null); n += 4;
 console.log(n + " vérifications OK");

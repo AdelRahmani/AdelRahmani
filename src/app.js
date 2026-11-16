@@ -30,9 +30,22 @@
   let db = load() || { cases: [], refs: clone(ECData.refs) };
   const ui = { view: "home", step: "infos", caseId: null, estId: null, tpId: null, roId: null, benId: null,
     tab: "prest", synthTab: "main", option: 1, genericPct: null, collapsed: {}, onlyMine: false };
+  // Chaque enregistrement garde l'état précédent : « Annuler » y revient (30 derniers états)
+  const hist = [];
+  let lastSnap = JSON.stringify(db);
+  function persist(text) { try { localStorage.setItem(KEY, text); storageOk = true; } catch (e) { storageOk = false; } }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(db)); storageOk = true; } catch (e) { storageOk = false; }
+    const now = JSON.stringify(db);
+    if (now !== lastSnap) { hist.push(lastSnap); if (hist.length > 30) hist.shift(); lastSnap = now; }
+    persist(now);
   }
+  function undo() {
+    if (!hist.length) return false;
+    lastSnap = hist.pop(); db = JSON.parse(lastSnap); persist(lastSnap);
+    return true;
+  }
+  const obsRule = (l1, l2) => { const t = db.refs.obsolescence || ECData.refs.obsolescence; return t.find((r) => r.l1 === l1 && r.l2 === l2) || t.find((r) => r.l1 === l1 && blank(r.l2)) || null; };
+  const ruleText = (r) => (r ? `Barème : ${pct(r.ratePerYear)} % par an${num(r.franchiseYears) ? " après " + qty(r.franchiseYears) + " an(s)" : ""}, plafonné à ${pct(r.maxPct)} %` : "");
   const cur = () => db.cases.find((c) => c.id === ui.caseId);
   const est = () => { const c = cur(); return c && (c.estimates.find((e) => e.id === ui.estId) || c.estimates[0]); };
   const insured = (c) => c.thirdParties.find((t) => t.insured);
@@ -57,7 +70,8 @@
   const calcMap = (e) => Object.fromEntries(e.calculations.map((k) => [k.id, k]));
   // Toute modification repasse l'estimation en brouillon
   function touch(e, calc) {
-    e.status = 1; e.statusDate = new Date().toISOString(); e.active = true;
+    if (e.status !== 1) e.statusDate = new Date().toISOString(); // la date ne bouge que si le statut change
+    e.status = 1; e.active = true;
     if (calc) calc.active = EC.calculationActive(calc, e.damages);
     save();
   }
@@ -175,6 +189,7 @@
     m.innerHTML = (!storageOk ? `<p class="banner warn">Le stockage du navigateur est indisponible : vos saisies seront perdues à la fermeture de la page. Exportez le dossier en JSON pour le conserver.</p>` : "") +
       (ui.view === "home" ? vHome() : ui.view === "refs" ? vRefs() : vCase(c));
     if (keep) { const el = document.getElementById(keep); if (el) { el.focus(); if (el.select && el.tagName === "INPUT" && el.type === "text") el.select(); } }
+    const ub = $("#undo"); if (ub) ub.disabled = !hist.length;
     const on = $("#steps .on"); if (on && on.scrollIntoView) on.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
 
@@ -290,7 +305,7 @@
     const all = scopeDamages(e, tp, roId);
     const list = all.filter((d) => (ui.tab === "mbv") === (d.l1 === MBV)).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
     const dis = ro ? " disabled" : "";
-    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions">${ui.tab === "prest" ? `<button class="btn" data-act="import-doc"${dis}>Importer un devis ou une facture</button>` : ""}<button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
+    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions">${ui.tab === "prest" ? `<button class="btn" data-act="catalog"${dis}>Chiffrer depuis le bordereau</button><button class="btn" data-act="import-doc"${dis}>Importer un devis ou une facture</button>` : ""}<button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
       <div class="filters"><div class="fld"><label for="dm-tp">Tiers</label>${sel("dm-tp", "dm-tp", c.thirdParties.map((t) => ({ value: t.id, label: t.name + (t.insured ? " (assuré)" : "") })), tp.id)}</div>
       ${tp.insured ? `<div class="fld"><label for="dm-ro">Objet de risque</label>${sel("dm-ro", "dm-ro", c.riskObjects.map((r) => ({ value: r.id, label: roLabel(c, r.id) })), roId)}</div>` : ""}
       <div class="fld"><label for="dm-claimed">Montant réclamé €</label><input id="dm-claimed" class="num" inputmode="decimal" data-chg="claimed" value="${n2(k.claimedAmount)}"${dis}></div>
@@ -307,18 +322,19 @@
       const g1 = list.filter((d) => (ui.tab === "mbv" ? d.l2 : d.l1) === l1), ck = "c:" + l1, closed = ui.collapsed[ck];
       const pcts = [...new Set(g1.map((d) => num(d.obsPct)))];
       rows += `<tr class="l1"><td colspan="4"><button class="tw-btn" data-act="collapse" data-k="${h(ck)}" aria-expanded="${!closed}">${closed ? "▸" : "▾"}</button> ${h(l1)}</td>${totals(g1)}
-        <td class="r">${ui.tab === "prest" && l1 !== RSE ? `<input id="tv-${h(l1)}" class="num xs" inputmode="decimal" data-chg="transverse" data-l1="${h(l1)}" value="${pcts.length === 1 && pcts[0] ? pct(pcts[0]) : ""}" placeholder="Vét. %" aria-label="Vétusté appliquée à toute la nature"${dis}>` : ""}</td><td></td></tr>`;
+        <td class="r">${ui.tab === "prest" && l1 !== RSE ? `<input id="tv-${h(l1)}" class="num xs" inputmode="decimal" data-chg="transverse" data-l1="${h(l1)}" value="${pcts.length === 1 && pcts[0] ? pct(pcts[0]) : ""}" placeholder="Vét. %" aria-label="Vétusté appliquée à toute la nature"${dis}>` : ""}</td><td class="acts">${ui.tab === "prest" && l1 !== RSE && !ro ? `<button class="btn sm on-dark" data-act="bulk-nature" data-l1="${h(l1)}" title="Prix, vétusté, TVA, mode ou pièce de toute la nature">Modifier</button>` : ""}</td></tr>`;
       if (closed) continue;
       const l2s = ui.tab === "mbv" ? [null] : [...new Set(g1.map((d) => d.l2))];
       for (const l2 of l2s) {
         const g2 = l2 === null ? g1 : g1.filter((d) => d.l2 === l2);
         if (l2 !== null && l2 !== "N/A") rows += `<tr class="l2"><td colspan="4">${h(l2)}</td>${totals(g2)}<td></td><td></td></tr>`;
         for (const d of g2) {
+          const cellIn = (d2, k, val, label) => `<input id="ln-${k}-${d2.id}" class="num cell" inputmode="decimal" data-chg="line" data-id="${d2.id}" data-k="${k}" value="${val}" aria-label="${label}">`;
           const better = d.csr && db.refs.prices.some((p) => p.csr === d.csr && num(p.co2) < num(d.co2));
           rows += `<tr class="l3"><td><button class="link ln" data-act="${d.l1 === MBV ? "edit-mbv" : "edit-dmg"}" data-id="${d.id}">${h(d.name)}</button>${d.csr && !better ? ' <span class="leaf" title="Prestation la moins carbonée de sa catégorie">éco</span>' : ""}${d.l1 === MBV ? `<br><small class="muted">${h([d.goodStatus, d.proof].filter(Boolean).join(" · "))}</small>` : ""}${d.source ? `<br><small class="muted">${h(d.source)}</small>` : ""}</td>
-            <td>${h(room(d.roomId))}</td><td class="r">${d.l1 === RSE ? "1 %" : qty(d.qty) + " " + h(d.um || "")}</td><td class="r">${eur(d.unit)}</td><td class="r">${eur(d.priceNoVAT)}</td><td class="r">${pct(d.vat)} %</td><td class="r">${eur(d.priceWithVAT)}</td>
-            <td class="r">${d.l1 === RSE ? "" : pct(d.obsPct) + " %"}</td><td class="r">${d.l1 === RSE ? "" : eur(d.obsAmount)}</td><td class="r">${eur(d.priceWithObs)}</td><td>${h(d.mode)}</td>
-            <td class="acts">${ro ? "" : `<button class="btn sm ghost" data-act="dup-dmg" data-id="${d.id}" title="Dupliquer">Dupliquer</button><button class="btn sm ghost danger-t" data-act="del-dmg" data-id="${d.id}">Supprimer</button>`}</td></tr>`;
+            <td>${h(room(d.roomId))}</td><td class="r">${d.l1 === RSE ? "1 %" : d.l1 === MBV || ro ? qty(d.qty) + " " + h(d.um || "") : `<span class="join end">${cellIn(d, "qty", qty(d.qty), "Quantité")}<span class="um">${h(d.um || "")}</span></span>`}</td><td class="r">${d.l1 === RSE || ro ? eur(d.unit) : cellIn(d, "unit", n2(d.unit), "Prix unitaire HT")}</td><td class="r">${eur(d.priceNoVAT)}</td><td class="r">${pct(d.vat)} %</td><td class="r">${eur(d.priceWithVAT)}</td>
+            <td class="r">${d.l1 === RSE ? "" : ro ? pct(d.obsPct) + " %" : cellIn(d, "obsPct", pct(d.obsPct), "Vétusté %")}</td><td class="r">${d.l1 === RSE ? "" : eur(d.obsAmount)}</td><td class="r">${eur(d.priceWithObs)}</td><td>${h(d.mode)}</td>
+            <td class="acts">${ro ? "" : `<button class="ico" data-act="move-dmg" data-dir="-1" data-id="${d.id}" title="Monter" aria-label="Monter la ligne">↑</button><button class="ico" data-act="move-dmg" data-dir="1" data-id="${d.id}" title="Descendre" aria-label="Descendre la ligne">↓</button><button class="ico" data-act="dup-dmg" data-id="${d.id}" title="Dupliquer" aria-label="Dupliquer la ligne">⧉</button><button class="ico" data-act="reassign-dmg" data-id="${d.id}" title="Réaffecter à un autre tiers ou objet de risque" aria-label="Réaffecter la ligne">⇄</button><button class="ico danger-t" data-act="del-dmg" data-id="${d.id}" title="Supprimer" aria-label="Supprimer la ligne">✕</button>`}</td></tr>`;
         }
       }
     }
@@ -357,12 +373,13 @@
         { key: "um", label: "Unité", type: "select", options: L.units.concat(["%"]), value: st.um },
         { key: "unit", label: "Prix unitaire HT €", type: "num", value: st.unit },
         { key: "vat", label: "TVA %", type: "num", value: st.vat, max: 99.99 },
+        { key: "age", label: "Âge (années)", type: "num", value: st.age, hint: "Calcule la vétusté selon le barème." },
         { key: "obsPct", label: "Vétusté %", type: "num", value: amountEntered ? null : st.obsPct, max: 100 },
         { key: "obsAmt", label: "Vétusté €", type: "num", value: amountEntered ? ed.obsAmount : null, hint: "Un montant saisi remplace le pourcentage." },
         { key: "beneficiaryName", label: "Bénéficiaire", type: "select", empty: false, options: bn, value: st.beneficiaryName, wide: true },
       ],
       extra: `<datalist id="dl-prest"></datalist><div id="rse-box" hidden><p class="muted">La bonification vaut 1 % des prestations en réparation en nature cochées.</p><div class="checks">${renLines.map((d) => `<label><input type="checkbox" class="rse-line" value="${d.id}" checked> ${h(d.name)} · ${eur(d.priceNoVAT)}</label>`).join("") || '<span class="muted">Aucune prestation en réparation en nature.</span>'}</div></div>
-        <div id="eco" hidden></div><dl class="kv preview" id="pv"></dl>`,
+        <div id="eco" hidden></div><p class="muted" id="bar"></p><dl class="kv preview" id="pv"></dl>`,
       onInput(v, form, ev) {
         const t = ev && ev.target, name = t && t.name;
         const isRse = v.l1 === RSE;
@@ -373,7 +390,7 @@
           v.l2 = s.value;
         }
         $("#rse-box", form).hidden = !isRse;
-        ["qty", "um", "unit", "obsPct", "obsAmt", "roomId", "measure", "repairer", "mode", "name"].forEach((k2) => { const el = form.querySelector(`[data-key="${k2}"]`); if (el) el.hidden = isRse; });
+        ["age", "qty", "um", "unit", "obsPct", "obsAmt", "roomId", "measure", "repairer", "mode", "name"].forEach((k2) => { const el = form.querySelector(`[data-key="${k2}"]`); if (el) el.hidden = isRse; });
         const offers = db.refs.prices.filter((p) => p.repairer === v.repairer && p.l1 === v.l1 && p.l2 === v.l2);
         $("#dl-prest", form).innerHTML = offers.map((p) => `<option value="${h(p.name)}">`).join("");
         if (name === "name" || name === "repairer") {
@@ -385,6 +402,8 @@
           const [mk, mu] = v.measure.split("|"), r = c.rooms.find((x) => x.id === v.roomId);
           if (r) { const q = EC.roomMeasures(r)[mk]; form.querySelector('[name="qty"]').value = String(q).replace(".", ","); form.querySelector('[name="um"]').value = mu; v.qty = q; }
         }
+        const rule = obsRule(v.l1, v.l2); $("#bar", form).textContent = isRse ? "" : ruleText(rule);
+        if ((name === "age" || name === "l2") && !blank(v.age) && rule) { v.obsPct = EC.scaleObsolescence(rule, v.age); v.obsAmt = null; form.querySelector('[name="obsPct"]').value = pct(v.obsPct); form.querySelector('[name="obsAmt"]').value = ""; }
         if (name === "obsAmt" && !blank(v.obsAmt)) { form.querySelector('[name="obsPct"]').value = ""; v.obsPct = null; }
         if (name === "obsPct") { form.querySelector('[name="obsAmt"]').value = ""; v.obsAmt = null; }
         if (isRse) { const ids = [...form.querySelectorAll(".rse-line:checked")].map((x) => x.value); v.unit = r2(EC.sum(renLines.filter((d) => ids.includes(d.id)), (d) => num(d.unit) * num(d.qty))); v.qty = 1; }
@@ -407,7 +426,7 @@
         const moved = ed && (ed.l1 !== v.l1 || ed.l2 !== v.l2);
         Object.assign(d, { l1: v.l1, l2: v.l2, name: v.name, repairer: v.repairer, mode: v.mode, qty: num(v.qty), um: v.um, unit: num(v.unit), vat: num(v.vat),
           obsPct: r1(a.obsPct), obsAmount: a.obsAmount, priceWithObs: a.priceWithObs, priceNoVAT: a.priceNoVAT, priceWithVAT: a.priceWithVAT,
-          beneficiaryName: v.beneficiaryName, roomId: v.roomId || null, co2: st.co2, csr: st.csr });
+          beneficiaryName: v.beneficiaryName, roomId: v.roomId || null, co2: st.co2, csr: st.csr, age: isRse ? null : v.age });
         if (!ed || moved) d.lineIndex = EC.nextLineIndex(scope.filter((x) => x.id !== d.id), v.l1, v.l2);
         d.irsiAmount = EC.irsiAmount(benefitOf(v.l1, v.l2), d);
         if (!ed) e.damages.push(d);
@@ -445,10 +464,13 @@
         { key: "obsAmt", label: "Vétusté €", type: "num", value: amountEntered ? ed.obsAmount : null },
         { key: "eqBrand", label: "Marque équivalente", value: st.eqBrand }, { key: "eqReference", label: "Référence équivalente", value: st.eqReference },
       ],
-      extra: `<dl class="kv preview" id="pv"></dl>`,
+      extra: `<p class="muted" id="bar"></p><dl class="kv preview" id="pv"></dl>`,
       onInput(v, form, ev) {
         const name = ev && ev.target && ev.target.name;
         v.vat = v.vat === "" ? null : parseFloat(v.vat);
+        const rule = obsRule(MBV, v.l2), age = EC.yearsBetween(v.purchaseDate, c.eventDate || today());
+        $("#bar", form).textContent = ruleText(rule) + (rule && age !== null ? ` · âge au jour du sinistre : ${age} an(s)` : "");
+        if ((name === "purchaseDate" || name === "l2") && rule && age !== null) { v.obsPct = EC.scaleObsolescence(rule, age); v.obsAmt = null; form.querySelector('[name="obsPct"]').value = pct(v.obsPct); form.querySelector('[name="obsAmt"]').value = ""; }
         if (name === "ttc" && !blank(v.ttc)) { v.ht = EC.htFromTtc(v.ttc, v.vat); form.querySelector('[name="ht"]').value = n2(v.ht); }
         else if (name === "ht" || name === "vat") { form.querySelector('[name="ttc"]').value = blank(v.ht) ? "" : n2(r2(num(v.ht) * (1 + num(v.vat) / 100))); }
         if (name === "obsAmt" && !blank(v.obsAmt)) { form.querySelector('[name="obsPct"]').value = ""; v.obsPct = null; }
@@ -574,7 +596,7 @@
       : cat === "Vérifiée" ? `<button class="btn primary" data-act="advance" data-to="4">Exporter et verrouiller</button><button class="btn ghost" data-act="verify">Vérifier à nouveau</button>`
       : cat === "Exportée" ? `<button class="btn primary" data-act="advance" data-to="4">Marquer comme communiquée à l'assureur</button>`
       : cat === "Communiquée" ? `<button class="btn primary" data-act="advance" data-to="4">Figer l'estimation</button>` : "";
-    const tabs = [["main", "Synthèse"], ["detail", "Détail des dommages"], ["comp", "Indemnisations"], ["rooms", "Localisations"]];
+    const tabs = [["main", "Synthèse"], ["detail", "Détail des dommages"], ["comp", "Indemnisations"], ["claimed", "Réclamé et chiffré"], ["compare", "Comparer les estimations"], ["rooms", "Localisations"]];
     let body = "";
     if (ui.synthTab === "main") {
       body = c.thirdParties.map((tp) => {
@@ -600,8 +622,9 @@
     } else {
       body = `<section class="panel flush">${tbl(["Pièce", "Type", "Dimensions", "Sol m²", "Murs m²", "Plafond m²", "Périmètre ml", "Plinthes ml"], c.rooms.map((r) => { const m = EC.roomMeasures(r); return `<tr><td>${h(r.name)}</td><td>${h(r.roomType)}</td><td>${qty(m.length)} × ${qty(m.width)} × ${qty(m.height)} m</td><td class="r">${n2(m.floor)}</td><td class="r">${n2(m.walls)}</td><td class="r">${n2(m.ceiling)}</td><td class="r">${n2(m.perimeter)}</td><td class="r">${n2(m.skirting)}</td></tr>`; }).join(""), "Aucune pièce.")}</section>`;
     }
+    if (window.ECApp && ECApp.synth && ECApp.synth[ui.synthTab]) body = ECApp.synth[ui.synthTab](c, e);
     const ins = insured(c), ttc = EC.sum(e.damages, (d) => d.priceWithVAT), indem = EC.sum(e.beneficiaries, (b) => { const t = EC.beneficiaryTotals(groups, b); return t.totalImmediate + t.totalDeferred; });
-    return `<section class="head"><div><h1>Synthèse</h1><p class="muted">${h(c.number || "")} · ${h(ins ? ins.name : "")} · ${h(e.name)}</p></div><div class="actions">${act}<button class="btn ghost" data-act="export-csv">Exporter en CSV</button>${window.claude ? "" : `<button class="btn ghost" data-act="print">Imprimer</button>`}</div></section>
+    return `<section class="head"><div><h1>Synthèse</h1><p class="muted">${h(c.number || "")} · ${h(ins ? ins.name : "")} · ${h(e.name)}</p></div><div class="actions">${act}<button class="btn ghost" data-act="export-xlsx">Exporter vers Excel</button>${window.claude ? "" : `<button class="btn ghost" data-act="print">Imprimer</button>`}</div></section>
       <dl class="kv big"><div><dt>Dommages TTC</dt><dd>${eur(ttc)}</dd></div><div><dt>Dommages vétusté déduite</dt><dd>${eur(EC.sum(e.damages, (d) => d.priceWithObs))}</dd></div><div><dt>Indemnisation totale</dt><dd>${eur(indem)}</dd></div><div><dt>IRSI, assiette du local</dt><dd>${c.irsiEnabled && !blank(irsi) ? eur(irsi) : "Non calculée"}</dd></div></dl>
       <div class="tabs">${tabs.map(([k, label]) => `<button class="${ui.synthTab === k ? "on" : ""}" data-act="synth-tab" data-v="${k}">${label}</button>`).join("")}</div>${body}`;
   }
@@ -612,12 +635,12 @@
     return `<section class="head"><div><h1>Référentiels</h1><p class="muted">Natures, bordereaux de prix et réparateurs. Les valeurs fournies sont des exemples : remplacez-les par vos référentiels.</p></div><div class="actions"><label class="btn ghost" for="imp-refs">Importer (JSON)<input type="file" id="imp-refs" accept=".json" hidden></label><button class="btn ghost" data-act="export-refs">Exporter (JSON)</button><button class="btn ghost danger-t" data-act="reset-refs">Rétablir les exemples</button></div></section>` +
       sect("Natures et détails", "edit-benefit", "Ajouter", tbl(["Nature", "Détail", "Regroupement synthèse", "Nature IRSI", ""], R.benefits.map((b, i) => `<tr><td>${h(b.l1)}</td><td>${h(b.l2)}</td><td>${h(b.synth1)}</td><td>${h(b.damageREC)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-benefit" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucune nature.")) +
       sect("Bordereaux de prix", "edit-price", "Ajouter", `<p><label class="btn sm ghost" for="imp-prices">Importer un bordereau CSV<input type="file" id="imp-prices" accept=".csv,text/csv" hidden></label> <small class="muted">Colonnes : repairer;l1;l2;name;unit;z1;z2;z3;z4;z5;co2;csr</small></p>` + tbl(["Bordereau", "Nature", "Détail", "Prestation", "Unité", "Prix zone 1 €", "Prix zone 5 €", "CO2e kg", "Code RSE", ""], R.prices.map((p, i) => `<tr><td>${h(p.repairer)}</td><td>${h(p.l1)}</td><td>${h(p.l2)}</td><td>${h(p.name)}</td><td>${h(p.unit)}</td><td class="r">${eur(p.prices[0])}</td><td class="r">${eur(p.prices[4])}</td><td class="r">${qty(p.co2)}</td><td>${h(p.csr)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-price" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun prix.")) +
-      sect("Réparateurs et bordereaux", "edit-repairer", "Ajouter", tbl(["Nom", "Description", ""], R.repairers.map((r, i) => `<tr><td>${h(r.name)}</td><td>${h(r.description)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-repairer" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun réparateur."));
+      sect("Réparateurs et bordereaux", "edit-repairer", "Ajouter", tbl(["Nom", "Description", ""], R.repairers.map((r, i) => `<tr><td>${h(r.name)}</td><td>${h(r.description)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-repairer" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun réparateur.")) + (window.ECApp && ECApp.refsExtra ? ECApp.refsExtra() : "");
   }
 
   /* ---------- Fichiers ---------- */
   async function saveFile(filename, text, mime) {
-    const blob = new Blob([text], { type: mime });
+    const blob = text instanceof Blob ? text : new Blob([text], { type: mime });
     try {
       const d = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
       if (d) { await d.save({ filename, data: blob }); return; }
@@ -746,6 +769,7 @@
   const coll = { tp: "thirdParties", ro: "riskObjects", cov: "coverages", lp: "linkedParties", room: "rooms" };
 
   const acts = {
+    undo() { if (undo()) toast("Dernière action annulée"); },
     home() { ui.view = "home"; }, refs() { ui.view = "refs"; },
     step(el) { ui.step = el.dataset.step; window.scrollTo(0, 0); },
     "dlg-close"() { closeDlg(); return false; },
@@ -818,7 +842,7 @@
       e.status = res.status; e.statusDate = new Date().toISOString(); e.active = true; e.irsiBase = c.irsiEnabled ? EC.irsiBase(e.damages, calcMap(e)) : null; save();
       toast(STATUS[res.status].label);
     },
-    advance() { const c = cur(), e = est(); if (e.status < 2 || e.status > 13) return; const wasVerified = e.status <= 5; e.status += 4; e.statusDate = new Date().toISOString(); save(); if (wasVerified) acts["export-csv"](); toast(STATUS[e.status].label); },
+    advance() { const c = cur(), e = est(); if (e.status < 2 || e.status > 13) return; const wasVerified = e.status <= 5; e.status += 4; e.statusDate = new Date().toISOString(); save(); if (wasVerified) acts["export-xlsx"](); toast(STATUS[e.status].label); },
     "export-csv"() { const c = cur(), e = est(); saveFile(`${(c.number || "dossier").replace(/[^\w-]+/g, "_")}-${e.name.replace(/\s+/g, "_")}.csv`, csvExport(c, e), "text/csv;charset=utf-8"); return false; },
     print() { window.print(); return false; },
     "add-opening"(el) { const r = cur().rooms.find((x) => x.id === el.dataset.id);
@@ -899,7 +923,7 @@
     } catch (e) { toast("Ce fichier n'est pas un dossier Eureka Chiffrage exporté depuis cet outil.", "err"); }
   }
   function importRefs(text) {
-    try { const j = JSON.parse(text), r = j.refs || j; if (!Array.isArray(r.benefits) || !Array.isArray(r.prices)) throw 0; db.refs = { benefits: r.benefits, prices: r.prices, repairers: r.repairers || [] }; save(); toast("Référentiels importés"); render();
+    try { const j = JSON.parse(text), r = j.refs || j; if (!Array.isArray(r.benefits) || !Array.isArray(r.prices)) throw 0; db.refs = { benefits: r.benefits, prices: r.prices, repairers: r.repairers || [], obsolescence: r.obsolescence || clone(ECData.refs.obsolescence) }; save(); toast("Référentiels importés"); render();
     } catch (e) { toast("Fichier de référentiels non reconnu.", "err"); }
   }
   function importPrices(text) {
@@ -934,7 +958,7 @@
   document.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && ev.target.matches && ev.target.matches("input[data-chg]")) ev.target.blur(); });
   $("#dlg").addEventListener("cancel", () => setTimeout(() => (dlg().innerHTML = ""), 0));
 
-  window.ECApp = { get db() { return db; }, ui, render, seedDemo, acts,
-    api: { cur, est, dmgScope, getCalc, scopeDamages, touch, benefitOf, possibleBeneficiaries, roLabel, dlg, closeDlg, toast, h, eur, n2, qty, parseNum, uid, readOnly, L } };
+  window.ECApp = { get db() { return db; }, ui, render, seedDemo, acts, chg,
+    api: { openForm, confirmBox, groupsOf, benLabel, liveIrsi, calcMap, insured, saveFile, csvExport, zonePrice, pct, frDate, tbl, sect, save, STATUS, cur, est, dmgScope, getCalc, scopeDamages, touch, benefitOf, possibleBeneficiaries, roLabel, dlg, closeDlg, toast, h, eur, n2, qty, parseNum, uid, readOnly, L } };
   render();
 })();

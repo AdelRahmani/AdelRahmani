@@ -166,12 +166,25 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
 .imp-tw td { padding: 6px 8px; } .imp-tw .ir-name { min-width: 320px; } .imp-tw .ir-nat { min-width: 190px; } .imp-tw .ir-um { min-width: 68px; } .imp-tw .ir-pu { min-width: 96px; }
 .imp-tw tr.off td { opacity: .45; }
 dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
+
+/* Outils de chiffrage */
+.undo { margin-left: auto; }
+input.cell { width: 86px; min-width: 0; padding: 4px 7px; border-color: transparent; background: var(--surface-2); }
+input.cell:hover, input.cell:focus { border-color: var(--brand); background: var(--surface); }
+.join.end { justify-content: flex-end; flex-wrap: nowrap; } .um { min-width: 22px; text-align: left; color: var(--ink-2); }
+.ico { border: 1px solid transparent; background: none; color: var(--ink-2); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: .95rem; }
+.ico:hover { border-color: var(--line); color: var(--ink); }
+.btn.on-dark { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .45); }
+.btn.on-dark:hover { border-color: #fff; }
+.imp-tw tr.picked td { background: var(--mine); }
+.pos { color: var(--ok); } .neg { color: var(--err); }
 </style>
 <header class="top">
   <div class="wrap">
     <div class="top-row">
       <button class="logo" data-act="home" aria-label="Eureka Chiffrage, retour aux dossiers"><i></i>Eureka Chiffrage</button>
       <div class="crumb" id="crumb"></div>
+      <button class="btn sm ghost undo" id="undo" data-act="undo" disabled>Annuler la dernière action</button>
     </div>
     <nav class="steps" id="steps" aria-label="Étapes du dossier" hidden></nav>
   </div>
@@ -592,7 +605,24 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     };
   }
 
-  const api = {
+  /* ---------- Barème de vétusté ---------- */
+  // taux annuel appliqué après une franchise en années, plafonné
+  function scaleObsolescence(rule, ageYears) {
+    if (!rule || blank(ageYears)) return null;
+    const years = Math.max(0, num(ageYears) - num(rule.franchiseYears));
+    return r1(Math.min(blank(rule.maxPct) ? 100 : rule.maxPct, years * num(rule.ratePerYear)));
+  }
+  // années entières écoulées entre deux dates AAAA-MM-JJ
+  function yearsBetween(from, to) {
+    if (!from || !to) return null;
+    const a = new Date(from), b = new Date(to);
+    if (isNaN(a) || isNaN(b) || b < a) return null;
+    let y = b.getFullYear() - a.getFullYear();
+    if (b.getMonth() < a.getMonth() || (b.getMonth() === a.getMonth() && b.getDate() < a.getDate())) y--;
+    return y;
+  }
+
+  const api = { scaleObsolescence, yearsBetween,
     MBV, RSE, STATUS, STANCES, OPENING_TYPES, isReadOnly, num, blank, r1, r2, roundDown2, sum,
     linePrices, damageAmounts, recalcOnTaxRegime, transverseObsolescence, irsiAmount, nextLineIndex,
     mbvAmounts, htFromTtc, mbvIrsiAmount,
@@ -678,7 +708,14 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     { name: "AUTOREPARATION", description: "Travaux réalisés par l'assuré" },
   ];
 
-  const refs = { benefits, prices, repairers };
+  // Barèmes de vétusté d'exemple : taux par an, franchise en années, plafond. À remplacer par les barèmes contractuels.
+  const o = (l1, l2, ratePerYear, franchiseYears, maxPct) => ({ l1, l2, ratePerYear, franchiseYears, maxPct });
+  const obsolescence = [
+    o("Embellissements", "Peinture", 10, 0, 80), o("Embellissements", "Revêtements de sols", 7, 0, 70), o("Embellissements", "Revêtements muraux", 10, 0, 80), o("Embellissements", "Plafonds", 5, 0, 60),
+    o("Immobilier", "", 3, 5, 50), o("Immobilier", "Menuiserie", 3, 2, 60), o("Immobilier", "Plomberie - Sanitaire", 4, 2, 60), o("Immobilier", "Électricité", 4, 2, 60),
+    o(MBV, "Mobilier", 10, 0, 80), o(MBV, "Électroménager", 10, 1, 80), o(MBV, "Hi-fi - Vidéo - Informatique", 20, 0, 80), o(MBV, "Vêtements et linge", 20, 0, 80), o(MBV, "Matériel professionnel", 15, 0, 80),
+  ];
+  const refs = { benefits, prices, repairers, obsolescence };
 
   const LISTS = {
     caseTypes: ["DDE", "Incendie", "Vol", "Dommages électriques", "Bris de glace", "Tempête/Neige/Grêle", "Inondation", "Autre sinistre"],
@@ -940,9 +977,22 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
   let db = load() || { cases: [], refs: clone(ECData.refs) };
   const ui = { view: "home", step: "infos", caseId: null, estId: null, tpId: null, roId: null, benId: null,
     tab: "prest", synthTab: "main", option: 1, genericPct: null, collapsed: {}, onlyMine: false };
+  // Chaque enregistrement garde l'état précédent : « Annuler » y revient (30 derniers états)
+  const hist = [];
+  let lastSnap = JSON.stringify(db);
+  function persist(text) { try { localStorage.setItem(KEY, text); storageOk = true; } catch (e) { storageOk = false; } }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(db)); storageOk = true; } catch (e) { storageOk = false; }
+    const now = JSON.stringify(db);
+    if (now !== lastSnap) { hist.push(lastSnap); if (hist.length > 30) hist.shift(); lastSnap = now; }
+    persist(now);
   }
+  function undo() {
+    if (!hist.length) return false;
+    lastSnap = hist.pop(); db = JSON.parse(lastSnap); persist(lastSnap);
+    return true;
+  }
+  const obsRule = (l1, l2) => { const t = db.refs.obsolescence || ECData.refs.obsolescence; return t.find((r) => r.l1 === l1 && r.l2 === l2) || t.find((r) => r.l1 === l1 && blank(r.l2)) || null; };
+  const ruleText = (r) => (r ? `Barème : ${pct(r.ratePerYear)} % par an${num(r.franchiseYears) ? " après " + qty(r.franchiseYears) + " an(s)" : ""}, plafonné à ${pct(r.maxPct)} %` : "");
   const cur = () => db.cases.find((c) => c.id === ui.caseId);
   const est = () => { const c = cur(); return c && (c.estimates.find((e) => e.id === ui.estId) || c.estimates[0]); };
   const insured = (c) => c.thirdParties.find((t) => t.insured);
@@ -967,7 +1017,8 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
   const calcMap = (e) => Object.fromEntries(e.calculations.map((k) => [k.id, k]));
   // Toute modification repasse l'estimation en brouillon
   function touch(e, calc) {
-    e.status = 1; e.statusDate = new Date().toISOString(); e.active = true;
+    if (e.status !== 1) e.statusDate = new Date().toISOString(); // la date ne bouge que si le statut change
+    e.status = 1; e.active = true;
     if (calc) calc.active = EC.calculationActive(calc, e.damages);
     save();
   }
@@ -1085,6 +1136,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     m.innerHTML = (!storageOk ? `<p class="banner warn">Le stockage du navigateur est indisponible : vos saisies seront perdues à la fermeture de la page. Exportez le dossier en JSON pour le conserver.</p>` : "") +
       (ui.view === "home" ? vHome() : ui.view === "refs" ? vRefs() : vCase(c));
     if (keep) { const el = document.getElementById(keep); if (el) { el.focus(); if (el.select && el.tagName === "INPUT" && el.type === "text") el.select(); } }
+    const ub = $("#undo"); if (ub) ub.disabled = !hist.length;
     const on = $("#steps .on"); if (on && on.scrollIntoView) on.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
 
@@ -1200,7 +1252,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     const all = scopeDamages(e, tp, roId);
     const list = all.filter((d) => (ui.tab === "mbv") === (d.l1 === MBV)).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
     const dis = ro ? " disabled" : "";
-    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions">${ui.tab === "prest" ? `<button class="btn" data-act="import-doc"${dis}>Importer un devis ou une facture</button>` : ""}<button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
+    const top = `<section class="head"><div><h1>Dommages</h1></div><div class="actions">${ui.tab === "prest" ? `<button class="btn" data-act="catalog"${dis}>Chiffrer depuis le bordereau</button><button class="btn" data-act="import-doc"${dis}>Importer un devis ou une facture</button>` : ""}<button class="btn primary" data-act="${ui.tab === "mbv" ? "edit-mbv" : "edit-dmg"}"${dis}>${ui.tab === "mbv" ? "Ajouter un bien" : "Ajouter une prestation"}</button></div></section>
       <div class="filters"><div class="fld"><label for="dm-tp">Tiers</label>${sel("dm-tp", "dm-tp", c.thirdParties.map((t) => ({ value: t.id, label: t.name + (t.insured ? " (assuré)" : "") })), tp.id)}</div>
       ${tp.insured ? `<div class="fld"><label for="dm-ro">Objet de risque</label>${sel("dm-ro", "dm-ro", c.riskObjects.map((r) => ({ value: r.id, label: roLabel(c, r.id) })), roId)}</div>` : ""}
       <div class="fld"><label for="dm-claimed">Montant réclamé €</label><input id="dm-claimed" class="num" inputmode="decimal" data-chg="claimed" value="${n2(k.claimedAmount)}"${dis}></div>
@@ -1217,18 +1269,19 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
       const g1 = list.filter((d) => (ui.tab === "mbv" ? d.l2 : d.l1) === l1), ck = "c:" + l1, closed = ui.collapsed[ck];
       const pcts = [...new Set(g1.map((d) => num(d.obsPct)))];
       rows += `<tr class="l1"><td colspan="4"><button class="tw-btn" data-act="collapse" data-k="${h(ck)}" aria-expanded="${!closed}">${closed ? "▸" : "▾"}</button> ${h(l1)}</td>${totals(g1)}
-        <td class="r">${ui.tab === "prest" && l1 !== RSE ? `<input id="tv-${h(l1)}" class="num xs" inputmode="decimal" data-chg="transverse" data-l1="${h(l1)}" value="${pcts.length === 1 && pcts[0] ? pct(pcts[0]) : ""}" placeholder="Vét. %" aria-label="Vétusté appliquée à toute la nature"${dis}>` : ""}</td><td></td></tr>`;
+        <td class="r">${ui.tab === "prest" && l1 !== RSE ? `<input id="tv-${h(l1)}" class="num xs" inputmode="decimal" data-chg="transverse" data-l1="${h(l1)}" value="${pcts.length === 1 && pcts[0] ? pct(pcts[0]) : ""}" placeholder="Vét. %" aria-label="Vétusté appliquée à toute la nature"${dis}>` : ""}</td><td class="acts">${ui.tab === "prest" && l1 !== RSE && !ro ? `<button class="btn sm on-dark" data-act="bulk-nature" data-l1="${h(l1)}" title="Prix, vétusté, TVA, mode ou pièce de toute la nature">Modifier</button>` : ""}</td></tr>`;
       if (closed) continue;
       const l2s = ui.tab === "mbv" ? [null] : [...new Set(g1.map((d) => d.l2))];
       for (const l2 of l2s) {
         const g2 = l2 === null ? g1 : g1.filter((d) => d.l2 === l2);
         if (l2 !== null && l2 !== "N/A") rows += `<tr class="l2"><td colspan="4">${h(l2)}</td>${totals(g2)}<td></td><td></td></tr>`;
         for (const d of g2) {
+          const cellIn = (d2, k, val, label) => `<input id="ln-${k}-${d2.id}" class="num cell" inputmode="decimal" data-chg="line" data-id="${d2.id}" data-k="${k}" value="${val}" aria-label="${label}">`;
           const better = d.csr && db.refs.prices.some((p) => p.csr === d.csr && num(p.co2) < num(d.co2));
           rows += `<tr class="l3"><td><button class="link ln" data-act="${d.l1 === MBV ? "edit-mbv" : "edit-dmg"}" data-id="${d.id}">${h(d.name)}</button>${d.csr && !better ? ' <span class="leaf" title="Prestation la moins carbonée de sa catégorie">éco</span>' : ""}${d.l1 === MBV ? `<br><small class="muted">${h([d.goodStatus, d.proof].filter(Boolean).join(" · "))}</small>` : ""}${d.source ? `<br><small class="muted">${h(d.source)}</small>` : ""}</td>
-            <td>${h(room(d.roomId))}</td><td class="r">${d.l1 === RSE ? "1 %" : qty(d.qty) + " " + h(d.um || "")}</td><td class="r">${eur(d.unit)}</td><td class="r">${eur(d.priceNoVAT)}</td><td class="r">${pct(d.vat)} %</td><td class="r">${eur(d.priceWithVAT)}</td>
-            <td class="r">${d.l1 === RSE ? "" : pct(d.obsPct) + " %"}</td><td class="r">${d.l1 === RSE ? "" : eur(d.obsAmount)}</td><td class="r">${eur(d.priceWithObs)}</td><td>${h(d.mode)}</td>
-            <td class="acts">${ro ? "" : `<button class="btn sm ghost" data-act="dup-dmg" data-id="${d.id}" title="Dupliquer">Dupliquer</button><button class="btn sm ghost danger-t" data-act="del-dmg" data-id="${d.id}">Supprimer</button>`}</td></tr>`;
+            <td>${h(room(d.roomId))}</td><td class="r">${d.l1 === RSE ? "1 %" : d.l1 === MBV || ro ? qty(d.qty) + " " + h(d.um || "") : `<span class="join end">${cellIn(d, "qty", qty(d.qty), "Quantité")}<span class="um">${h(d.um || "")}</span></span>`}</td><td class="r">${d.l1 === RSE || ro ? eur(d.unit) : cellIn(d, "unit", n2(d.unit), "Prix unitaire HT")}</td><td class="r">${eur(d.priceNoVAT)}</td><td class="r">${pct(d.vat)} %</td><td class="r">${eur(d.priceWithVAT)}</td>
+            <td class="r">${d.l1 === RSE ? "" : ro ? pct(d.obsPct) + " %" : cellIn(d, "obsPct", pct(d.obsPct), "Vétusté %")}</td><td class="r">${d.l1 === RSE ? "" : eur(d.obsAmount)}</td><td class="r">${eur(d.priceWithObs)}</td><td>${h(d.mode)}</td>
+            <td class="acts">${ro ? "" : `<button class="ico" data-act="move-dmg" data-dir="-1" data-id="${d.id}" title="Monter" aria-label="Monter la ligne">↑</button><button class="ico" data-act="move-dmg" data-dir="1" data-id="${d.id}" title="Descendre" aria-label="Descendre la ligne">↓</button><button class="ico" data-act="dup-dmg" data-id="${d.id}" title="Dupliquer" aria-label="Dupliquer la ligne">⧉</button><button class="ico" data-act="reassign-dmg" data-id="${d.id}" title="Réaffecter à un autre tiers ou objet de risque" aria-label="Réaffecter la ligne">⇄</button><button class="ico danger-t" data-act="del-dmg" data-id="${d.id}" title="Supprimer" aria-label="Supprimer la ligne">✕</button>`}</td></tr>`;
         }
       }
     }
@@ -1267,12 +1320,13 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
         { key: "um", label: "Unité", type: "select", options: L.units.concat(["%"]), value: st.um },
         { key: "unit", label: "Prix unitaire HT €", type: "num", value: st.unit },
         { key: "vat", label: "TVA %", type: "num", value: st.vat, max: 99.99 },
+        { key: "age", label: "Âge (années)", type: "num", value: st.age, hint: "Calcule la vétusté selon le barème." },
         { key: "obsPct", label: "Vétusté %", type: "num", value: amountEntered ? null : st.obsPct, max: 100 },
         { key: "obsAmt", label: "Vétusté €", type: "num", value: amountEntered ? ed.obsAmount : null, hint: "Un montant saisi remplace le pourcentage." },
         { key: "beneficiaryName", label: "Bénéficiaire", type: "select", empty: false, options: bn, value: st.beneficiaryName, wide: true },
       ],
       extra: `<datalist id="dl-prest"></datalist><div id="rse-box" hidden><p class="muted">La bonification vaut 1 % des prestations en réparation en nature cochées.</p><div class="checks">${renLines.map((d) => `<label><input type="checkbox" class="rse-line" value="${d.id}" checked> ${h(d.name)} · ${eur(d.priceNoVAT)}</label>`).join("") || '<span class="muted">Aucune prestation en réparation en nature.</span>'}</div></div>
-        <div id="eco" hidden></div><dl class="kv preview" id="pv"></dl>`,
+        <div id="eco" hidden></div><p class="muted" id="bar"></p><dl class="kv preview" id="pv"></dl>`,
       onInput(v, form, ev) {
         const t = ev && ev.target, name = t && t.name;
         const isRse = v.l1 === RSE;
@@ -1283,7 +1337,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
           v.l2 = s.value;
         }
         $("#rse-box", form).hidden = !isRse;
-        ["qty", "um", "unit", "obsPct", "obsAmt", "roomId", "measure", "repairer", "mode", "name"].forEach((k2) => { const el = form.querySelector(`[data-key="${k2}"]`); if (el) el.hidden = isRse; });
+        ["age", "qty", "um", "unit", "obsPct", "obsAmt", "roomId", "measure", "repairer", "mode", "name"].forEach((k2) => { const el = form.querySelector(`[data-key="${k2}"]`); if (el) el.hidden = isRse; });
         const offers = db.refs.prices.filter((p) => p.repairer === v.repairer && p.l1 === v.l1 && p.l2 === v.l2);
         $("#dl-prest", form).innerHTML = offers.map((p) => `<option value="${h(p.name)}">`).join("");
         if (name === "name" || name === "repairer") {
@@ -1295,6 +1349,8 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
           const [mk, mu] = v.measure.split("|"), r = c.rooms.find((x) => x.id === v.roomId);
           if (r) { const q = EC.roomMeasures(r)[mk]; form.querySelector('[name="qty"]').value = String(q).replace(".", ","); form.querySelector('[name="um"]').value = mu; v.qty = q; }
         }
+        const rule = obsRule(v.l1, v.l2); $("#bar", form).textContent = isRse ? "" : ruleText(rule);
+        if ((name === "age" || name === "l2") && !blank(v.age) && rule) { v.obsPct = EC.scaleObsolescence(rule, v.age); v.obsAmt = null; form.querySelector('[name="obsPct"]').value = pct(v.obsPct); form.querySelector('[name="obsAmt"]').value = ""; }
         if (name === "obsAmt" && !blank(v.obsAmt)) { form.querySelector('[name="obsPct"]').value = ""; v.obsPct = null; }
         if (name === "obsPct") { form.querySelector('[name="obsAmt"]').value = ""; v.obsAmt = null; }
         if (isRse) { const ids = [...form.querySelectorAll(".rse-line:checked")].map((x) => x.value); v.unit = r2(EC.sum(renLines.filter((d) => ids.includes(d.id)), (d) => num(d.unit) * num(d.qty))); v.qty = 1; }
@@ -1317,7 +1373,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
         const moved = ed && (ed.l1 !== v.l1 || ed.l2 !== v.l2);
         Object.assign(d, { l1: v.l1, l2: v.l2, name: v.name, repairer: v.repairer, mode: v.mode, qty: num(v.qty), um: v.um, unit: num(v.unit), vat: num(v.vat),
           obsPct: r1(a.obsPct), obsAmount: a.obsAmount, priceWithObs: a.priceWithObs, priceNoVAT: a.priceNoVAT, priceWithVAT: a.priceWithVAT,
-          beneficiaryName: v.beneficiaryName, roomId: v.roomId || null, co2: st.co2, csr: st.csr });
+          beneficiaryName: v.beneficiaryName, roomId: v.roomId || null, co2: st.co2, csr: st.csr, age: isRse ? null : v.age });
         if (!ed || moved) d.lineIndex = EC.nextLineIndex(scope.filter((x) => x.id !== d.id), v.l1, v.l2);
         d.irsiAmount = EC.irsiAmount(benefitOf(v.l1, v.l2), d);
         if (!ed) e.damages.push(d);
@@ -1355,10 +1411,13 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
         { key: "obsAmt", label: "Vétusté €", type: "num", value: amountEntered ? ed.obsAmount : null },
         { key: "eqBrand", label: "Marque équivalente", value: st.eqBrand }, { key: "eqReference", label: "Référence équivalente", value: st.eqReference },
       ],
-      extra: `<dl class="kv preview" id="pv"></dl>`,
+      extra: `<p class="muted" id="bar"></p><dl class="kv preview" id="pv"></dl>`,
       onInput(v, form, ev) {
         const name = ev && ev.target && ev.target.name;
         v.vat = v.vat === "" ? null : parseFloat(v.vat);
+        const rule = obsRule(MBV, v.l2), age = EC.yearsBetween(v.purchaseDate, c.eventDate || today());
+        $("#bar", form).textContent = ruleText(rule) + (rule && age !== null ? ` · âge au jour du sinistre : ${age} an(s)` : "");
+        if ((name === "purchaseDate" || name === "l2") && rule && age !== null) { v.obsPct = EC.scaleObsolescence(rule, age); v.obsAmt = null; form.querySelector('[name="obsPct"]').value = pct(v.obsPct); form.querySelector('[name="obsAmt"]').value = ""; }
         if (name === "ttc" && !blank(v.ttc)) { v.ht = EC.htFromTtc(v.ttc, v.vat); form.querySelector('[name="ht"]').value = n2(v.ht); }
         else if (name === "ht" || name === "vat") { form.querySelector('[name="ttc"]').value = blank(v.ht) ? "" : n2(r2(num(v.ht) * (1 + num(v.vat) / 100))); }
         if (name === "obsAmt" && !blank(v.obsAmt)) { form.querySelector('[name="obsPct"]').value = ""; v.obsPct = null; }
@@ -1484,7 +1543,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
       : cat === "Vérifiée" ? `<button class="btn primary" data-act="advance" data-to="4">Exporter et verrouiller</button><button class="btn ghost" data-act="verify">Vérifier à nouveau</button>`
       : cat === "Exportée" ? `<button class="btn primary" data-act="advance" data-to="4">Marquer comme communiquée à l'assureur</button>`
       : cat === "Communiquée" ? `<button class="btn primary" data-act="advance" data-to="4">Figer l'estimation</button>` : "";
-    const tabs = [["main", "Synthèse"], ["detail", "Détail des dommages"], ["comp", "Indemnisations"], ["rooms", "Localisations"]];
+    const tabs = [["main", "Synthèse"], ["detail", "Détail des dommages"], ["comp", "Indemnisations"], ["claimed", "Réclamé et chiffré"], ["compare", "Comparer les estimations"], ["rooms", "Localisations"]];
     let body = "";
     if (ui.synthTab === "main") {
       body = c.thirdParties.map((tp) => {
@@ -1510,8 +1569,9 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     } else {
       body = `<section class="panel flush">${tbl(["Pièce", "Type", "Dimensions", "Sol m²", "Murs m²", "Plafond m²", "Périmètre ml", "Plinthes ml"], c.rooms.map((r) => { const m = EC.roomMeasures(r); return `<tr><td>${h(r.name)}</td><td>${h(r.roomType)}</td><td>${qty(m.length)} × ${qty(m.width)} × ${qty(m.height)} m</td><td class="r">${n2(m.floor)}</td><td class="r">${n2(m.walls)}</td><td class="r">${n2(m.ceiling)}</td><td class="r">${n2(m.perimeter)}</td><td class="r">${n2(m.skirting)}</td></tr>`; }).join(""), "Aucune pièce.")}</section>`;
     }
+    if (window.ECApp && ECApp.synth && ECApp.synth[ui.synthTab]) body = ECApp.synth[ui.synthTab](c, e);
     const ins = insured(c), ttc = EC.sum(e.damages, (d) => d.priceWithVAT), indem = EC.sum(e.beneficiaries, (b) => { const t = EC.beneficiaryTotals(groups, b); return t.totalImmediate + t.totalDeferred; });
-    return `<section class="head"><div><h1>Synthèse</h1><p class="muted">${h(c.number || "")} · ${h(ins ? ins.name : "")} · ${h(e.name)}</p></div><div class="actions">${act}<button class="btn ghost" data-act="export-csv">Exporter en CSV</button>${window.claude ? "" : `<button class="btn ghost" data-act="print">Imprimer</button>`}</div></section>
+    return `<section class="head"><div><h1>Synthèse</h1><p class="muted">${h(c.number || "")} · ${h(ins ? ins.name : "")} · ${h(e.name)}</p></div><div class="actions">${act}<button class="btn ghost" data-act="export-xlsx">Exporter vers Excel</button>${window.claude ? "" : `<button class="btn ghost" data-act="print">Imprimer</button>`}</div></section>
       <dl class="kv big"><div><dt>Dommages TTC</dt><dd>${eur(ttc)}</dd></div><div><dt>Dommages vétusté déduite</dt><dd>${eur(EC.sum(e.damages, (d) => d.priceWithObs))}</dd></div><div><dt>Indemnisation totale</dt><dd>${eur(indem)}</dd></div><div><dt>IRSI, assiette du local</dt><dd>${c.irsiEnabled && !blank(irsi) ? eur(irsi) : "Non calculée"}</dd></div></dl>
       <div class="tabs">${tabs.map(([k, label]) => `<button class="${ui.synthTab === k ? "on" : ""}" data-act="synth-tab" data-v="${k}">${label}</button>`).join("")}</div>${body}`;
   }
@@ -1522,12 +1582,12 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     return `<section class="head"><div><h1>Référentiels</h1><p class="muted">Natures, bordereaux de prix et réparateurs. Les valeurs fournies sont des exemples : remplacez-les par vos référentiels.</p></div><div class="actions"><label class="btn ghost" for="imp-refs">Importer (JSON)<input type="file" id="imp-refs" accept=".json" hidden></label><button class="btn ghost" data-act="export-refs">Exporter (JSON)</button><button class="btn ghost danger-t" data-act="reset-refs">Rétablir les exemples</button></div></section>` +
       sect("Natures et détails", "edit-benefit", "Ajouter", tbl(["Nature", "Détail", "Regroupement synthèse", "Nature IRSI", ""], R.benefits.map((b, i) => `<tr><td>${h(b.l1)}</td><td>${h(b.l2)}</td><td>${h(b.synth1)}</td><td>${h(b.damageREC)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-benefit" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucune nature.")) +
       sect("Bordereaux de prix", "edit-price", "Ajouter", `<p><label class="btn sm ghost" for="imp-prices">Importer un bordereau CSV<input type="file" id="imp-prices" accept=".csv,text/csv" hidden></label> <small class="muted">Colonnes : repairer;l1;l2;name;unit;z1;z2;z3;z4;z5;co2;csr</small></p>` + tbl(["Bordereau", "Nature", "Détail", "Prestation", "Unité", "Prix zone 1 €", "Prix zone 5 €", "CO2e kg", "Code RSE", ""], R.prices.map((p, i) => `<tr><td>${h(p.repairer)}</td><td>${h(p.l1)}</td><td>${h(p.l2)}</td><td>${h(p.name)}</td><td>${h(p.unit)}</td><td class="r">${eur(p.prices[0])}</td><td class="r">${eur(p.prices[4])}</td><td class="r">${qty(p.co2)}</td><td>${h(p.csr)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-price" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun prix.")) +
-      sect("Réparateurs et bordereaux", "edit-repairer", "Ajouter", tbl(["Nom", "Description", ""], R.repairers.map((r, i) => `<tr><td>${h(r.name)}</td><td>${h(r.description)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-repairer" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun réparateur."));
+      sect("Réparateurs et bordereaux", "edit-repairer", "Ajouter", tbl(["Nom", "Description", ""], R.repairers.map((r, i) => `<tr><td>${h(r.name)}</td><td>${h(r.description)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-repairer" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun réparateur.")) + (window.ECApp && ECApp.refsExtra ? ECApp.refsExtra() : "");
   }
 
   /* ---------- Fichiers ---------- */
   async function saveFile(filename, text, mime) {
-    const blob = new Blob([text], { type: mime });
+    const blob = text instanceof Blob ? text : new Blob([text], { type: mime });
     try {
       const d = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
       if (d) { await d.save({ filename, data: blob }); return; }
@@ -1656,6 +1716,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
   const coll = { tp: "thirdParties", ro: "riskObjects", cov: "coverages", lp: "linkedParties", room: "rooms" };
 
   const acts = {
+    undo() { if (undo()) toast("Dernière action annulée"); },
     home() { ui.view = "home"; }, refs() { ui.view = "refs"; },
     step(el) { ui.step = el.dataset.step; window.scrollTo(0, 0); },
     "dlg-close"() { closeDlg(); return false; },
@@ -1728,7 +1789,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
       e.status = res.status; e.statusDate = new Date().toISOString(); e.active = true; e.irsiBase = c.irsiEnabled ? EC.irsiBase(e.damages, calcMap(e)) : null; save();
       toast(STATUS[res.status].label);
     },
-    advance() { const c = cur(), e = est(); if (e.status < 2 || e.status > 13) return; const wasVerified = e.status <= 5; e.status += 4; e.statusDate = new Date().toISOString(); save(); if (wasVerified) acts["export-csv"](); toast(STATUS[e.status].label); },
+    advance() { const c = cur(), e = est(); if (e.status < 2 || e.status > 13) return; const wasVerified = e.status <= 5; e.status += 4; e.statusDate = new Date().toISOString(); save(); if (wasVerified) acts["export-xlsx"](); toast(STATUS[e.status].label); },
     "export-csv"() { const c = cur(), e = est(); saveFile(`${(c.number || "dossier").replace(/[^\w-]+/g, "_")}-${e.name.replace(/\s+/g, "_")}.csv`, csvExport(c, e), "text/csv;charset=utf-8"); return false; },
     print() { window.print(); return false; },
     "add-opening"(el) { const r = cur().rooms.find((x) => x.id === el.dataset.id);
@@ -1809,7 +1870,7 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
     } catch (e) { toast("Ce fichier n'est pas un dossier Eureka Chiffrage exporté depuis cet outil.", "err"); }
   }
   function importRefs(text) {
-    try { const j = JSON.parse(text), r = j.refs || j; if (!Array.isArray(r.benefits) || !Array.isArray(r.prices)) throw 0; db.refs = { benefits: r.benefits, prices: r.prices, repairers: r.repairers || [] }; save(); toast("Référentiels importés"); render();
+    try { const j = JSON.parse(text), r = j.refs || j; if (!Array.isArray(r.benefits) || !Array.isArray(r.prices)) throw 0; db.refs = { benefits: r.benefits, prices: r.prices, repairers: r.repairers || [], obsolescence: r.obsolescence || clone(ECData.refs.obsolescence) }; save(); toast("Référentiels importés"); render();
     } catch (e) { toast("Fichier de référentiels non reconnu.", "err"); }
   }
   function importPrices(text) {
@@ -1844,8 +1905,8 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
   document.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && ev.target.matches && ev.target.matches("input[data-chg]")) ev.target.blur(); });
   $("#dlg").addEventListener("cancel", () => setTimeout(() => (dlg().innerHTML = ""), 0));
 
-  window.ECApp = { get db() { return db; }, ui, render, seedDemo, acts,
-    api: { cur, est, dmgScope, getCalc, scopeDamages, touch, benefitOf, possibleBeneficiaries, roLabel, dlg, closeDlg, toast, h, eur, n2, qty, parseNum, uid, readOnly, L } };
+  window.ECApp = { get db() { return db; }, ui, render, seedDemo, acts, chg,
+    api: { openForm, confirmBox, groupsOf, benLabel, liveIrsi, calcMap, insured, saveFile, csvExport, zonePrice, pct, frDate, tbl, sect, save, STATUS, cur, est, dmgScope, getCalc, scopeDamages, touch, benefitOf, possibleBeneficiaries, roLabel, dlg, closeDlg, toast, h, eur, n2, qty, parseNum, uid, readOnly, L } };
   render();
 })();
 </script>
@@ -2058,6 +2119,254 @@ dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
   }
 
   ECApp.acts["import-doc"] = () => { open(); return false; };
+})();
+</script>
+<script>
+/* Outils de chiffrage : saisie directe dans le tableau, actions par ligne et par nature,
+   chiffrage depuis le bordereau, barèmes de vétusté, export Excel, écarts et comparaisons. */
+(function () {
+  "use strict";
+  const A = ECApp.api, { h, eur, n2, qty, pct, parseNum, toast, tbl } = A, { MBV, RSE, num, blank, r2, r1 } = EC;
+  const $ = (s, el) => (el || document).querySelector(s);
+  const refs = () => ECApp.db.refs;
+  const obsTable = () => { if (!refs().obsolescence) refs().obsolescence = JSON.parse(JSON.stringify(ECData.refs.obsolescence)); return refs().obsolescence; };
+  const sortIdx = (a, b) => (a.lineIndex < b.lineIndex ? -1 : 1);
+  const amountEntered = (d) => num(d.obsPct) === 0 && num(d.obsAmount) > 0 && d.l1 !== RSE;
+
+  // Recalcule une ligne après modification, selon le régime fiscal de son calcul. Renvoie un message d'erreur ou rien.
+  function recompute(d, calc, patch) {
+    const n = Object.assign({ qty: d.qty, unit: d.unit, vat: d.vat, obsPct: d.obsPct }, patch);
+    const keepAmount = !("obsPct" in patch) && amountEntered(d) ? d.obsAmount : null;
+    const a = d.l1 === MBV ? EC.mbvAmounts({ ht: n.unit, vat: n.vat, obsPct: n.obsPct, obsAmountInput: keepAmount }, calc.taxRegime)
+      : EC.damageAmounts({ l1: d.l1, qty: n.qty, unit: n.unit, vat: n.vat, obsPct: n.obsPct, obsAmountInput: keepAmount }, calc.taxRegime);
+    if (d.l1 !== RSE && a.obsAmount > a.base + 0.001) return "La vétusté ne peut pas dépasser le montant de la ligne";
+    Object.assign(d, { qty: d.l1 === MBV ? 1 : n.qty, unit: n.unit, vat: n.vat, obsPct: r1(a.obsPct), obsAmount: a.obsAmount, priceWithObs: a.priceWithObs, priceNoVAT: a.priceNoVAT, priceWithVAT: a.priceWithVAT });
+    d.irsiAmount = d.l1 === MBV ? EC.mbvIrsiAmount(A.benefitOf(MBV, d.l2), { ht: d.unit, obsPct: d.obsPct }) : EC.irsiAmount(A.benefitOf(d.l1, d.l2), d);
+  }
+
+  /* ----- Saisie directe dans le tableau des dommages ----- */
+  ECApp.chg.line = (el) => {
+    const e = A.est(), d = e.damages.find((x) => x.id === el.dataset.id), k = el.dataset.k, v = parseNum(el.value);
+    if (v === undefined || v < 0 || (v === null && k !== "obsPct") || (k === "obsPct" && v > 100)) { toast(`La valeur saisie '${el.value}' n'est pas valide`, "err"); return; }
+    if (num(v) === num(d[k])) return false; // valeur inchangée
+    if (k === "qty" && !(v > 0)) { toast("La quantité doit être supérieure à 0", "err"); return; }
+    const calc = A.calcMap(e)[d.calculationId], err = recompute(d, calc, { [k]: num(v) });
+    if (err) { toast(err, "err"); return; }
+    A.touch(e, calc);
+  };
+
+  /* ----- Actions sur une ligne ----- */
+  ECApp.acts["move-dmg"] = (el) => {
+    const e = A.est(), d = e.damages.find((x) => x.id === el.dataset.id);
+    const sib = e.damages.filter((x) => x.calculationId === d.calculationId && x.l1 === d.l1 && x.l2 === d.l2).sort(sortIdx);
+    const o = sib[sib.indexOf(d) + +el.dataset.dir];
+    if (!o) return false;
+    [d.lineIndex, o.lineIndex] = [o.lineIndex, d.lineIndex];
+    A.save();
+  };
+  ECApp.acts["reassign-dmg"] = (el) => {
+    const c = A.cur(), e = A.est(), d = e.damages.find((x) => x.id === el.dataset.id);
+    A.openForm({ title: "Réaffecter la ligne", intro: `« ${d.name} » est déplacée vers un autre tiers ou un autre objet de risque. Les montants sont recalculés selon le régime fiscal de la destination.`, submit: "Réaffecter", fields: [
+      { key: "tp", label: "Tiers", type: "select", empty: false, options: c.thirdParties.map((t) => ({ value: t.id, label: t.name + (t.insured ? " (assuré)" : "") })), value: d.thirdPartyId },
+      { key: "ro", label: "Objet de risque (assuré seulement)", type: "select", options: c.riskObjects.map((r) => ({ value: r.id, label: A.roLabel(c, r.id) })), value: d.riskObjectId }],
+    onSubmit(v) {
+      const tp = c.thirdParties.find((t) => t.id === v.tp), roId = tp.insured ? v.ro || null : null;
+      if (tp.insured && !roId) return "Choisissez l'objet de risque de l'assuré.";
+      if (tp.id === d.thirdPartyId && (roId || null) === (d.riskObjectId || null)) return "La ligne est déjà affectée à cette destination.";
+      const from = A.calcMap(e)[d.calculationId], to = A.getCalc(e, tp.id, roId, true);
+      const dest = A.scopeDamages(e, tp, roId).filter((x) => (x.l1 === MBV) === (d.l1 === MBV));
+      Object.assign(d, { thirdPartyId: tp.id, riskObjectId: roId, calculationId: to.id, lineIndex: EC.nextLineIndex(dest, d.l1, d.l2) });
+      recompute(d, to, {});
+      if (from) from.active = EC.calculationActive(from, e.damages);
+      A.touch(e, to);
+    } });
+    return false;
+  };
+  ECApp.acts["bulk-nature"] = (el) => {
+    const c = A.cur(), e = A.est(), { tp, roId } = A.dmgScope(c, e), l1 = el.dataset.l1;
+    const lines = () => A.scopeDamages(e, tp, roId).filter((d) => d.l1 === l1);
+    A.openForm({ title: "Modifier la nature · " + l1, intro: `${lines().length} ligne(s). Les champs laissés vides ne changent rien.`, submit: "Appliquer", fields: [
+      { key: "adjust", label: "Ajustement des prix %", type: "num", min: -100, max: 500, hint: "-10 baisse chaque prix unitaire de 10 %." },
+      { key: "obsPct", label: "Vétusté %", type: "num", max: 100 },
+      { key: "vat", label: "TVA %", type: "num", max: 99.99 },
+      { key: "mode", label: "Mode d'indemnisation", type: "select", placeholder: "Inchangé", options: [{ value: "REN", label: "REN · réparation en nature" }, { value: "IP", label: "IP · indemnité pécuniaire" }] },
+      { key: "roomId", label: "Pièce", type: "select", placeholder: "Inchangée", options: c.rooms.map((r) => ({ value: r.id, label: r.name })) }],
+    onSubmit(v) {
+      const calc = A.getCalc(e, tp.id, roId, true);
+      for (const d of lines()) {
+        const patch = {};
+        if (!blank(v.adjust)) patch.unit = r2(d.unit * (1 + v.adjust / 100));
+        if (!blank(v.obsPct)) patch.obsPct = v.obsPct;
+        if (!blank(v.vat)) patch.vat = v.vat;
+        const err = recompute(d, calc, patch); if (err) return `« ${d.name} » : ${err}`;
+        if (v.mode) d.mode = v.mode;
+        if (v.roomId) d.roomId = v.roomId;
+      }
+      A.touch(e, calc);
+    } });
+    return false;
+  };
+
+  /* ----- Chiffrage depuis le bordereau, quantités reprises des mesures d'une pièce ----- */
+  const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const MEASURES = { "m²": [["walls", "Murs"], ["floor", "Sol"], ["ceiling", "Plafond"]], ml: [["skirting", "Plinthes"], ["perimeter", "Périmètre"]] };
+  function guessMeasure(p) {
+    const t = norm(p.name + " " + p.l2);
+    if (p.unit === "m²") return /plafond/.test(t) ? "ceiling" : /sol|parquet|pvc|moquette|carrelage|stratifie/.test(t) ? "floor" : "walls";
+    if (p.unit === "ml") return /plinthe/.test(t) ? "skirting" : "perimeter";
+    return "";
+  }
+  ECApp.acts.catalog = () => {
+    if (A.readOnly()) return false;
+    const c = A.cur(), e = A.est(), { tp, roId } = A.dmgScope(c, e), d = A.dlg();
+    const st = { sel: {}, q: "", nat: "", room: "" };
+    const natures = [...new Set(refs().prices.map((p) => p.l1 + " › " + p.l2))];
+    d.innerHTML = `<div class="dlg-body"><h3>Chiffrer depuis le bordereau</h3>
+      <p class="muted">Saisissez les quantités des prestations à retenir. Avec une pièce choisie, la quantité se reprend de ses mesures. Prix de la zone ${c.zone || 1}.</p>
+      <div class="grid">
+        <div class="fld"><label for="cat-q">Rechercher</label><input id="cat-q" type="search" placeholder="peinture, parquet, plinthe…"></div>
+        <div class="fld"><label for="cat-nat">Nature</label><select id="cat-nat"><option value="">Toutes</option>${natures.map((n) => `<option>${h(n)}</option>`).join("")}</select></div>
+        <div class="fld"><label for="cat-room">Pièce</label><select id="cat-room"><option value="">—</option>${c.rooms.map((r) => `<option value="${r.id}">${h(r.name)}</option>`).join("")}</select></div>
+        <div class="fld"><label for="cat-mode">Mode d'indemnisation</label><select id="cat-mode"><option value="IP">IP · indemnité pécuniaire</option><option value="REN">REN · réparation en nature</option></select></div>
+        <div class="fld"><label for="cat-obs">Vétusté %</label><input id="cat-obs" class="num" inputmode="decimal" placeholder="Selon chaque ligne"></div>
+      </div>
+      <div class="tw imp-tw"><table><thead><tr><th>Prestation</th><th>Unité</th><th class="r">Prix unitaire HT €</th><th>Mesure de la pièce</th><th class="r">Quantité</th><th class="r">Montant HT €</th></tr></thead><tbody id="cat-body"></tbody></table></div>
+      <p class="banner info" id="cat-sum"></p><p class="form-err" id="cat-err" hidden></p></div>
+      <div class="dlg-foot"><button class="btn ghost" data-act="dlg-close">Annuler</button><button class="btn primary" id="cat-go"></button></div>`;
+    const body = $("#cat-body", d), room = () => c.rooms.find((r) => r.id === st.room);
+    const measureQty = (key) => { const r = room(); return r && key ? EC.roomMeasures(r)[key] : null; };
+    const summary = () => {
+      const picked = Object.entries(st.sel).filter(([, s]) => parseNum(s.qty) > 0);
+      const total = r2(picked.reduce((a, [i, s]) => a + parseNum(s.qty) * A.zonePrice(refs().prices[i], c), 0));
+      $("#cat-sum", d).textContent = picked.length ? `${picked.length} prestation(s) retenue(s) pour ${eur(total)} HT` : "Aucune prestation retenue pour l'instant.";
+      const b = $("#cat-go", d); b.disabled = !picked.length; b.textContent = picked.length ? `Ajouter ${picked.length} ligne(s) au chiffrage` : "Ajouter au chiffrage";
+    };
+    const list = () => {
+      const terms = norm(st.q).split(/\s+/).filter(Boolean);
+      const items = refs().prices.map((p, i) => ({ p, i })).filter(({ p }) => (!st.nat || p.l1 + " › " + p.l2 === st.nat) && terms.every((t) => norm(p.name + " " + p.l1 + " " + p.l2 + " " + p.repairer).includes(t)));
+      body.innerHTML = items.slice(0, 150).map(({ p, i }) => {
+        const s = st.sel[i] || {}, ms = st.room ? MEASURES[p.unit] : null, q = parseNum(s.qty);
+        return `<tr data-i="${i}" class="${q > 0 ? "picked" : ""}"><td>${h(p.name)}<br><small class="muted">${h(p.l1)} › ${h(p.l2)} · ${h(p.repairer)}${num(p.co2) ? " · " + qty(p.co2) + " kg CO2e" : ""}</small></td><td>${h(p.unit)}</td><td class="r">${eur(A.zonePrice(p, c))}</td>
+          <td>${ms ? `<select class="cat-m" id="cat-m-${i}" aria-label="Mesure"><option value="">Saisie libre</option>${ms.map(([k, l]) => `<option value="${k}"${s.m === k ? " selected" : ""}>${l} · ${n2(measureQty(k))}${k === guessMeasure(p) ? " ←" : ""}</option>`).join("")}</select>` : ""}</td>
+          <td class="r"><input class="num xs cat-qty" id="cat-qty-${i}" inputmode="decimal" value="${h(s.qty || "")}" aria-label="Quantité"></td><td class="r cat-tot">${q > 0 ? eur(r2(q * A.zonePrice(p, c))) : ""}</td></tr>`;
+      }).join("") || `<tr><td colspan="6" class="muted">Aucune prestation ne correspond. Élargissez la recherche ou complétez le bordereau dans les Référentiels.</td></tr>`;
+      summary();
+    };
+    const rowState = (tr) => (st.sel[tr.dataset.i] = st.sel[tr.dataset.i] || {});
+    body.addEventListener("input", (ev) => {
+      const tr = ev.target.closest("tr"); if (!tr || !ev.target.classList.contains("cat-qty")) return;
+      const s = rowState(tr); s.qty = ev.target.value; s.m = ""; const sel = $(".cat-m", tr); if (sel) sel.value = "";
+      const q = parseNum(s.qty); $(".cat-tot", tr).textContent = q > 0 ? eur(r2(q * A.zonePrice(refs().prices[tr.dataset.i], c))) : ""; tr.classList.toggle("picked", q > 0); summary();
+    });
+    body.addEventListener("change", (ev) => {
+      const tr = ev.target.closest("tr"); if (!tr || !ev.target.classList.contains("cat-m")) return;
+      const s = rowState(tr); s.m = ev.target.value; s.qty = s.m ? String(measureQty(s.m)).replace(".", ",") : ""; list();
+    });
+    $("#cat-q", d).addEventListener("input", (ev) => { st.q = ev.target.value; list(); });
+    $("#cat-nat", d).addEventListener("change", (ev) => { st.nat = ev.target.value; list(); });
+    $("#cat-room", d).addEventListener("change", (ev) => { st.room = ev.target.value; Object.values(st.sel).forEach((s) => { if (s.m) s.qty = st.room ? String(measureQty(s.m)).replace(".", ",") : ""; }); list(); });
+    $("#cat-go", d).onclick = () => {
+      const fail = (m) => { const p = $("#cat-err", d); p.hidden = false; p.textContent = m; };
+      const obs = parseNum($("#cat-obs", d).value);
+      if (obs === undefined || (obs !== null && (obs < 0 || obs > 100))) return fail("La vétusté doit être un pourcentage entre 0 et 100.");
+      const picked = [];
+      for (const [i, s] of Object.entries(st.sel)) { if (blank(s.qty) || !String(s.qty).trim()) continue; const q = parseNum(s.qty); if (!(q > 0)) return fail(`Quantité non valide pour « ${refs().prices[i].name} ».`); picked.push([refs().prices[i], q]); }
+      const calc = A.getCalc(e, tp.id, roId, true), vat = blank(tp.vat) ? 20 : tp.vat;
+      for (const [p, q] of picked) {
+        const dm = { id: A.uid(), calculationId: calc.id, thirdPartyId: tp.id, riskObjectId: roId, l1: p.l1, l2: p.l2, name: p.name, repairer: p.repairer, mode: $("#cat-mode", d).value, um: p.unit, beneficiaryName: "", roomId: st.room || null, co2: p.co2, csr: p.csr, obsPct: 0, obsAmount: 0, l1x: 0 };
+        delete dm.l1x; dm.unit = A.zonePrice(p, c); dm.qty = q; dm.vat = vat;
+        recompute(dm, calc, { obsPct: num(obs) });
+        dm.lineIndex = EC.nextLineIndex(A.scopeDamages(e, tp, roId).filter((y) => y.l1 !== MBV), p.l1, p.l2);
+        e.damages.push(dm);
+      }
+      A.touch(e, calc); ECApp.ui.tab = "prest"; A.closeDlg(); ECApp.render();
+      toast(`${picked.length} ligne(s) ajoutée(s) au chiffrage`);
+    };
+    list(); d.showModal(); $("#cat-q", d).focus();
+    return false;
+  };
+
+  /* ----- Synthèse : réclamé / chiffré, comparaison des estimations ----- */
+  const gap = (a, b) => (blank(a) || blank(b) ? "" : `<span class="${b - a > 0.005 ? "neg" : b - a < -0.005 ? "pos" : ""}">${b - a > 0 ? "+" : ""}${eur(r2(b - a))}</span>`);
+  ECApp.synth = {
+    claimed(c, e) {
+      const rows = e.calculations.map((k) => {
+        const tp = c.thirdParties.find((t) => t.id === k.thirdPartyId); if (!tp) return "";
+        const ds = e.damages.filter((d) => d.calculationId === k.id), amount = r2(EC.sum(ds, (d) => (k.taxRegime ? d.priceWithVAT : d.priceNoVAT)));
+        if (!ds.length && blank(k.claimedAmount)) return "";
+        return `<tr><td>${h(tp.name)}${tp.insured ? ' <span class="pill s-ver">Assuré</span>' : ""}<br><small class="muted">${k.riskObjectId ? h(A.roLabel(c, k.riskObjectId)) : ""}</small></td><td>${k.taxRegime ? "TTC" : "HT"}</td><td class="r">${eur(k.claimedAmount)}</td><td class="r">${eur(amount)}</td><td class="r">${eur(r2(EC.sum(ds, (d) => d.priceWithObs)))}</td><td class="r">${gap(k.claimedAmount, amount)}</td><td class="r">${blank(k.claimedAmount) || !k.claimedAmount ? "" : pct((amount / k.claimedAmount) * 100) + " %"}</td></tr>`;
+      }).join("");
+      const goods = e.damages.filter((d) => d.l1 === MBV && !blank(d.claimedAmount));
+      return `<section class="panel flush">${tbl(["Tiers", "Régime", "Montant réclamé €", "Montant chiffré €", "Montant vétusté déduite €", "Écart chiffré − réclamé €", "Chiffré / réclamé %"], rows, "Aucun dommage ni montant réclamé sur cette estimation.")}</section>` +
+        (goods.length ? `<section class="panel flush"><div class="panel-h pad"><h2>Biens mobiliers avec montant réclamé</h2></div>${tbl(["Bien", "Catégorie", "Montant réclamé €", "Valeur à neuf TTC €", "Montant vétusté déduite €", "Écart valeur à neuf − réclamé €"], goods.map((d) => `<tr><td>${h(d.name)}</td><td>${h(d.l2)}</td><td class="r">${eur(d.claimedAmount)}</td><td class="r">${eur(d.priceWithVAT)}</td><td class="r">${eur(d.priceWithObs)}</td><td class="r">${gap(d.claimedAmount, d.priceWithVAT)}</td></tr>`).join(""), "")}</section>` : "");
+    },
+    compare(c, e) {
+      if (c.estimates.length < 2) return `<div class="empty"><p>Une seule estimation sur ce dossier. Dupliquez-la pour chiffrer une variante et comparer.</p><button class="btn" data-act="dup-est" data-id="${e.id}">Dupliquer cette estimation</button></div>`;
+      const ref = c.estimates.find((x) => x.id === c.referenceEstimateId) || c.estimates[0];
+      const nat = [...new Set(c.estimates.flatMap((x) => x.damages.map((d) => d.l1)))];
+      const indem = (x) => { const g = A.groupsOf(c, x); return r2(EC.sum(x.beneficiaries, (b) => { const t = EC.beneficiaryTotals(g, b); return t.totalImmediate + t.totalDeferred; })); };
+      const line = (label, f, cls) => `<tr class="${cls || ""}"><td>${label}</td>${c.estimates.map((x) => `<td class="r">${eur(f(x))}</td>`).join("")}<td class="r">${e.id === ref.id ? "" : gap(f(ref), f(e))}</td></tr>`;
+      return `<section class="panel flush">${tbl(["Montants TTC"].concat(c.estimates.map((x) => h(x.name) + (x.id === ref.id ? " (réf.) €" : " €")), [`Écart ${h(e.name)} − référence €`]),
+        `<tr><td>Statut</td>${c.estimates.map((x) => `<td class="r"><span class="pill">${h(A.STATUS[x.status].label)}</span></td>`).join("")}<td></td></tr>` +
+        nat.map((l1) => line(h(l1), (x) => r2(EC.sum(x.damages.filter((d) => d.l1 === l1), (d) => d.priceWithVAT)))).join("") +
+        line("Total HT", (x) => r2(EC.sum(x.damages, (d) => d.priceNoVAT))) + line("TOTAL TTC", (x) => r2(EC.sum(x.damages, (d) => d.priceWithVAT)), "tot") +
+        line("Vétusté déduite", (x) => r2(EC.sum(x.damages, (d) => d.priceWithObs))) + line("Indemnisation totale", indem), "")}</section>`;
+    },
+  };
+
+  /* ----- Référentiels : barèmes de vétusté ----- */
+  ECApp.refsExtra = () => A.sect("Barèmes de vétusté", "edit-obs", "Ajouter", tbl(["Nature", "Détail", "Taux par an %", "Franchise (années)", "Plafond %", ""],
+    obsTable().map((r, i) => `<tr><td>${h(r.l1)}</td><td>${h(r.l2 || "Tous")}</td><td class="r">${pct(r.ratePerYear)}</td><td class="r">${qty(r.franchiseYears) || 0}</td><td class="r">${pct(r.maxPct)}</td><td class="acts"><button class="btn sm ghost danger-t" data-act="del-obs" data-i="${i}">Supprimer</button></td></tr>`).join(""), "Aucun barème."),
+    "La vétusté proposée vaut : taux × (âge − franchise), dans la limite du plafond. L'âge se saisit sur la prestation ; pour un bien mobilier il se déduit de la date d'achat et de la date du sinistre. Valeurs d'exemple à remplacer par les barèmes contractuels.");
+  ECApp.acts["edit-obs"] = () => {
+    A.openForm({ title: "Ajouter un barème de vétusté", fields: [
+      { key: "l1", label: "Nature", type: "select", required: true, options: [...new Set(refs().benefits.map((b) => b.l1))].filter((x) => x !== RSE) },
+      { key: "l2", label: "Détail", hint: "Vide : s'applique à toute la nature." },
+      { key: "ratePerYear", label: "Taux par an %", type: "num", required: true, max: 100 }, { key: "franchiseYears", label: "Franchise (années)", type: "num" }, { key: "maxPct", label: "Plafond %", type: "num", required: true, max: 100 }],
+    onSubmit(v) { const t = obsTable(), i = t.findIndex((r) => r.l1 === v.l1 && (r.l2 || "") === (v.l2 || "")); v.franchiseYears = num(v.franchiseYears); if (i >= 0) t[i] = v; else t.push(v); } });
+    return false;
+  };
+  ECApp.acts["del-obs"] = (el) => { obsTable().splice(+el.dataset.i, 1); A.save(); };
+
+  /* ----- Export Excel (classeur à quatre feuilles) ----- */
+  const XLSX_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  const loadXlsx = () => (window.XLSX ? Promise.resolve(window.XLSX) : new Promise((ok, ko) => { const s = document.createElement("script"); s.src = XLSX_URL; s.onload = () => ok(window.XLSX); s.onerror = ko; document.head.appendChild(s); }));
+  function workbookData(c, e) {
+    const tpName = (id) => (c.thirdParties.find((t) => t.id === id) || {}).name || "", roomName = (id) => (c.rooms.find((r) => r.id === id) || {}).name || "";
+    const groups = A.groupsOf(c, e), ins = A.insured(c);
+    const syn = [["Dossier", c.number || ""], ["Type de sinistre", c.type || ""], ["Date du sinistre", A.frDate(c.eventDate)], ["Assuré", ins ? ins.name : ""], ["Estimation", e.name], ["Statut", A.STATUS[e.status].label], ["Position de l'assuré", e.position || ""], ["IRSI, assiette du local", A.liveIrsi(c, e)], [],
+      ["Tiers", "Nature", "Valeur à neuf HT", "Valeur à neuf TTC", "Vétusté", "Vétusté déduite"]];
+    for (const tp of c.thirdParties) { const ds = e.damages.filter((d) => d.thirdPartyId === tp.id); if (!ds.length) continue;
+      const row = (label, x) => [tp.name, label, r2(EC.sum(x, (d) => d.priceNoVAT)), r2(EC.sum(x, (d) => d.priceWithVAT)), r2(EC.sum(x, (d) => (d.l1 === RSE ? 0 : d.obsAmount))), r2(EC.sum(x, (d) => d.priceWithObs))];
+      [...new Set(ds.map((d) => d.l1))].forEach((l1) => syn.push(row(l1, ds.filter((d) => d.l1 === l1)))); syn.push(row("TOTAL", ds)); }
+    const dmg = [["Tiers", "Objet de risque", "Nature", "Détail", "Désignation", "Pièce", "Quantité", "Unité", "Prix unitaire HT", "Montant HT", "TVA %", "Montant TTC", "Âge (années)", "Vétusté %", "Vétusté", "Vétusté déduite", "Mode", "Bénéficiaire", "Bordereau", "Origine", "CO2e kg"]];
+    e.damages.slice().sort((a, b) => (a.thirdPartyId + a.lineIndex < b.thirdPartyId + b.lineIndex ? -1 : 1)).forEach((d) => dmg.push([tpName(d.thirdPartyId), d.riskObjectId ? A.roLabel(c, d.riskObjectId) : "", d.l1, d.l2, d.name, roomName(d.roomId), d.qty, d.um || "", d.unit, d.priceNoVAT, d.vat, d.priceWithVAT, blank(d.age) ? "" : d.age, d.l1 === RSE ? "" : d.obsPct, d.l1 === RSE ? 0 : d.obsAmount, d.priceWithObs, d.mode, d.beneficiaryName || "", d.repairer || "", d.source || "", r2(num(d.co2) * num(d.qty))]));
+    const ind = [["Bénéficiaire", "Garantie", "Nature", "Détail", "Mode", "Dommages", "Vétusté", "Vétusté récupérable %", "Vétusté récupérable", "Plafond", "Indemnité immédiate", "Indemnité différée"]];
+    e.beneficiaries.forEach((b) => { const l = A.benLabel(c, e, b), t = EC.beneficiaryTotals(groups, b), nil = ["", "", "", "", "", "", ""];
+      groups.filter((g) => g.beneficiaryId === b.id).forEach((g) => ind.push([l.who, l.what, g.l1, g.l2, g.mode, EC.gBase(g), g.obsTotal, blank(g.cPct) ? "" : g.cPct, num(g.cAmt), blank(g.ceiling) ? "" : g.ceiling, g.immediate, g.deferred]));
+      ind.push([l.who, l.what, "Remise %", num(b.discount), ...nil.slice(0, 6), t.discountedImmediate, t.discountedDeferred], [l.who, l.what, "Pénalités", ...nil, num(b.penalization), num(b.deferredPenalization)], [l.who, l.what, "Franchise", ...nil, num(b.deductible), num(b.deferredDeductible)], [l.who, l.what, "TOTAL INDEMNISATION", ...nil, t.totalImmediate, t.totalDeferred]); });
+    const loc = [["Pièce", "Type", "Longueur m", "Largeur m", "Hauteur m", "Sol m²", "Murs m²", "Plafond m²", "Périmètre ml", "Plinthes ml"]];
+    c.rooms.forEach((r) => { const m = EC.roomMeasures(r); loc.push([r.name, r.roomType, m.length, m.width, m.height, m.floor, m.walls, m.ceiling, m.perimeter, m.skirting]); });
+    return { "Synthèse": syn, "Dommages": dmg, "Indemnisations": ind, "Localisations": loc };
+  }
+  ECApp.workbookData = workbookData;
+  ECApp.acts["export-xlsx"] = () => {
+    const c = A.cur(), e = A.est(), base = `${(c.number || "dossier").replace(/[^\w-]+/g, "_")}-${e.name.replace(/\s+/g, "_")}`;
+    loadXlsx().then((X) => {
+      const wb = X.utils.book_new();
+      for (const [name, rows] of Object.entries(workbookData(c, e))) {
+        const ws = X.utils.aoa_to_sheet(rows);
+        ws["!cols"] = rows.reduce((w, r) => { r.forEach((v, i) => (w[i] = Math.min(48, Math.max(w[i] || 8, String(v == null ? "" : v).length + 2)))); return w; }, []).map((wch) => ({ wch }));
+        X.utils.book_append_sheet(wb, ws, name);
+      }
+      A.saveFile(base + ".xlsx", new Blob([X.write(wb, { type: "array", bookType: "xlsx" })], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+    }).catch(() => { toast("Excel indisponible hors connexion : export au format CSV."); A.saveFile(base + ".csv", A.csvExport(c, e), "text/csv;charset=utf-8"); });
+    return false;
+  };
+
+  document.addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z" && !ev.shiftKey && !A.dlg().open && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) { ev.preventDefault(); $("#undo").click(); }
+  });
 })();
 </script>
 </body>

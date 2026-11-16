@@ -409,7 +409,24 @@
     };
   }
 
-  const api = {
+  /* ---------- Barème de vétusté ---------- */
+  // taux annuel appliqué après une franchise en années, plafonné
+  function scaleObsolescence(rule, ageYears) {
+    if (!rule || blank(ageYears)) return null;
+    const years = Math.max(0, num(ageYears) - num(rule.franchiseYears));
+    return r1(Math.min(blank(rule.maxPct) ? 100 : rule.maxPct, years * num(rule.ratePerYear)));
+  }
+  // années entières écoulées entre deux dates AAAA-MM-JJ
+  function yearsBetween(from, to) {
+    if (!from || !to) return null;
+    const a = new Date(from), b = new Date(to);
+    if (isNaN(a) || isNaN(b) || b < a) return null;
+    let y = b.getFullYear() - a.getFullYear();
+    if (b.getMonth() < a.getMonth() || (b.getMonth() === a.getMonth() && b.getDate() < a.getDate())) y--;
+    return y;
+  }
+
+  const api = { scaleObsolescence, yearsBetween,
     MBV, RSE, STATUS, STANCES, OPENING_TYPES, isReadOnly, num, blank, r1, r2, roundDown2, sum,
     linePrices, damageAmounts, recalcOnTaxRegime, transverseObsolescence, irsiAmount, nextLineIndex,
     mbvAmounts, htFromTtc, mbvIrsiAmount,

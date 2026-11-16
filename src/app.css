@@ -155,3 +155,15 @@ dialog::backdrop { background: rgba(20, 10, 45, .55); }
 .imp-tw td { padding: 6px 8px; } .imp-tw .ir-name { min-width: 320px; } .imp-tw .ir-nat { min-width: 190px; } .imp-tw .ir-um { min-width: 68px; } .imp-tw .ir-pu { min-width: 96px; }
 .imp-tw tr.off td { opacity: .45; }
 dialog:has(.imp-tw) { width: min(1120px, calc(100vw - 24px)); }
+
+/* Outils de chiffrage */
+.undo { margin-left: auto; }
+input.cell { width: 86px; min-width: 0; padding: 4px 7px; border-color: transparent; background: var(--surface-2); }
+input.cell:hover, input.cell:focus { border-color: var(--brand); background: var(--surface); }
+.join.end { justify-content: flex-end; flex-wrap: nowrap; } .um { min-width: 22px; text-align: left; color: var(--ink-2); }
+.ico { border: 1px solid transparent; background: none; color: var(--ink-2); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: .95rem; }
+.ico:hover { border-color: var(--line); color: var(--ink); }
+.btn.on-dark { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .45); }
+.btn.on-dark:hover { border-color: #fff; }
+.imp-tw tr.picked td { background: var(--mine); }
+.pos { color: var(--ok); } .neg { color: var(--err); }

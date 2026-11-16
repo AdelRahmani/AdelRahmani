@@ -31,11 +31,20 @@ Dans Dommages, « Importer un devis ou une facture » lit un PDF, un fichier tex
 - Les lignes intégrées portent l'origine du document et suivent les mêmes règles de calcul que les prestations saisies à la main.
 - Sur la page publiée dans claude.ai, « Analyser avec Claude » lit aussi les scans et les photos. C'est le seul cas où le contenu du document quitte le navigateur.
 
+## Outils de chiffrage
+
+- **Saisie directe** : quantité, prix unitaire et vétusté se modifient dans le tableau des dommages.
+- **Chiffrer depuis le bordereau** : recherche dans les prestations, quantités reprises des mesures d'une pièce (sol, murs, plafond, périmètre, plinthes), ajout de plusieurs lignes en une fois.
+- **Barèmes de vétusté** : taux par an, franchise et plafond par nature ; la vétusté se propose d'après l'âge de la prestation, ou la date d'achat d'un bien mobilier.
+- **Actions sur les lignes** : monter, descendre, dupliquer, réaffecter à un autre tiers ou objet de risque ; modification d'une nature entière (ajustement des prix en %, vétusté, TVA, mode, pièce).
+- **Annuler** la dernière action (30 états, aussi par Ctrl+Z).
+- **Synthèse** : écart entre montant réclamé et montant chiffré, comparaison des estimations d'un dossier, export Excel à quatre feuilles (CSV en repli hors connexion).
+
 ## Ce qui diffère de l'app Power Apps
 
 - Pas de connexion à ProsPecT / Eureka ni à Dataverse : le dossier est créé à la main ou importé en JSON.
 - Les référentiels (natures, bordereaux de prix, réparateurs) fournis sont des exemples. Ils se remplacent depuis l'écran Référentiels (import JSON, ou CSV pour un bordereau).
-- L'export Excel est remplacé par un export CSV (séparateur `;`, lisible par Excel).
+- L'export Excel est un classeur généré dans le navigateur, pas le modèle Excel de l'app d'origine.
 - La zone tarifaire se choisit sur le dossier au lieu d'être déduite du département du réparateur.
 
 ## Développement
@@ -46,4 +55,5 @@ node tests/calc.test.js      # règles de calcul
 node tests/extract.test.js   # lecture des lignes d'un devis
 node tests/e2e.js            # parcours complet dans Chromium (Playwright)
 node tests/import.e2e.js     # import d'un devis PDF et d'un texte collé
+node tests/pro.e2e.js        # saisie directe, bordereau, barèmes, annulation, export
 ```
