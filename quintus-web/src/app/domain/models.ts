@@ -229,6 +229,10 @@ export interface Benefit {
   damageREC?: 'Materiel' | 'Immateriel' | string;
   /** RECFeature : "true" si réservé aux dossiers IRSI, "false" si exclu, vide sinon */
   rec?: string;
+  /** Correspondance Sinapps : natureDommages (NatureDommagesChiffrage) */
+  sinappsNature?: string;
+  /** Correspondance Sinapps : detailNature (DetailNatureChiffrage) ou, pour le mobilier, typeBien (TypeBien) */
+  sinappsDetail?: string;
 }
 
 /** crbbf_Prices : prix HT par zone 1 à 5 */

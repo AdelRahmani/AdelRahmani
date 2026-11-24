@@ -151,7 +151,12 @@ const MEASURES = [
             </div>
             <div class="fld">
               <label for="d-vat">TVA %</label
-              ><input id="d-vat" class="num" inputmode="decimal" formControlName="vat" />
+              ><select id="d-vat" formControlName="vat">
+                @for (v of vatOptions(); track v) {
+                  <option [value]="v">{{ v.replace('.', ',') }} %</option>
+                }
+              </select>
+              <small>Taux acceptés par Sinapps</small>
             </div>
             <div class="fld">
               <label for="d-age">Âge (années)</label
@@ -278,6 +283,12 @@ export class DamageDialog {
       .refs()
       .benefits.filter((b) => b.l1 !== MBV && b.l1 !== RSE && (!b.rec || b.rec === irsi));
   });
+  /** taux Sinapps, plus le taux actuel de la ligne s'il n'en fait pas partie (signalé à la vérification) */
+  protected readonly vatOptions = computed(() => {
+    const cur = this.value().vat ?? '';
+    const list = LISTS.vat.map(String);
+    return cur && !list.includes(cur) ? [cur, ...list] : list;
+  });
   protected readonly natures = computed(() => [...new Set(this.benefits().map((b) => b.l1))]);
   protected readonly details = computed(() =>
     this.benefits()
@@ -352,7 +363,7 @@ export class DamageDialog {
       qty: fmtQty(damage?.qty),
       um: damage?.um ?? '',
       unit: damage ? n2(damage.unit).replace(/\s/g, '') : '',
-      vat: pct(damage?.vat ?? tp?.vat ?? 20),
+      vat: String(damage?.vat ?? tp?.vat ?? 20),
       age: fmtQty(damage?.age),
       obsPct: amountEntered ? '' : pct(damage?.obsPct),
       obsAmount: amountEntered ? n2(damage!.obsAmount).replace(/\s/g, '') : '',

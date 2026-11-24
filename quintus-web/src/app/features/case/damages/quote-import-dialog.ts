@@ -7,7 +7,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Id, MBV, QuoteDocument, RSE, guessNature, parseQuoteText, r2 } from '../../../domain';
+import {
+  Id,
+  MBV,
+  QuoteDocument,
+  RSE,
+  guessNature,
+  isSinappsVat,
+  parseQuoteText,
+  r2,
+} from '../../../domain';
 import { LISTS } from '../../../data/reference-data';
 import { getCalc, upsertDamage } from '../../../state/case-ops';
 import { CaseStore } from '../../../state/case-store';
@@ -483,8 +492,10 @@ export class QuoteImportDialog {
         return this.error.set(`« ${name} » : la quantité doit être supérieure à 0.`);
       if (pu === undefined || pu === null || pu < 0)
         return this.error.set(`« ${name} » : le prix unitaire n'est pas valide.`);
-      if (vat === undefined || (vat !== null && (vat < 0 || vat >= 100)))
-        return this.error.set(`« ${name} » : la TVA doit être un pourcentage entre 0 et 100.`);
+      if (vat === undefined || (vat !== null && !isSinappsVat(vat)))
+        return this.error.set(
+          `« ${name} » : TVA à ${r.vat} % refusée par Sinapps (taux acceptés : 0, 2, 2,1, 4, 5,5, 7, 8,5, 10, 19,6 et 20 %).`,
+        );
       if (!nature)
         return this.error.set('Choisissez une nature par défaut, ou une nature sur chaque ligne.');
       const [l1, l2] = nature.split(SEP);

@@ -7,3 +7,4 @@ export * from './verification';
 export * from './rooms';
 export * from './obsolescence';
 export * from './quote-extract';
+export * from './sinapps';

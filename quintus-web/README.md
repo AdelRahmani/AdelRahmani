@@ -12,6 +12,13 @@ npm test           # règles de calcul (Vitest)
 npm run e2e        # build + parcours complet dans Chromium (Playwright requis)
 ```
 
+## Sinapps
+
+Le chiffrage part vers Sinapps (commande `chiffrerDommages`). `domain/sinapps.ts` anticipe ses refus, et la vérification de l'estimation reste bloquée tant qu'un point n'est pas réglé :
+nature et détail obligatoires sur chaque ligne, correspondance avec les natures et détails Sinapps (si le référentiel la porte : champs `sinappsNature` et `sinappsDetail` des natures), TVA parmi les taux acceptés, vétusté au plus égale au montant, justificatif d'un bien volé, objet de risque de l'assuré, même régime fiscal pour tous les chiffrages d'un même bénéficiaire.
+
+La correspondance entre les natures Quintus et celles de Sinapps n'est pas dans la spécification Sinapps (règle RG_CHIFFRAGE_EXP_0030 seulement) : elle doit venir du référentiel réel.
+
 ## Déploiement
 
 - Servir les fichiers `.mjs` avec le type `text/javascript` : le lecteur PDF (`pdfjs/pdf.worker.min.mjs`) est refusé par le navigateur sinon.

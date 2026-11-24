@@ -366,7 +366,8 @@ export const LISTS = {
     'Inconnu',
     'Autre',
   ],
-  vat: [0, 2.1, 4, 5.5, 7, 8, 8.5, 10, 19.6, 20],
+  // taux acceptés par Sinapps (RG_CHIFFRAGE_EXP_0068)
+  vat: [0, 2, 2.1, 4, 5.5, 7, 8.5, 10, 19.6, 20],
   units: ['ml', 'm²', 'm3', 'U', 'H', 'FFT'],
   modes: ['REN', 'IP'],
   goodStatus: ['Bien volé', 'Réparable', 'Non réparable'],

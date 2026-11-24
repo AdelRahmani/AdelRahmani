@@ -48,6 +48,9 @@ try {
 
   // Ajout d'une prestation du bordereau, quantité reprise du plafond de la cuisine (10,08 m²), barème 3 ans
   await p.click('text=Ajouter une prestation');
+  // TVA : seulement les taux acceptés par Sinapps
+  const vats = await p.$$eval('#d-vat option', (os) => os.map((o) => o.value));
+  assert.deepEqual(vats, ['0', '2', '2.1', '4', '5.5', '7', '8.5', '10', '19.6', '20']);
   await p.selectOption('#d-l1', 'Embellissements');
   await p.selectOption('#d-l2', 'Plafonds');
   await p.fill('#d-name', 'Faux plafond plaque de plâtre BA13');

@@ -10,6 +10,7 @@ import {
   r2,
   sum,
   verifyEstimate,
+  sinappsIssues,
 } from '../../domain';
 import { benefitOf, calcMap, groupsOf, insured } from '../../state/case-ops';
 import { CaseStore } from '../../state/case-store';
@@ -292,7 +293,10 @@ export class SynthesisPage {
       coverages: c.coverages,
       riskObjectIds: c.riskObjects.map((r) => r.id),
     });
-    const errors = [...res.errors, ...(cErr ? [cErr] : [])];
+    const sinapps = sinappsIssues(c, e, this.store.refs()).map(
+      (i) => `Sinapps (${i.rule}) : ${i.message}`,
+    );
+    const errors = [...res.errors, ...(cErr ? [cErr] : []), ...sinapps];
     this.errors.set(errors);
     if (errors.length) return;
     if (!res.status)
