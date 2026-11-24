@@ -12,6 +12,11 @@ npm test           # règles de calcul (Vitest)
 npm run e2e        # build + parcours complet dans Chromium (Playwright requis)
 ```
 
+## Déploiement
+
+- Servir les fichiers `.mjs` avec le type `text/javascript` : le lecteur PDF (`pdfjs/pdf.worker.min.mjs`) est refusé par le navigateur sinon.
+- Renvoyer `index.html` pour toute adresse inconnue (routes Angular, dont `/ouvrir`).
+
 ## Architecture
 
 ```
@@ -37,10 +42,11 @@ src/app/
 | Infos générales | porté |
 | Estimations (création, duplication, référence, évaluation, suppression) | porté |
 | Dommages : prestations (tableau groupé, saisie directe, ajout / modification avec bordereau, mesures de pièce, barème de vétusté, HT/TTC, vétusté par nature, ordre des lignes) | porté |
+| Import d'un devis ou d'une facture, sans IA (PDF texte, fichier texte ou CSV, texte collé ; contrôle du total, nature proposée) | porté |
 | Dommages : mobilier | affichage et saisie directe ; fenêtre d'ajout à porter |
 | Synthèse (indicateurs, synthèse par tiers, détail, vérification, verrouillage) | porté |
 | Parties prenantes, Localisations, Garanties, Bénéficiaires, Indemnisations | à porter : le domaine est prêt et testé |
-| Bonification RSE, import de devis, chiffrage depuis le bordereau, export Excel, comparaison d'estimations, référentiels | à porter depuis le prototype |
+| Bonification RSE, chiffrage depuis le bordereau, export Excel, comparaison d'estimations, référentiels | à porter depuis le prototype |
 
 ## Décisions à prendre avant la mise en production
 

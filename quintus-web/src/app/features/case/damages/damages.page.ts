@@ -35,6 +35,7 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog';
 import { n2, parseNum, pct, qty } from '../../../shared/format';
 import { EurPipe, PctPipe, QtyPipe } from '../../../shared/pipes';
 import { DamageDialog } from './damage-dialog';
+import { QuoteImportDialog } from './quote-import-dialog';
 
 interface Totals {
   ht: number;
@@ -63,7 +64,7 @@ const totals = (ds: readonly Damage[]): Totals => ({
 
 @Component({
   selector: 'app-damages-page',
-  imports: [EurPipe, PctPipe, QtyPipe, DamageDialog, ConfirmDialog],
+  imports: [EurPipe, PctPipe, QtyPipe, DamageDialog, QuoteImportDialog, ConfirmDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.current(); as c) {
@@ -71,6 +72,9 @@ const totals = (ds: readonly Damage[]): Totals => ({
         <div><h1>Dommages</h1></div>
         @if (tp() && tab() === 'prest') {
           <div class="actions">
+            <button class="btn" type="button" [disabled]="ro()" (click)="importQuote()">
+              Importer un devis ou une facture
+            </button>
             <button class="btn primary" type="button" [disabled]="ro()" (click)="add()">
               Ajouter une prestation
             </button>
@@ -434,6 +438,7 @@ const totals = (ds: readonly Damage[]): Totals => ({
       }
     }
     <app-damage-dialog />
+    <app-quote-import-dialog />
     <app-confirm-dialog />
   `,
 })
@@ -441,6 +446,7 @@ export class DamagesPage {
   protected readonly store = inject(CaseStore);
   private readonly toast = inject(ToastService);
   private readonly dialog = viewChild.required(DamageDialog);
+  private readonly importDialog = viewChild.required(QuoteImportDialog);
   private readonly confirm = viewChild.required(ConfirmDialog);
   protected readonly mbv = MBV;
   protected readonly rse = RSE;
@@ -548,6 +554,10 @@ export class DamagesPage {
       riskObjectId: this.riskObjectId(),
       label: tp.name + (tp.insured ? ' · ' + riskObjectLabel(c, this.riskObjectId()) : ''),
     };
+  }
+  protected importQuote(): void {
+    const tp = this.tp()!;
+    this.importDialog().open({ ...this.scopeInfo(), vat: tp.vat ?? 20 });
   }
   protected add(): void {
     this.dialog().open(this.scopeInfo());

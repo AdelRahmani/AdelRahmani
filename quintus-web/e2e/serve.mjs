@@ -6,7 +6,7 @@ import { extname, join, resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../dist/quintus-web/browser');
 const types = {
   '.html': 'text/html',
-  '.js': 'text/javascript',
+  '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css',
   '.ico': 'image/x-icon',
   '.json': 'application/json',

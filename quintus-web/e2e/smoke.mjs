@@ -72,6 +72,48 @@ try {
   await p.waitForSelector('text=81,77 €');
   await p.click('.seg >> text=TTC');
 
+  // Import d'un devis PDF, sans IA : six lignes, total identique au document, nature proposée
+  await p.click('text=Importer un devis ou une facture');
+  await p.click('text=Extraire les lignes');
+  await p.waitForSelector('text=Choisissez un document ou collez son texte.');
+  await p.setInputFiles('#qi-file', join(import.meta.dirname, 'fixtures/devis-exemple.pdf'));
+  await p.click('text=Extraire les lignes');
+  await p.waitForSelector('#qi-name-5');
+  assert.equal(await p.locator('dialog[open] tbody tr').count(), 6);
+  let banner = await p.innerText('dialog[open] .banner');
+  assert.ok(banner.includes('3 172,68') && banner.includes('Identique'), banner);
+  assert.ok((await p.innerText('dialog[open]')).includes('Devis n° D-2026-0142 RÉNO SERVICES SARL'));
+  assert.equal(await p.inputValue('#qi-pu-4'), '1 250,00');
+  assert.equal(await p.inputValue('#qi-unit-5'), 'FFT');
+  assert.equal(await p.inputValue('#qi-vat-5'), '20');
+  assert.equal(await p.inputValue('#qi-nat-1'), 'Embellissements›Peinture');
+  assert.equal(await p.inputValue('#qi-nat-4'), 'Immobilier›Menuiserie');
+  // une ligne écartée : l'écart avec le document est signalé ; sans nature, l'intégration est refusée
+  await p.uncheck('#qi-keep-5');
+  await p.waitForSelector('dialog[open] .banner:has-text("5 lignes")');
+  banner = await p.innerText('dialog[open] .banner');
+  assert.ok(banner.includes('5 lignes') && banner.includes('écart'), banner);
+  await p.selectOption('#qi-nat-4', '');
+  await p.click('dialog[open] >> text=Intégrer 5 lignes au chiffrage');
+  await p.waitForSelector('text=Choisissez une nature par défaut');
+  await p.selectOption('#qi-nat', 'Immobilier›Menuiserie');
+  await p.fill('#qi-obs', '20'); await p.locator('#qi-obs').dispatchEvent('change');
+  await p.check('#qi-claimed');
+  await p.click('dialog[open] >> text=Intégrer 5 lignes au chiffrage');
+  await p.waitForSelector('text=Remplacement du bloc-porte de la cuisine');
+  // bloc-porte : 1 250 HT, 1 375 TTC, vétusté 20 % = 275, vétusté déduite 1 100
+  txt = await main();
+  for (const s of ['1 375,00 €', '275,00 €', '1 100,00 €', 'Devis n° D-2026-0142 RÉNO SERVICES SARL']) assert.ok(txt.includes(s), 'import ' + s);
+  assert.equal(await p.inputValue('#dm-claimed'), '3 498,45');
+  // texte collé, espaces simples
+  await p.click('text=Importer un devis ou une facture');
+  await p.fill('#qi-text', 'FACTURE N° F-88\nRecherche de fuite 1 320,00 320,00\nMain d\'oeuvre plomberie 3 h 45,00 135,00\nTotal HT 455,00');
+  await p.click('text=Extraire les lignes');
+  await p.waitForSelector('#qi-name-1');
+  assert.ok((await p.innerText('dialog[open] .banner')).includes('Identique'));
+  assert.equal(await p.inputValue('#qi-nat-0'), 'Mesures conservatoires›Recherche de fuite');
+  await p.click('dialog[open] >> text=Annuler');
+
   // Synthèse : vérification → statut, puis verrouillage
   await p.click('a.step:has-text("Synthèse")');
   await p.click("text=Vérifier l'estimation");
