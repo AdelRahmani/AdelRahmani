@@ -12,7 +12,7 @@ https://<adresse d'Eureka Chiffrage>/ouvrir?assignmentNumber=<n° de mission>
 - `env` : accepté pour compatibilité avec l'app Power Apps, mais ignoré. L'environnement (recette, production) est celui où Eureka Chiffrage est déployé.
 - L'adresse ne contient ni jeton ni donnée personnelle : l'accès au dossier est vérifié côté serveur, avec la session de l'utilisateur.
 
-Ce sont les mêmes paramètres que l'app Power Apps actuelle (`Param("assignmentNumber")`, `Param("env")`). Pendant la période où les deux applications coexistent, Eureka n'a qu'à changer l'adresse de base, par exemple selon le groupe de l'expert.
+Ce sont les mêmes paramètres que l'app Power Apps actuelle (`Param("assignmentNumber")`, `Param("env")`). Le passage de l'une à l'autre (coupure franche ou période de coexistence) n'est pas encore décidé ; garder les mêmes paramètres laisse les deux options ouvertes, sans rien engager.
 
 ## Code du bouton côté Eureka (Angular 21)
 

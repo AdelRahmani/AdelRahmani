@@ -9,8 +9,8 @@ const ASSIGNMENT_NUMBER = /^[A-Z0-9][A-Z0-9-]{5,39}$/;
 /**
  * Point d'entrée du bouton « Ouvrir Eureka Chiffrage » d'Eureka :
  *   /ouvrir?assignmentNumber=27FP260071606A01&env=P
- * Mêmes paramètres que l'app Power Apps (Param("assignmentNumber"), Param("env")), pour que
- * Eureka n'ait qu'à changer l'adresse de base pendant la période où les deux applications coexistent.
+ * Mêmes paramètres que l'app Power Apps (Param("assignmentNumber"), Param("env")) : le mode de passage
+ * de l'une à l'autre n'est pas décidé, et ce choix n'en ferme aucun.
  * env est accepté pour compatibilité mais ignoré : l'environnement est celui où l'application est déployée.
  */
 @Component({
