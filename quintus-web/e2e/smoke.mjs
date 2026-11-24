@@ -92,6 +92,25 @@ try {
   await p.click('a.step:has-text("Indemnisations")');
   await p.waitForSelector('text=Écran à porter');
 
+  // Ouverture depuis le bouton Eureka : même dossier à chaque clic, pas de doublon
+  await p.goto('http://localhost:4321/ouvrir?assignmentNumber=27fp260071606a01&env=P');
+  await p.waitForURL(/\/dossiers\/[^/]+\/dommages$/);
+  const firstUrl = p.url();
+  assert.equal(await p.title(), '27FP260071606A01 · Dommages · Eureka Chiffrage');
+  assert.ok((await p.innerText('header')).includes('27FP260071606A01'));
+  await p.goBack();
+  assert.ok(!p.url().includes('/ouvrir'), 'la page d’ouverture ne reste pas dans l’historique');
+  await p.goto('http://localhost:4321/ouvrir?assignmentNumber=27FP260071606A01');
+  await p.waitForURL(/\/dommages$/);
+  assert.equal(p.url(), firstUrl);
+  await p.goto('http://localhost:4321/dossiers');
+  await p.waitForSelector('.case-card');
+  assert.equal(await p.locator('.case-card', { hasText: '27FP260071606A01' }).count(), 1);
+  await p.goto('http://localhost:4321/ouvrir');
+  await p.waitForSelector('text=Le numéro de mission est absent');
+  await p.goto('http://localhost:4321/ouvrir?assignmentNumber=%3Cscript%3E');
+  await p.waitForSelector("text=n'est pas un numéro de mission valide");
+
   // Téléphone, thème sombre : pas de défilement horizontal de la page
   const m = await browser.newPage({ viewport: { width: 390, height: 800 }, colorScheme: 'dark' });
   m.on('pageerror', (e) => errors.push(String(e)));

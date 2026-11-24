@@ -49,8 +49,9 @@ import { EurPipe, FrDatePipe } from '../../shared/pipes';
                     }
                   </td>
                   <td>
-                    <span class="pill">{{ row.status }}</span
-                    ><br /><small class="muted">{{ row.e.statusDate | frDate }}</small>
+                    <span class="pill">{{ row.status }}</span><br /><small class="muted">{{
+                      row.e.statusDate | frDate
+                    }}</small>
                   </td>
                   <td class="r">{{ row.e.damages.length }}</td>
                   <td class="r">{{ row.ht | eur }}</td>

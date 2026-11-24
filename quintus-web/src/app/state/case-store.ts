@@ -116,6 +116,13 @@ export class CaseStore {
     return demo.id;
   }
 
+  /** Ouverture depuis le bouton « Ouvrir Eureka Chiffrage » d'Eureka */
+  async openAssignment(assignmentNumber: string): Promise<Id> {
+    const c = await this.cases$.openAssignment(assignmentNumber);
+    this.cases.update((all) => [c, ...all.filter((x) => x.id !== c.id)]);
+    return c.id;
+  }
+
   async saveRefs(refs: Referentials): Promise<void> {
     this.refs.set(refs);
     await this.refs$.save(refs);
