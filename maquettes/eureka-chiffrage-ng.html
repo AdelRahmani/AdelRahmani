@@ -1,0 +1,563 @@
+<title>Eureka Chiffrage nouvelle génération</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+/* Mise en page : application d'expert, en-tête fixe avec les 4 écrans du prototype, colonne de travail + récapitulatif à droite */
+:root {
+  --bg: #F3F4F8; --surface: #FFFFFF; --surface-2: #F7F8FB; --sunken: #E9EBF3; --line: #E2E4ED; --line-2: #D3D6E3;
+  --ink: #14162B; --ink-2: #555B77; --ink-3: #868BA6;
+  --accent: #3451D1; --accent-ink: #FFFFFF; --accent-soft: #ECEFFD; --accent-text: #22389E;
+  --hero: #14162B; --hero-ink: #FFFFFF; --hero-2: #B8BCCF; --hero-line: #2B2E4A;
+  --ok: #1F7A43; --ok-bg: #E4F3EA; --ok-dot: #1F9D55;
+  --warn: #7A4A00; --warn-bg: #FFF2D9; --warn-dot: #D98A00; --warn-row: #FFFBF2;
+  --bad: #B42318;
+  --shadow: 0 1px 2px rgba(20, 22, 43, .05), 0 8px 24px rgba(20, 22, 43, .05);
+  --font: "Inter", "Segoe UI", system-ui, sans-serif; --display: "Space Grotesk", "Inter", "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101220; --surface: #181B2D; --surface-2: #1D2135; --sunken: #262A41; --line: #2C3049; --line-2: #3A3F5C;
+    --ink: #ECEDF6; --ink-2: #A8ACC4; --ink-3: #7B809C;
+    --accent: #7C93F5; --accent-ink: #0E1230; --accent-soft: #232A52; --accent-text: #B6C3FF;
+    --hero: #0A0C18; --hero-ink: #FFFFFF; --hero-2: #A8ACC4; --hero-line: #262A41;
+    --ok: #8BD6A6; --ok-bg: #173225; --ok-dot: #3CC575;
+    --warn: #F4C574; --warn-bg: #3A2B10; --warn-dot: #E9A23B; --warn-row: #241E12;
+    --bad: #FF8A80;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101220; --surface: #181B2D; --surface-2: #1D2135; --sunken: #262A41; --line: #2C3049; --line-2: #3A3F5C;
+  --ink: #ECEDF6; --ink-2: #A8ACC4; --ink-3: #7B809C;
+  --accent: #7C93F5; --accent-ink: #0E1230; --accent-soft: #232A52; --accent-text: #B6C3FF;
+  --hero: #0A0C18; --hero-ink: #FFFFFF; --hero-2: #A8ACC4; --hero-line: #262A41;
+  --ok: #8BD6A6; --ok-bg: #173225; --ok-dot: #3CC575;
+  --warn: #F4C574; --warn-bg: #3A2B10; --warn-dot: #E9A23B; --warn-row: #241E12;
+  --bad: #FF8A80;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+h1, h2, h3 { margin: 0; font-family: var(--display); letter-spacing: -.01em; text-wrap: balance; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1440px; margin: 0 auto; }
+.muted { color: var(--ink-2); } .small { font-size: 12.5px; } .num { font-variant-numeric: tabular-nums; }
+
+/* en-tête */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; padding-block: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 17px var(--display); }
+.brand i { width: 30px; height: 30px; border-radius: 8px; background: var(--hero); display: grid; place-items: center; }
+.case { display: flex; flex-direction: column; min-width: 0; }
+.case b { font-weight: 600; }
+.top-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.sync { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 500; }
+.sync.off { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok-dot); flex: none; }
+.sync.off .dot, .dot.warn { background: var(--warn-dot); }
+.dot.info { background: var(--accent); }
+.screens { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+.screens a { flex: none; text-decoration: none; color: var(--ink-2); font-weight: 600; font-size: 13.5px; padding: 7px 12px; border-radius: 999px; }
+.screens a:hover { background: var(--surface-2); color: var(--ink); }
+.screens a[aria-current="page"] { background: var(--hero); color: var(--hero-ink); }
+.demo-note { margin-left: auto; align-self: center; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.demo-note button { background: none; border: 0; padding: 0; color: var(--accent-text); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+
+main { padding-block: 22px 56px; }
+.screen-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 16px; }
+.screen-head h1 { font-size: 28px; }
+.screen-head .acts { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 10px; font-size: 12.5px; font-weight: 600; background: var(--accent-soft); color: var(--accent-text); }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.btn { border: 1px solid var(--line-2); background: var(--surface); border-radius: 9px; padding: 9px 14px; font-weight: 600; font-size: 13px; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.dark { background: var(--hero); color: var(--hero-ink); border-color: var(--hero); }
+.btn[disabled] { background: var(--sunken); color: var(--ink-3); border-color: var(--sunken); cursor: not-allowed; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+
+/* chiffrage */
+.layout { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-start; }
+.work { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.recap { flex: 1 1 290px; max-width: 380px; display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 960px) { .recap { max-width: none; } }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { display: inline-flex; gap: 8px; align-items: baseline; border: 1px solid var(--line-2); background: var(--surface); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: 13px; }
+.chip span { font-weight: 500; color: var(--ink-2); }
+.chip[aria-pressed="true"] { background: var(--hero); color: var(--hero-ink); border-color: var(--hero); }
+.chip[aria-pressed="true"] span { color: var(--hero-2); }
+.quick { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.quick label.search { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--accent); border-radius: 10px; padding: 10px 12px; background: var(--surface); }
+.quick input#quick-add { border: 0; outline: none; flex: 1; min-width: 0; font-size: 15px; background: transparent; }
+.result { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 6px; border-top: 1px solid var(--line); }
+.result .what { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.co2 { font-size: 12px; color: var(--ok); background: var(--ok-bg); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.sinapps { font-size: 12px; font-weight: 600; color: var(--accent-text); }
+.sinapps.missing { color: var(--bad); font-weight: 700; }
+.free { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; padding: 10px 6px; border-top: 1px solid var(--line); }
+.free .what { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fld { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.fld select, .fld input { font-size: 14px; font-weight: 400; color: var(--ink); background: var(--surface); padding: 7px 8px; border: 1px solid var(--line-2); border-radius: 8px; min-width: 0; }
+.suggest { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.suggest-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.tag { background: var(--accent-soft); color: var(--accent-text); border-radius: 6px; padding: 3px 8px; font-size: 11.5px; font-weight: 700; letter-spacing: .05em; }
+.sug-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.sug { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--surface-2); }
+.photo { height: 70px; border-radius: 8px; background: repeating-linear-gradient(135deg, var(--sunken) 0 10px, var(--surface-2) 10px 20px); display: flex; align-items: flex-end; padding: 6px 8px; font-size: 11.5px; color: var(--ink-2); }
+.sug .row { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.btn-line { margin-left: auto; background: var(--surface); color: var(--accent-text); border: 1.5px solid var(--accent); border-radius: 8px; padding: 6px 12px; font-weight: 600; font-size: 13px; }
+.btn-line.done { background: var(--ok-bg); color: var(--ok); border-color: transparent; cursor: default; }
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.lines { min-width: 860px; }
+.lines th { text-align: left; color: var(--ink-2); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; font-weight: 600; padding: 10px 8px; }
+.lines th:first-child, .lines td:first-child { padding-left: 14px; }
+.lines th:last-child, .lines td:last-child { padding-right: 14px; }
+.lines td { padding: 10px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+.lines .r { text-align: right; }
+.lines tr.group td { background: var(--surface-2); font-weight: 700; }
+.lines tr.flagged td { background: var(--warn-row); }
+.cellname { display: flex; flex-direction: column; gap: 3px; }
+.flag { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.flag span { background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 600; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--accent-text); font-weight: 600; font-size: 12.5px; text-decoration: underline; text-underline-offset: 2px; }
+.linked { font-size: 11.5px; color: var(--ink-3); }
+input.qty { width: 70px; text-align: right; border: 1px solid transparent; background: var(--sunken); border-radius: 6px; padding: 5px 6px; font-variant-numeric: tabular-nums; }
+input.qty:hover, input.qty:focus { border-color: var(--accent); background: var(--surface); }
+.drop { border: 1.5px dashed var(--line-2); border-radius: 12px; padding: 16px 18px; display: flex; gap: 14px; align-items: center; background: var(--surface-2); }
+.total { background: var(--hero); color: var(--hero-ink); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.total .eyebrow { font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--hero-2); font-weight: 600; }
+.total .big { font: 700 36px var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.total dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-top: 1px solid var(--hero-line); padding-top: 12px; }
+.total dt { font-size: 12px; color: var(--hero-2); } .total dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.side { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+.side h2 { font: 600 14px var(--font); letter-spacing: 0; }
+.bar { height: 10px; border-radius: 5px; background: var(--sunken); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 5px; background: var(--accent); transition: width .3s; }
+.bar.dark i { background: var(--ink); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.check .dot { margin-top: 6px; }
+.count { min-width: 22px; height: 22px; border-radius: 11px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--warn-bg); color: var(--warn); }
+.count.zero { background: var(--ok-bg); color: var(--ok); }
+.sin { border-radius: 14px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.sin.ok { background: var(--ok-bg); color: var(--ok); } .sin.ko { background: var(--warn-bg); color: var(--warn); }
+.sin .dot { margin-top: 5px; } .sin.ok .dot { background: var(--ok-dot); }
+.verify { width: 100%; justify-content: center; padding: 14px; font-size: 15px; border-radius: 11px; }
+.banner { border-radius: 12px; padding: 12px 14px; font-weight: 500; }
+.banner.ok { background: var(--ok-bg); color: var(--ok); } .banner.ko { background: var(--warn-bg); color: var(--warn); }
+.banner ul { margin: 6px 0 0; padding-left: 18px; }
+
+/* plan */
+.plan-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.plan-canvas { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; }
+.plan-tools { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; border-bottom: 1px solid var(--line); align-items: center; }
+.tool { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; font-weight: 600; font-size: 13px; }
+.tool.on { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; }
+.plan-svg { padding: 20px; display: flex; justify-content: center; background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 20px 20px; border-radius: 0 0 14px 14px; }
+.plan-svg svg { width: 100%; max-width: 620px; height: auto; }
+.plan-side { flex: 1 1 320px; max-width: 440px; display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 960px) { .plan-side { max-width: none; } }
+.dims { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.measures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.measure { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.measure b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.measure.flash b { color: var(--accent-text); }
+.linked-row { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 13px; }
+.linked-row b { color: var(--accent-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* sur place */
+.terrain-layout { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; justify-content: center; }
+.phone { width: 390px; max-width: 100%; border-radius: 34px; border: 10px solid var(--hero); background: var(--bg); overflow: hidden; display: flex; flex-direction: column; min-height: 760px; box-shadow: var(--shadow); }
+.phone .offline { padding: 12px 16px; display: flex; gap: 10px; align-items: flex-start; }
+.phone .offline.ko { background: var(--warn-bg); color: var(--warn); } .phone .offline.ok { background: var(--ok-bg); color: var(--ok); }
+.phone .offline.ok .dot { background: var(--ok-dot); }
+.phone .body { padding: 16px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.big-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.big-action { border-radius: 14px; padding: 14px 12px; min-height: 92px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; font-weight: 600; text-align: left; border: 1px solid var(--line); background: var(--surface); }
+.big-action.dark { background: var(--hero); color: var(--hero-ink); border-color: var(--hero); }
+.thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.thumb { aspect-ratio: 1; max-width: 100%; border-radius: 10px; background: repeating-linear-gradient(135deg, var(--sunken) 0 10px, var(--surface-2) 10px 20px); display: flex; align-items: flex-end; padding: 6px; font-size: 11px; color: var(--ink-2); background-size: cover; background-position: center; overflow: hidden; }
+.thumb.real { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+.phone-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--line); padding: 6px 6px 14px; }
+.phone-nav a { min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11.5px; color: var(--ink-2); text-decoration: none; }
+.phone-nav a.on { color: var(--ink); font-weight: 700; }
+.phone-nav a.on::before { content: ""; width: 24px; height: 4px; border-radius: 2px; background: var(--ink); }
+.explain { flex: 1 1 280px; max-width: 420px; display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+.explain h2 { font-size: 22px; }
+.explain ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; color: var(--ink-2); }
+
+/* synthèse */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px; }
+.kpi { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.kpi.dark { background: var(--hero); color: var(--hero-ink); border-color: var(--hero); }
+.kpi .eyebrow { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; color: var(--ink-2); }
+.kpi.dark .eyebrow { color: var(--hero-2); }
+.kpi b { font: 700 28px var(--display); font-variant-numeric: tabular-nums; }
+.syn-layout { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.syn-main { flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.syn-report { flex: 1 1 340px; max-width: 460px; }
+@media (max-width: 960px) { .syn-report { max-width: none; } }
+.barrow { display: flex; flex-direction: column; gap: 6px; }
+.barrow .lab { display: flex; justify-content: space-between; gap: 10px; }
+.page { border: 1px solid var(--line); border-radius: 8px; padding: 22px; background: #FFFFFF; color: #14162B; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 6px 24px rgba(20, 22, 43, .10); font-size: 12px; }
+.page .ph { display: flex; justify-content: space-between; gap: 10px; }
+.page .rule { border-top: 2px solid #14162B; padding-top: 8px; display: flex; flex-direction: column; gap: 5px; font-variant-numeric: tabular-nums; }
+.page .rl { display: flex; justify-content: space-between; gap: 10px; color: #3A3F5A; }
+.page .rl.b { color: #14162B; font-weight: 700; margin-top: 4px; }
+.timeline { display: flex; flex-direction: column; gap: 8px; }
+.timeline div { display: flex; gap: 12px; font-size: 13px; }
+.timeline span:first-child { width: 110px; flex: none; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); background: var(--hero); color: var(--hero-ink); padding: 11px 16px; border-radius: 10px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; max-width: calc(100vw - 32px); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { .toast, .bar i { transition: none; } }
+</style>
+
+<header class="top">
+  <div class="wrap gutter">
+    <div class="top-row">
+      <div class="brand"><i><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4h10M3 8h7M3 12h10" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none"/></svg></i>Eureka Chiffrage</div>
+      <div class="case"><b>27FP260071606A01 · Camille Exemple</b><span class="muted small">Dégât des eaux du 02/10/2026 · Appartement, 12 rue des Tilleuls, Lyon 3e</span></div>
+      <div class="top-actions">
+        <button type="button" class="sync" id="sync" data-act="sync"></button>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center">
+      <nav class="screens" aria-label="Écrans du prototype">
+        <a href="#chiffrage" data-screen="chiffrage">Chiffrage</a>
+        <a href="#plan" data-screen="plan">Plan des pièces</a>
+        <a href="#terrain" data-screen="terrain">Sur place</a>
+        <a href="#synthese" data-screen="synthese">Synthèse</a>
+      </nav>
+      <span class="demo-note">Maquette · dossier fictif · <button type="button" data-act="reset">Recommencer</button></span>
+    </div>
+  </div>
+</header>
+<main class="wrap gutter" id="app"></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  // ---------- données de la démonstration (fictives) ----------
+  const SINAPPS_VAT = [0, 2, 2.1, 4, 5.5, 7, 8.5, 10, 19.6, 20];
+  const CLAIMED = 5200;
+  const DETAILS = {
+    "Embellissement": ["Peinture / P. peints", "Revêtements de sol", "Parquets", "Parquets flottants", "Faux plafond", "Carrelage et revêtement céramique"],
+    "Immobilier": ["Plomberie", "Électricité", "Maçonnerie", "Menuiserie intérieure", "Recherche de fuite", "Assèchement"],
+    "Autres préjudices": ["Relogement", "Pertes de loyer"]
+  };
+  const CATALOG = [
+    { name: "Peinture écolabel murs, 2 couches", unit: "m²", pu: 20.59, co2: 1.1, link: "walls", n: "Embellissement", d: "Peinture / P. peints" },
+    { name: "Peinture acrylique murs, 2 couches", unit: "m²", pu: 20.01, co2: 1.9, link: "walls", n: "Embellissement", d: "Peinture / P. peints" },
+    { name: "Peinture acrylique plafond, 2 couches", unit: "m²", pu: 21.84, co2: 2.0, link: "ceiling", n: "Embellissement", d: "Peinture / P. peints" },
+    { name: "Faux plafond plaque de plâtre BA13", unit: "m²", pu: 54.08, co2: 7.2, link: "ceiling", n: "Embellissement", d: "Faux plafond" },
+    { name: "Parquet réemploi, fourniture et pose", unit: "m²", pu: 47.84, co2: 2.4, link: "floor", n: "Embellissement", d: "Parquets" },
+    { name: "Sol PVC en lés, fourniture et pose", unit: "m²", pu: 32.24, co2: 5.1, link: "floor", n: "Embellissement", d: "Revêtements de sol" },
+    { name: "Plinthes médium à peindre", unit: "ml", pu: 11.65, co2: 0.9, link: "skirting", n: "Embellissement", d: "Revêtements de sol" },
+    { name: "Recherche de fuite non destructive", unit: "FFT", pu: 332.8, co2: 3, n: "Immobilier", d: "Recherche de fuite" },
+    { name: "Remplacement prise ou interrupteur", unit: "U", pu: 49.92, co2: 1.1, n: "Immobilier", d: "Électricité" }
+  ];
+  const SUGGESTIONS = [
+    { key: "faience", photo: "Photo 2 · mur évier", name: "Faïence murale 20x20, dépose et pose", why: "Carreaux décollés sur 2,4 m² derrière l’évier", qty: 2.4, unit: "m²", pu: 70.72, co2: 9.5, n: "Embellissement", d: "Carrelage et revêtement céramique" },
+    { key: "prise", photo: "Photo 4 · plan de travail", name: "Remplacement prise ou interrupteur", why: "2 prises sous le plan de travail en zone humide", qty: 2, unit: "U", pu: 49.92, co2: 1.1, n: "Immobilier", d: "Électricité" },
+    { key: "fuite", photo: "Photo 6 · arrivée d’eau", name: "Recherche de fuite non destructive", why: "Trace d’humidité active sous l’arrivée d’eau", qty: 1, unit: "FFT", pu: 332.8, co2: 3, n: "Immobilier", d: "Recherche de fuite" }
+  ];
+  const LINK_LABEL = { walls: "murs", ceiling: "plafond", floor: "sol", skirting: "plinthes" };
+
+  function initialState() {
+    return {
+      online: true, room: "Toutes", q: "", free: { n: "", d: "", price: "" }, showSug: true, accepted: {}, status: "Brouillon", errors: null,
+      planRoom: "Cuisine", photos: [],
+      rooms: {
+        "Cuisine": { L: 3.6, W: 2.8, H: 2.5, openings: [{ type: "door", label: "Porte", w: 0.83, h: 2.04 }, { type: "window", label: "Fenêtre", w: 1.2, h: 1.25 }] },
+        "Séjour": { L: 5.2, W: 4.1, H: 2.5, openings: [{ type: "door", label: "Porte", w: 0.83, h: 2.04 }, { type: "door", label: "Baie coulissante", w: 2.4, h: 2.15 }] }
+      },
+      lines: [
+        { id: 1, room: "Cuisine", n: "Embellissement", d: "Peinture / P. peints", name: "Lessivage et préparation des supports", link: "walls", unit: "m²", pu: 6.71, vat: 10, vet: 0, co2: 0.2 },
+        { id: 2, room: "Cuisine", n: "Embellissement", d: "Peinture / P. peints", name: "Peinture acrylique murs, 2 couches", link: "walls", unit: "m²", pu: 24.9, vat: 10, vet: 20, co2: 1.9, source: "Devis Réno Services D-2026-0142", bordereau: 20.01 },
+        { id: 3, room: "Cuisine", n: "Embellissement", d: "Peinture / P. peints", name: "Peinture acrylique plafond, 2 couches", link: "ceiling", unit: "m²", pu: 21.84, vat: 10, vet: 20, co2: 2.0 },
+        { id: 4, room: "Séjour", n: "Embellissement", d: "Parquets flottants", name: "Parquet stratifié, fourniture et pose", link: "floor", unit: "m²", pu: 43.68, vat: 10, vet: 0, co2: 6.8, age: 8, scale: 56 },
+        { id: 5, room: "Séjour", n: "Embellissement", d: "Revêtements de sol", name: "Plinthes médium à peindre", link: "skirting", unit: "ml", pu: 11.65, vat: 10, vet: 25, co2: 0.9 },
+        { id: 6, room: "Cuisine", n: "Immobilier", d: "Assèchement", name: "Déshumidificateur, pose et location 7 jours", qty: 2, unit: "U", pu: 218.4, vat: 10, vet: 0, co2: 14 }
+      ],
+      nextId: 7
+    };
+  }
+  let S = initialState();
+
+  // ---------- calculs (arrondi au centime par ligne, comme l'app) ----------
+  const r2 = (x) => Math.round(x * 100 + 1e-9) / 100;
+  const num = (t) => { const v = parseFloat(String(t).replace(/\s/g, "").replace(",", ".")); return isFinite(v) ? v : NaN; };
+  const eur = (n) => r2(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/ /g, " ") + " €";
+  const fr = (n) => String(r2(n)).replace(".", ",");
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+  function measures(room) {
+    const r = S.rooms[room];
+    const floor = r2(r.L * r.W), perimeter = r2(2 * (r.L + r.W));
+    const open = r.openings.reduce((a, o) => a + o.w * o.h, 0);
+    const doors = r.openings.filter((o) => o.type === "door").reduce((a, o) => a + o.w, 0);
+    return { floor, ceiling: floor, perimeter, wallsGross: r2(perimeter * r.H), open: r2(open), walls: r2(perimeter * r.H - open), skirting: r2(perimeter - doors) };
+  }
+  const qtyOf = (l) => (l.link ? measures(l.room)[l.link] : l.qty);
+  function amounts(l) {
+    const raw = qtyOf(l) * l.pu, ht = r2(raw), ttc = r2(raw * (1 + l.vat / 100)), vetA = r2(ttc * l.vet / 100);
+    return { qty: qtyOf(l), ht, ttc, vetA, vd: r2(ttc - vetA) };
+  }
+  const all = () => S.lines.map((l) => Object.assign({}, l, amounts(l)));
+  const sum = (xs, k) => r2(xs.reduce((a, x) => a + x[k], 0));
+
+  function flagOf(l) {
+    if (l.bordereau && l.pu > l.bordereau * 1.15) return { text: "Prix " + Math.round((l.pu / l.bordereau - 1) * 100) + " % au-dessus du bordereau (" + eur(l.bordereau) + ")", fix: "Aligner sur le bordereau", act: "fix-price" };
+    if (l.age && l.vet === 0) return { text: "Vétusté 0 % pour un revêtement de " + l.age + " ans ; barème : " + l.scale + " %", fix: "Appliquer " + l.scale + " %", act: "fix-vet" };
+    return null;
+  }
+  function checks(lines) {
+    const out = [];
+    lines.forEach((l) => { const f = flagOf(l); if (f) out.push({ tone: "warn", text: l.name + " : " + f.text.charAt(0).toLowerCase() + f.text.slice(1) }); });
+    const ttc = sum(lines, "ttc");
+    if (CLAIMED > ttc) out.push({ tone: "info", text: "Réclamé supérieur au chiffré de " + eur(CLAIMED - ttc) + " : justification à prévoir" });
+    return out;
+  }
+  function sinappsIssues(lines) {
+    const out = [];
+    lines.forEach((l) => {
+      if (!l.n || !l.d) out.push("« " + l.name + " » : la nature et le détail sont obligatoires");
+      if (SINAPPS_VAT.indexOf(l.vat) < 0) out.push("« " + l.name + " » : TVA à " + fr(l.vat) + " % refusée par Sinapps");
+      if (l.vetA > l.ttc) out.push("« " + l.name + " » : la vétusté dépasse le montant");
+    });
+    return out;
+  }
+
+  // ---------- rendu ----------
+  const app = document.getElementById("app");
+  const screenOf = () => { const h = location.hash.slice(1); return ["chiffrage", "plan", "terrain", "synthese"].indexOf(h) >= 0 ? h : "chiffrage"; };
+
+  function render() {
+    const sc = screenOf();
+    document.querySelectorAll(".screens a").forEach((a) => a.toggleAttribute("aria-current", a.dataset.screen === sc) || a.dataset.screen === sc && a.setAttribute("aria-current", "page"));
+    document.querySelectorAll(".screens a").forEach((a) => { if (a.dataset.screen === sc) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    const sync = document.getElementById("sync");
+    sync.className = "sync" + (S.online ? "" : " off");
+    sync.innerHTML = '<span class="dot"></span>' + (S.online ? "Enregistré à l’instant" : "Hors connexion · modifications en attente");
+    sync.setAttribute("aria-label", S.online ? "Connecté, cliquer pour simuler une coupure réseau" : "Hors connexion, cliquer pour rétablir le réseau");
+    app.innerHTML = sc === "plan" ? vPlan() : sc === "terrain" ? vTerrain() : sc === "synthese" ? vSynthese() : vChiffrage();
+  }
+
+  function vRecap(lines) {
+    const ttc = sum(lines, "ttc"), ratio = Math.min(100, Math.round(ttc / CLAIMED * 100));
+    const ck = checks(lines), warn = ck.filter((c) => c.tone === "warn").length, sin = sinappsIssues(lines);
+    const co2 = Math.round(lines.reduce((a, l) => a + (l.co2 || 0) * l.qty, 0));
+    return '<aside class="recap" aria-label="Récapitulatif">' +
+      '<section class="total"><span class="eyebrow">Total du chiffrage</span><span class="big">' + eur(ttc) + '</span><span style="color:var(--hero-2); margin-top:-8px">TTC, valeur à neuf</span>' +
+      '<dl><div><dt>Montant HT</dt><dd>' + eur(sum(lines, "ht")) + '</dd></div><div><dt>Vétusté</dt><dd>' + eur(sum(lines, "vetA")) + '</dd></div>' +
+      '<div><dt>Vétusté déduite</dt><dd>' + eur(sum(lines, "vd")) + '</dd></div><div><dt>Lignes</dt><dd>' + lines.length + '</dd></div></dl></section>' +
+      '<section class="card side"><div style="display:flex;justify-content:space-between;gap:8px"><h2>Réclamé et chiffré</h2><span class="muted small">' + ratio + ' % du réclamé</span></div>' +
+      '<div class="bar" role="img" aria-label="Chiffré : ' + ratio + ' % du montant réclamé"><i style="width:' + ratio + '%"></i></div>' +
+      '<div class="muted small num" style="display:flex;justify-content:space-between;gap:8px"><span>Chiffré ' + eur(ttc) + '</span><span>Réclamé ' + eur(CLAIMED) + '</span></div></section>' +
+      '<section class="card side"><div style="display:flex;justify-content:space-between;align-items:center"><h2>Contrôles</h2><span class="count' + (warn ? "" : " zero") + '">' + warn + '</span></div>' +
+      (ck.length ? ck.map((c) => '<div class="check"><span class="dot ' + (c.tone === "warn" ? "warn" : "info") + '"></span><span>' + esc(c.text) + '</span></div>').join("") : '<span class="small" style="color:var(--ok)">Aucun point à vérifier</span>') + '</section>' +
+      '<section class="card side"><h2>Empreinte des travaux</h2><b style="font:700 24px var(--display)" class="num">' + co2 + ' kg CO2e</b>' +
+      '<span class="muted small">Peinture écolabel dans la cuisine : environ ' + Math.round(0.8 * measures("Cuisine").walls) + ' kg CO2e de moins, pour 0,58 € HT de plus par m².</span></section>' +
+      '<section class="sin ' + (sin.length ? "ko" : "ok") + '" aria-label="Envoi Sinapps"><span class="dot' + (sin.length ? " warn" : "") + '"></span><div style="display:flex;flex-direction:column;gap:2px"><b>' + (sin.length ? "Pas encore prêt pour Sinapps" : "Prêt pour Sinapps") + '</b>' +
+      '<span class="small">' + (sin.length ? esc(sin[0]) + (sin.length > 1 ? " (+" + (sin.length - 1) + ")" : "") : lines.length + " lignes : nature et détail renseignés, TVA acceptée, un seul régime fiscal") + '</span></div></section>' +
+      '<button type="button" class="btn primary verify" data-act="verify">Vérifier l’estimation</button></aside>';
+  }
+
+  function vResults() {
+    const target = S.room === "Toutes" ? "Cuisine" : S.room, terms = norm(S.q).split(/\s+/).filter(Boolean);
+    if (S.q.trim().length < 2) return "";
+    const res = CATALOG.filter((c) => terms.every((t) => norm(c.name).includes(t))).slice(0, 4);
+    if (!res.length && S.q.trim().length >= 3) {
+      const ok = S.free.n && S.free.d && num(S.free.price) > 0;
+      return '<div class="free"><div class="what"><b>Hors bordereau : « ' + esc(S.q.trim()) + ' »</b><span class="muted small">Sinapps exige une nature et un détail sur chaque ligne</span></div>' +
+        '<label class="fld" for="free-n">Nature<select id="free-n" data-chg="free-n"><option value="">À choisir</option>' + Object.keys(DETAILS).map((n) => '<option' + (n === S.free.n ? " selected" : "") + '>' + n + '</option>').join("") + '</select></label>' +
+        '<label class="fld" for="free-d">Détail<select id="free-d" data-chg="free-d"' + (S.free.n ? "" : " disabled") + '><option value="">À choisir</option>' + (DETAILS[S.free.n] || []).map((d) => '<option' + (d === S.free.d ? " selected" : "") + '>' + d + '</option>').join("") + '</select></label>' +
+        '<label class="fld" for="free-p">Prix HT €<input id="free-p" data-chg="free-p" inputmode="decimal" value="' + esc(S.free.price) + '" style="width:96px;text-align:right"></label>' +
+        '<button type="button" class="btn primary" data-act="add-free"' + (ok ? "" : " disabled") + '>Ajouter</button></div>';
+    }
+    return res.map((c, i) => {
+      const q = c.link ? measures(target)[c.link] : 1;
+      return '<div class="result"><div class="what"><b>' + esc(c.name) + '</b><span class="sinapps">' + c.n + ' › ' + c.d + '</span><span class="muted small">' + (c.link ? "Quantité reprise : " + LINK_LABEL[c.link] + " " + (target === "Cuisine" ? "de la cuisine" : "du séjour") : "Bordereau EUREXO, zone 2") + '</span></div>' +
+        '<span class="co2">' + fr(c.co2) + ' kg CO2e / ' + c.unit + '</span><b class="num" style="min-width:96px;text-align:right">' + eur(c.pu) + ' / ' + c.unit + '</b>' +
+        '<button type="button" class="btn primary" data-act="add-cat" data-i="' + CATALOG.indexOf(c) + '">Ajouter ' + fr(q) + ' ' + c.unit + '</button></div>';
+    }).join("");
+  }
+
+  function vChiffrage() {
+    const lines = all(), shown = S.room === "Toutes" ? lines : lines.filter((l) => l.room === S.room);
+    const target = S.room === "Toutes" ? "Cuisine" : S.room;
+    const chip = (label, sub) => '<button type="button" class="chip" data-act="room" data-room="' + label + '" aria-pressed="' + (S.room === label) + '">' + label + '<span>' + sub + '</span></button>';
+    const groups = [];
+    shown.forEach((l) => { if (groups.indexOf(l.n) < 0) groups.push(l.n); });
+    const rows = groups.map((g) => {
+      const gl = shown.filter((l) => l.n === g);
+      return '<tr class="group"><td colspan="6">' + g + '</td><td class="r">' + eur(sum(gl, "vd")) + '</td></tr>' + gl.map((l) => {
+        const f = flagOf(l);
+        return '<tr' + (f ? ' class="flagged"' : "") + '><td><div class="cellname"><span style="font-weight:500">' + esc(l.name) + '</span>' +
+          '<span class="sinapps' + (l.d ? "" : " missing") + '">' + l.n + ' › ' + (l.d || "détail à choisir") + '</span>' +
+          (l.source ? '<span class="muted small">' + esc(l.source) + '</span>' : "") +
+          (f ? '<span class="flag"><span>' + esc(f.text) + '</span><button type="button" class="link-btn" data-act="' + f.act + '" data-id="' + l.id + '">' + f.fix + '</button></span>' : "") + '</div></td>' +
+          '<td class="muted">' + l.room + '</td>' +
+          '<td class="r" style="white-space:nowrap"><input class="qty" id="qty-' + l.id + '" data-chg="qty" data-id="' + l.id + '" value="' + fr(l.qty) + '" aria-label="Quantité, ' + esc(l.name) + '"> <span class="muted small">' + l.unit + '</span>' + (l.link ? '<br><span class="linked">lié au plan · ' + LINK_LABEL[l.link] + '</span>' : "") + '</td>' +
+          '<td class="r">' + eur(l.pu) + '</td><td class="r">' + eur(l.ht) + '</td><td class="r muted">' + l.vet + ' %</td><td class="r" style="font-weight:600">' + eur(l.vd) + '</td></tr>';
+      }).join("");
+    }).join("");
+    const banner = S.errors ? (S.errors.length ? '<div class="banner ko" role="alert"><b>Vérification non réussie.</b> Corrigez les points suivants :<ul>' + S.errors.map((e) => "<li>" + esc(e) + "</li>").join("") + '</ul></div>' : '<div class="banner ok" role="status"><b>Chiffrages vérifiés.</b> Le chiffrage est prêt à partir vers Sinapps. <a href="#synthese">Voir la synthèse</a></div>') : "";
+    return '<div class="screen-head"><h1>Chiffrage</h1><span class="pill' + (S.status === "Brouillon" ? "" : " ok") + '">Estimation 1 · ' + S.status + '</span>' +
+      '<div class="acts"><button type="button" class="btn" data-act="import">Importer un devis</button><a class="btn dark" href="#synthese">Voir la synthèse</a></div></div>' +
+      '<div class="layout"><div class="work">' + banner +
+      '<div class="chips">' + chip("Toutes", S.lines.length + " lignes") + chip("Cuisine", fr(measures("Cuisine").floor) + " m²") + chip("Séjour", fr(measures("Séjour").floor) + " m²") + '<a href="#plan" style="font-size:13px;font-weight:600;color:var(--accent-text)">Ouvrir le plan</a></div>' +
+      '<section class="card quick" aria-label="Ajouter une prestation"><label class="search" for="quick-add"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none" style="color:var(--accent)"/><path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="color:var(--accent)"/></svg>' +
+      '<input id="quick-add" autocomplete="off" value="' + esc(S.q) + '" placeholder="Ajouter une prestation : « peint », « parquet », « fuite »… ou hors bordereau"><span class="muted small" style="white-space:nowrap">Quantités : ' + target + '</span></label><div id="qa-results">' + vResults() + '</div></section>' +
+      (S.showSug ? '<section class="card suggest" aria-label="Suggestions d’après les photos"><div class="suggest-head"><span class="tag">ASSISTANT</span><b>3 prestations suggérées d’après les 6 photos de la cuisine</b><span class="muted small">Rien n’est ajouté sans votre accord</span><button type="button" class="link-btn" style="margin-left:auto" data-act="hide-sug">Masquer</button></div><div class="sug-grid">' +
+        SUGGESTIONS.map((s) => { const done = !!S.accepted[s.key]; return '<div class="sug"><div class="photo">' + s.photo + '</div><b>' + esc(s.name) + '</b><span class="sinapps">' + s.n + ' › ' + s.d + '</span><span class="muted small">' + esc(s.why) + '</span><div class="row"><b class="num">' + eur(s.qty * s.pu) + ' HT</b><button type="button" class="btn-line' + (done ? " done" : "") + '" data-act="accept" data-key="' + s.key + '"' + (done ? ' aria-disabled="true"' : "") + '>' + (done ? "Ajoutée" : "Ajouter") + '</button></div></div>'; }).join("") + '</div></section>' : "") +
+      '<section class="card" aria-label="Lignes du chiffrage" style="overflow:hidden"><div class="tw"><table class="lines"><thead><tr><th>Prestation</th><th>Pièce</th><th class="r">Qté</th><th class="r">P.U. HT</th><th class="r">Montant HT</th><th class="r">Vétusté</th><th class="r">Vétusté déduite TTC</th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' +
+      '<div class="drop"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h9l6 6v16H8z M17 3v6h6 M12 16h8 M12 20h6" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-2)"/></svg><div><b>Déposez un devis ou une facture</b><br><span class="muted small">PDF, texte ou CSV : les lignes sont lues dans le navigateur, sans IA, puis contrôlées avant intégration</span></div></div>' +
+      '</div>' + vRecap(lines) + '</div>';
+  }
+
+  function planSvg(room) {
+    const r = S.rooms[room], m = measures(room), maxW = 460, maxH = 330, k = Math.min(maxW / r.L, maxH / r.W);
+    const w = r.L * k, h = r.W * k, x0 = 70, y0 = 70, vw = x0 + w + 90, vh = y0 + h + 70;
+    const door = r.openings[0], other = r.openings[1];
+    const dw = door.w * k, dx = x0 + Math.min(w * 0.25, w - dw - 10);
+    const ow = other.w * k, oy = y0 + (h - ow) / 2;
+    const zone = room === "Cuisine" ? '<rect x="' + (x0 + w * 0.55) + '" y="' + y0 + '" width="' + (w * 0.45) + '" height="' + (h * 0.38) + '" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 4" style="color:var(--accent)"/><text x="' + (x0 + w * 0.775) + '" y="' + (y0 + h * 0.19 + 4) + '" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor" style="color:var(--accent-text)">Zone sinistrée</text>' : "";
+    return '<svg viewBox="0 0 ' + vw + ' ' + vh + '" role="img" aria-label="Plan ' + room + ', ' + fr(r.L) + ' m sur ' + fr(r.W) + ' m" style="font-family:Inter,sans-serif;color:var(--ink)">' +
+      '<rect x="' + x0 + '" y="' + y0 + '" width="' + w + '" height="' + h + '" fill="currentColor" style="color:var(--surface)" stroke="currentColor" stroke-width="0"/>' +
+      '<rect x="' + x0 + '" y="' + y0 + '" width="' + w + '" height="' + h + '" fill="none" stroke="currentColor" stroke-width="8"/>' + zone +
+      '<rect x="' + dx + '" y="' + (y0 + h - 6) + '" width="' + dw + '" height="12" fill="currentColor" style="color:var(--surface)"/>' +
+      '<path d="M' + dx + ' ' + (y0 + h) + ' A' + dw + ' ' + dw + ' 0 0 1 ' + (dx + dw) + ' ' + (y0 + h - dw) + '" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-3)"/>' +
+      '<line x1="' + dx + '" y1="' + (y0 + h) + '" x2="' + dx + '" y2="' + (y0 + h - dw) + '" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-3)"/>' +
+      '<text x="' + (dx + dw / 2) + '" y="' + (y0 + h + 30) + '" text-anchor="middle" font-size="12" fill="currentColor" style="color:var(--ink-2)">' + door.label + ' ' + fr(door.w) + ' × ' + fr(door.h) + ' m</text>' +
+      '<rect x="' + (x0 + w - 6) + '" y="' + oy + '" width="12" height="' + ow + '" fill="currentColor" style="color:var(--surface)"/>' +
+      '<line x1="' + (x0 + w - 3) + '" y1="' + oy + '" x2="' + (x0 + w - 3) + '" y2="' + (oy + ow) + '" stroke="currentColor" stroke-width="2"/><line x1="' + (x0 + w + 3) + '" y1="' + oy + '" x2="' + (x0 + w + 3) + '" y2="' + (oy + ow) + '" stroke="currentColor" stroke-width="2"/>' +
+      '<text x="' + (x0 + w + 22) + '" y="' + (oy + ow / 2) + '" font-size="12" fill="currentColor" style="color:var(--ink-2)" transform="rotate(90 ' + (x0 + w + 22) + ' ' + (oy + ow / 2) + ')" text-anchor="middle">' + other.label + ' ' + fr(other.w) + ' m</text>' +
+      '<g style="color:var(--accent)" stroke="currentColor" stroke-width="1.5"><line x1="' + x0 + '" y1="' + (y0 - 26) + '" x2="' + (x0 + w) + '" y2="' + (y0 - 26) + '"/><line x1="' + x0 + '" y1="' + (y0 - 32) + '" x2="' + x0 + '" y2="' + (y0 - 20) + '"/><line x1="' + (x0 + w) + '" y1="' + (y0 - 32) + '" x2="' + (x0 + w) + '" y2="' + (y0 - 20) + '"/>' +
+      '<line x1="' + (x0 - 30) + '" y1="' + y0 + '" x2="' + (x0 - 30) + '" y2="' + (y0 + h) + '"/><line x1="' + (x0 - 36) + '" y1="' + y0 + '" x2="' + (x0 - 24) + '" y2="' + y0 + '"/><line x1="' + (x0 - 36) + '" y1="' + (y0 + h) + '" x2="' + (x0 - 24) + '" y2="' + (y0 + h) + '"/></g>' +
+      '<rect x="' + (x0 + w / 2 - 36) + '" y="' + (y0 - 38) + '" width="72" height="22" rx="6" fill="currentColor" style="color:var(--accent)"/><text x="' + (x0 + w / 2) + '" y="' + (y0 - 22) + '" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor" style="color:var(--accent-ink)">' + fr(r.L) + ' m</text>' +
+      '<rect x="' + (x0 - 66) + '" y="' + (y0 + h / 2 - 11) + '" width="72" height="22" rx="6" fill="currentColor" style="color:var(--accent)"/><text x="' + (x0 - 30) + '" y="' + (y0 + h / 2 + 5) + '" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor" style="color:var(--accent-ink)">' + fr(r.W) + ' m</text>' +
+      '<text x="' + (x0 + w * 0.32) + '" y="' + (y0 + h * 0.62) + '" text-anchor="middle" font-size="20" font-weight="700" fill="currentColor" style="font-family:\'Space Grotesk\',Inter,sans-serif">' + room + '</text>' +
+      '<text x="' + (x0 + w * 0.32) + '" y="' + (y0 + h * 0.62 + 22) + '" text-anchor="middle" font-size="13" fill="currentColor" style="color:var(--ink-2)">' + fr(m.floor) + ' m² au sol</text></svg>';
+  }
+
+  function vPlan() {
+    const room = S.planRoom, r = S.rooms[room], m = measures(room);
+    const linked = all().filter((l) => l.room === room && l.link);
+    const tab = (n) => '<button type="button" class="chip" data-act="plan-room" data-room="' + n + '" aria-pressed="' + (room === n) + '">' + n + '</button>';
+    const dim = (k, label) => '<label class="fld" for="dim-' + k + '">' + label + '<input id="dim-' + k + '" data-chg="dim" data-k="' + k + '" inputmode="decimal" value="' + fr(r[k]) + '" style="text-align:right"></label>';
+    const ms = (label, v, unit) => '<div class="measure"><span class="muted small">' + label + '</span><b>' + fr(v) + ' ' + unit + '</b></div>';
+    return '<div class="screen-head"><h1>Plan des pièces</h1><div class="chips">' + tab("Cuisine") + tab("Séjour") + '<button type="button" class="chip" data-act="todo" style="border-style:dashed;color:var(--accent-text)">+ Pièce</button></div>' +
+      '<div class="acts"><a class="btn" href="#chiffrage">Retour au chiffrage</a></div></div>' +
+      '<div class="plan-layout"><section class="card plan-canvas" aria-label="Plan ' + room + '"><div class="plan-tools"><button type="button" class="tool on">Mur</button><button type="button" class="tool" data-act="todo">Porte</button><button type="button" class="tool" data-act="todo">Fenêtre</button><button type="button" class="tool" data-act="todo">Zone sinistrée</button><span class="muted small" style="margin-left:auto">Modifiez une cote : le chiffrage suit</span></div><div class="plan-svg">' + planSvg(room) + '</div></section>' +
+      '<aside class="plan-side"><section class="card side"><h2>Cotes</h2><div class="dims">' + dim("L", "Longueur m") + dim("W", "Largeur m") + dim("H", "Hauteur m") + '</div></section>' +
+      '<section class="card side"><h2>Mesures calculées</h2><div class="measures">' + ms("Sol et plafond", m.floor, "m²") + ms("Murs, ouvertures déduites", m.walls, "m²") + ms("Périmètre", m.perimeter, "ml") + ms("Plinthes, portes déduites", m.skirting, "ml") + '</div>' +
+      '<span class="muted small">Murs bruts ' + fr(m.wallsGross) + ' m², moins ' + fr(m.open) + ' m² d’ouvertures (' + r.openings.map((o) => o.label.toLowerCase()).join(", ") + ').</span></section>' +
+      '<section class="card side"><h2>Lignes liées à ce plan</h2><span class="muted small">Leurs quantités suivent les cotes.</span>' +
+      (linked.length ? linked.map((l) => '<div class="linked-row"><span>' + esc(l.name) + '</span><b>' + LINK_LABEL[l.link] + ' · ' + fr(l.qty) + ' ' + l.unit + '</b></div>').join("") : '<span class="small">Aucune ligne liée.</span>') +
+      '</section></aside></div>';
+  }
+
+  function vTerrain() {
+    const lines = all().filter((l) => l.room === "Cuisine");
+    const names = ["Plafond", "Mur évier", "Sol", "Plan de travail", "Plinthes", "Arrivée d’eau"];
+    const thumbs = S.photos.map((p, i) => '<div class="thumb real" style="background-image:url(' + p.url + ')">Photo ' + (i + 1) + '</div>').join("") + names.map((n) => '<div class="thumb">' + n + '</div>').join("");
+    const pending = S.photos.length + 6;
+    return '<div class="screen-head"><h1>Sur place</h1><span class="muted">L’écran de l’expert chez l’assuré, sur téléphone ou tablette</span></div>' +
+      '<div class="terrain-layout"><div class="phone" aria-label="Écran téléphone">' +
+      '<div class="offline ' + (S.online ? "ok" : "ko") + '" role="status"><span class="dot' + (S.online ? "" : " warn") + '" style="margin-top:5px"></span><div><b>' + (S.online ? "Connecté" : "Hors connexion") + '</b><br><span class="small">' + (S.online ? "Photos et lignes envoyées au fil de l’eau." : pending + " photos et " + lines.length + " lignes gardées sur l’appareil. Envoi automatique au retour du réseau.") + '</span></div></div>' +
+      '<div class="body"><div><span class="muted small">27FP260071606A01 · Cuisine</span><h2 style="font-size:22px">Relevé sur place</h2></div>' +
+      '<div class="big-actions"><label class="big-action dark" for="photo-in"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Ajouter une photo<input type="file" id="photo-in" accept="image/*" hidden></label>' +
+      '<button type="button" class="big-action" data-act="todo"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 11a6 6 0 0012 0M12 17v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Dicter une observation</button></div>' +
+      '<section><div style="display:flex;justify-content:space-between"><b>Photos</b><span class="muted small">' + pending + '</span></div><div class="thumbs" style="margin-top:8px">' + thumbs + '</div></section>' +
+      '<section class="card side" style="box-shadow:none"><span class="muted small" style="font-weight:600">Observation dictée, 10 h 42</span><span>« Auréole au plafond sur un mètre carré environ, faïence décollée derrière l’évier, plinthes gonflées côté séjour. »</span></section>' +
+      '<section class="card side" style="box-shadow:none"><div style="display:flex;justify-content:space-between;gap:8px"><b>Chiffrage de la pièce</b><b class="num">' + eur(sum(lines, "ht")) + ' HT</b></div>' +
+      lines.map((l) => '<div class="linked-row"><span>' + esc(l.name) + '</span><span class="muted num" style="white-space:nowrap">' + fr(l.qty) + ' ' + l.unit + '</span></div>').join("") + '</section></div>' +
+      '<nav class="phone-nav" aria-label="Navigation téléphone"><a class="on" href="#terrain">Relevé</a><a href="#plan">Plan</a><a href="#chiffrage">Chiffrage</a><a href="#synthese">Synthèse</a></nav></div>' +
+      '<div class="explain"><h2>Pensé pour le terrain</h2><ul><li>Fonctionne sans réseau : tout est gardé sur l’appareil, puis envoyé au retour du réseau. Essayez le bouton de connexion en haut.</li><li>Les photos rejoignent le dossier ; l’assistant en tire des suggestions de prestations, que l’expert valide.</li><li>Les cotes relevées dessinent le plan et alimentent les quantités.</li><li>Le chiffrage de la pièce se construit pendant la visite.</li></ul>' +
+      '<p class="muted small">Dans cette maquette, la photo ajoutée reste dans votre navigateur ; la dictée n’est pas branchée.</p></div></div>';
+  }
+
+  function vSynthese() {
+    const lines = all(), ttc = sum(lines, "ttc"), vd = sum(lines, "vd"), ratio = Math.round(ttc / CLAIMED * 100);
+    const co2 = Math.round(lines.reduce((a, l) => a + (l.co2 || 0) * l.qty, 0));
+    const by = (key) => { const m = {}; lines.forEach((l) => { m[l[key]] = r2((m[l[key]] || 0) + l.ttc); }); return Object.keys(m).map((k) => ({ k: k, v: m[k] })).sort((a, b) => b.v - a.v); };
+    const bars = (items, dark) => items.map((it) => '<div class="barrow"><div class="lab"><span>' + it.k + '</span><b class="num">' + eur(it.v) + '</b></div><div class="bar' + (dark ? " dark" : "") + '"><i style="width:' + (ttc ? (it.v / ttc * 100).toFixed(1) : 0) + '%"></i></div></div>').join("");
+    const rooms = by("room");
+    const report = rooms.map((r) => '<div class="rl b"><span>' + r.k + '</span><span>' + eur(r.v) + '</span></div>' + lines.filter((l) => l.room === r.k).map((l) => '<div class="rl"><span>' + esc(l.name) + '</span><span>' + eur(l.ttc) + '</span></div>').join("")).join("");
+    const verified = S.status !== "Brouillon";
+    return '<div class="screen-head"><h1>Synthèse</h1><span class="pill' + (verified ? " ok" : "") + '">' + S.status + '</span><div class="acts"><button type="button" class="btn" data-act="todo">Télécharger le rapport PDF</button><button type="button" class="btn primary" data-act="send">Envoyer à l’assureur</button></div></div>' +
+      '<div class="kpis"><div class="card kpi dark"><span class="eyebrow">Dommages TTC</span><b>' + eur(ttc) + '</b></div><div class="card kpi"><span class="eyebrow">Vétusté déduite</span><b>' + eur(vd) + '</b></div>' +
+      '<div class="card kpi"><span class="eyebrow">Part du réclamé</span><b>' + ratio + ' %</b><span class="muted small">de ' + eur(CLAIMED) + ' réclamés</span></div><div class="card kpi"><span class="eyebrow">Empreinte</span><b>' + co2 + ' kg CO2e</b></div></div>' +
+      '<div class="syn-layout"><div class="syn-main"><section class="card side"><h2>Montant TTC par pièce</h2>' + bars(rooms, false) + '</section><section class="card side"><h2>Montant TTC par nature Sinapps</h2>' + bars(by("n"), true) + '</section>' +
+      '<section class="card side"><h2>Historique de l’estimation</h2><div class="timeline"><div><span>24/11 · 10 h 42</span><span>Relevé sur place : 6 photos, 4 lignes, hors connexion</span></div><div><span>24/11 · 11 h 15</span><span>Devis Réno Services D-2026-0142 importé, 6 lignes contrôlées</span></div>' + (verified ? '<div><span>Aujourd’hui</span><span>Vérification réussie, chiffrage conforme Sinapps</span></div>' : "") + '</div></section></div>' +
+      '<aside class="card side syn-report"><div style="display:flex;justify-content:space-between"><h2>Rapport de chiffrage</h2><span class="muted small">Aperçu, page 1</span></div><div class="page"><div class="ph"><b style="font:700 15px var(--display)">Rapport de chiffrage</b><span style="text-align:right;color:#555B77">27FP260071606A01<br>Estimation 1</span></div>' +
+      '<span style="color:#555B77">Dégât des eaux du 02/10/2026 · Camille Exemple · 12 rue des Tilleuls, Lyon 3e</span><div class="rule">' + report + '</div><div class="rl b" style="border-top:1px solid #E2E4ED;padding-top:8px"><span>Total TTC</span><span>' + eur(ttc) + '</span></div></div>' +
+      '<span class="muted small">Le rapport reprend photos, plan et lignes ; il part avec le chiffrage vers Eureka puis Sinapps.</span></aside></div>';
+  }
+
+  // ---------- interactions ----------
+  let toastTimer;
+  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.className = "toast show"; clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.className = "toast"), 3600); }
+  function draft() { if (S.status !== "Brouillon") { S.status = "Brouillon"; } S.errors = null; }
+  function addLine(l) { S.lines.push(Object.assign({ id: S.nextId++, vat: 10, vet: 0 }, l)); draft(); }
+
+  document.addEventListener("click", (ev) => {
+    const el = ev.target.closest("[data-act]"); if (!el || el.disabled) return;
+    const a = el.dataset.act, line = () => S.lines.find((l) => String(l.id) === el.dataset.id);
+    if (a === "sync") { S.online = !S.online; toast(S.online ? "Réseau rétabli : modifications envoyées" : "Coupure simulée : les saisies restent sur l’appareil"); }
+    else if (a === "reset") { S = initialState(); toast("Démonstration remise à zéro"); }
+    else if (a === "room") S.room = el.dataset.room;
+    else if (a === "plan-room") S.planRoom = el.dataset.room;
+    else if (a === "hide-sug") S.showSug = false;
+    else if (a === "accept") { const s = SUGGESTIONS.find((x) => x.key === el.dataset.key); if (S.accepted[s.key]) return; S.accepted[s.key] = true; addLine({ room: "Cuisine", n: s.n, d: s.d, name: s.name, qty: s.qty, unit: s.unit, pu: s.pu, co2: s.co2, source: "Suggestion d’après photo, validée par l’expert" }); toast("Ligne ajoutée : " + s.name); }
+    else if (a === "add-cat") { const c = CATALOG[+el.dataset.i], target = S.room === "Toutes" ? "Cuisine" : S.room; addLine({ room: target, n: c.n, d: c.d, name: c.name, link: c.link, qty: c.link ? undefined : 1, unit: c.unit, pu: c.pu, co2: c.co2 }); S.q = ""; toast("Ligne ajoutée : " + c.name); }
+    else if (a === "add-free") { const target = S.room === "Toutes" ? "Cuisine" : S.room; addLine({ room: target, n: S.free.n, d: S.free.d, name: S.q.trim(), qty: 1, unit: "FFT", pu: num(S.free.price), co2: 0, source: "Hors bordereau" }); S.q = ""; S.free = { n: "", d: "", price: "" }; toast("Ligne hors bordereau ajoutée"); }
+    else if (a === "fix-price") { const l = line(); l.pu = l.bordereau; draft(); toast("Prix aligné sur le bordereau"); }
+    else if (a === "fix-vet") { const l = line(); l.vet = l.scale; draft(); toast("Vétusté du barème appliquée"); }
+    else if (a === "verify") {
+      const lines = all(), errs = checks(lines).filter((c) => c.tone === "warn").map((c) => c.text).concat(sinappsIssues(lines).map((s) => "Sinapps : " + s));
+      S.errors = errs; if (!errs.length) { S.status = "Chiffrages vérifiés"; toast("Chiffrages vérifiés"); } window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    else if (a === "send") { toast(S.status === "Brouillon" ? "Vérifiez d’abord l’estimation depuis l’écran Chiffrage" : "Maquette : l’envoi vers Eureka et Sinapps n’est pas branché"); return; }
+    else if (a === "import") { toast("Maquette : l’import de devis fonctionne déjà dans l’application Angular"); return; }
+    else if (a === "todo") { toast("Maquette : cette action n’est pas encore simulée"); return; }
+    render();
+  });
+
+  document.addEventListener("input", (ev) => {
+    if (ev.target.id === "quick-add") { S.q = ev.target.value; document.getElementById("qa-results").innerHTML = vResults(); }
+  });
+  document.addEventListener("change", (ev) => {
+    const t = ev.target, k = t.dataset && t.dataset.chg;
+    if (t.id === "photo-in" && t.files && t.files[0]) {
+      const r = new FileReader(); r.onload = () => { S.photos.unshift({ url: r.result }); render(); toast("Photo ajoutée au relevé"); }; r.readAsDataURL(t.files[0]); return;
+    }
+    if (!k) return;
+    if (k === "qty") {
+      const v = num(t.value), l = S.lines.find((x) => String(x.id) === t.dataset.id);
+      if (!(v > 0)) { toast("La quantité doit être un nombre supérieur à 0"); render(); return; }
+      l.qty = v; l.link = null; draft();
+    } else if (k === "dim") {
+      const v = num(t.value);
+      if (!(v > 0 && v < 100)) { toast("La cote doit être un nombre de mètres valide"); render(); return; }
+      S.rooms[S.planRoom][t.dataset.k] = v; draft(); toast("Cote modifiée : les quantités liées ont suivi");
+    } else if (k === "free-n") { S.free.n = t.value; S.free.d = ""; }
+    else if (k === "free-d") S.free.d = t.value;
+    else if (k === "free-p") S.free.price = t.value;
+    const keep = t.id; render();
+    const again = keep && document.getElementById(keep); if (again && (k === "free-n" || k === "free-d" || k === "free-p")) again.focus();
+  });
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Enter" && ev.target.matches && ev.target.matches("input[data-chg]")) ev.target.blur(); });
+  window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0); });
+  render();
+})();
+</script>
