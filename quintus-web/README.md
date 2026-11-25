@@ -57,7 +57,7 @@ src/app/
 
 ## Décisions à prendre avant la mise en production
 
-1. **Stockage.** Garder Dataverse au début (Web API, aucune migration de données, flux Power Automate inchangés) ou passer à une API propre (.NET + base SQL). Dans les deux cas, il suffit d'écrire une implémentation de `CaseRepository`.
+1. **Pile technique.** Décidé : front Angular 22, back .NET, base SQL. Côté front, il reste à écrire une implémentation HTTP de `CaseRepository` et `ReferentialRepository` qui appelle l'API .NET. Conséquences : reprise des données Dataverse vers SQL, inventaire des flux Power Automate qui lisent Dataverse, et règles de calcul refaites en C# pour que le serveur fasse foi (vérification, envoi Sinapps, gel). Pour que le C# et le TypeScript calculent pareil, il faut des jeux de tests communs.
 2. **Authentification.** Entra ID via MSAL Angular, avec les groupes `QuintusBusinessAdmins` / `QuintusSolutionAdmins` existants.
 3. **Lien avec Eureka / ProsPecT.** L'app canvas passe par le connecteur personnalisé vers `wa-prospectfrquintusapi-env`. L'app Angular devra appeler cette API directement (CORS et jeton à ouvrir côté API) ou via le futur backend. C'est aussi là que se fera la création du dossier en une transaction côté serveur.
 4. **Ouverture depuis Eureka.** Décidé : bouton « Ouvrir Eureka Chiffrage » dans Eureka, nouvel onglet. Voir [docs/integration-eureka.md](docs/integration-eureka.md).
