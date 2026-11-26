@@ -50,6 +50,8 @@ src/app/
 | Estimations (création, duplication, référence, évaluation, suppression) | porté |
 | Dommages : prestations (tableau groupé, saisie directe, ajout / modification avec bordereau, mesures de pièce, barème de vétusté, HT/TTC, vétusté par nature, ordre des lignes) | porté |
 | Import d'un devis ou d'une facture, sans IA (PDF texte, fichier texte ou CSV, texte collé ; contrôle du total, nature proposée) | porté |
+| Dessin des pièces au stylet (tablettes Windows) : plusieurs pièces accolées, cotes écrites à la main, ouvertures, zones abîmées hachurées, quantités recalculées | à développer, retenu pour la nouvelle version |
+| Relevé automatique des mesures (télémètre Bluetooth, scan LiDAR) | second temps, sur le même format de plan |
 | Dommages : mobilier | affichage et saisie directe ; fenêtre d'ajout à porter |
 | Synthèse (indicateurs, synthèse par tiers, détail, vérification, verrouillage) | porté |
 | Parties prenantes, Localisations, Garanties, Bénéficiaires, Indemnisations | à porter : le domaine est prêt et testé |
