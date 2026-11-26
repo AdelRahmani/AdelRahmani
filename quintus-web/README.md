@@ -52,6 +52,7 @@ src/app/
 | Import d'un devis ou d'une facture, sans IA (PDF texte, fichier texte ou CSV, texte collé ; contrôle du total, nature proposée) | porté |
 | Dessin des pièces au stylet (tablettes Windows) : plusieurs pièces accolées, cotes écrites à la main, ouvertures, zones abîmées hachurées, quantités recalculées | à développer, retenu pour la nouvelle version |
 | Relevé automatique des mesures (télémètre Bluetooth, scan LiDAR) | second temps, sur le même format de plan |
+| Assistant photo : prestations suggérées d'après les photos, choisies dans le bordereau, validées par l'expert, appel par le back .NET dans un cadre validé par EUREXO (RGPD) | second temps, après un test sur photos de sinistres anonymisées |
 | Dommages : mobilier | affichage et saisie directe ; fenêtre d'ajout à porter |
 | Synthèse (indicateurs, synthèse par tiers, détail, vérification, verrouillage) | porté |
 | Parties prenantes, Localisations, Garanties, Bénéficiaires, Indemnisations | à porter : le domaine est prêt et testé |
