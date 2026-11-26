@@ -1,0 +1,1019 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Chiffrage IMH</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+/* Layout : outil de saisie dense, en-tête fixe (dossier, totaux, onglets), tableaux éditables façon bordereau. */
+:root {
+  --bg: #f4f5f2; --surface: #ffffff; --surface-2: #eceee8; --ink: #17231c; --ink-2: #56625a; --line: #d6dbd2;
+  --brand: #1f5c45; --brand-ink: #ffffff; --accent: #2a62a8; --sub: #f0f3ec;
+  --ok: #2f6f1a; --ok-bg: #e3f0d8; --warn: #855400; --warn-bg: #fbefcf; --err: #a3231b; --err-bg: #f8dddb;
+  --shadow: 0 1px 2px rgba(23, 35, 28, .07);
+  --font: "Inter", "Segoe UI", system-ui, sans-serif; --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121714; --surface: #1a211d; --surface-2: #232c26; --ink: #e6ede7; --ink-2: #a2afa6; --line: #33403a;
+    --brand: #8fd1b1; --brand-ink: #0f1d16; --accent: #8db8ef; --sub: #1f2823;
+    --ok: #a5d67c; --ok-bg: #213219; --warn: #f0c56a; --warn-bg: #3a2e12; --err: #f29a94; --err-bg: #401d1b;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121714; --surface: #1a211d; --surface-2: #232c26; --ink: #e6ede7; --ink-2: #a2afa6; --line: #33403a;
+  --brand: #8fd1b1; --brand-ink: #0f1d16; --accent: #8db8ef; --sub: #1f2823;
+  --ok: #a5d67c; --ok-bg: #213219; --warn: #f0c56a; --warn-bg: #3a2e12; --err: #f29a94; --err-bg: #401d1b;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font); margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: 1.45rem; } h2 { font-size: 1.05rem; } h3 { font-size: .95rem; }
+p { margin: 0; }
+.muted { color: var(--ink-2); } .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.wrap { max-width: 1360px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top-row { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; padding-block: 10px 6px; }
+.logo { font: 700 1.05rem var(--display); color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.logo i { width: 22px; height: 22px; border-radius: 5px; background: var(--brand); position: relative; }
+.logo i::after { content: ""; position: absolute; inset: 5px; border: 2px solid var(--brand-ink); border-right: 0; border-bottom: 0; }
+.pick { flex: 1 1 220px; min-width: 0; max-width: 420px; } .pick select { width: 100%; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+.strip { display: flex; gap: 6px 18px; flex-wrap: wrap; align-items: baseline; padding-block: 2px 6px; font-variant-numeric: tabular-nums; }
+.strip .k { display: flex; gap: 6px; align-items: baseline; }
+.strip .k span { color: var(--ink-2); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.strip .k b { font: 600 .98rem var(--display); }
+.strip .k.big b { font-size: 1.1rem; color: var(--brand); }
+.chip { font: 600 .74rem var(--font); padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink); letter-spacing: .02em; }
+.chip.gamme { background: var(--brand); color: var(--brand-ink); text-transform: uppercase; }
+.chip.warn { background: var(--warn-bg); color: var(--warn); } .chip.err { background: var(--err-bg); color: var(--err); } .chip.ok { background: var(--ok-bg); color: var(--ok); }
+.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; }
+.tab { flex: none; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--ink-2); font: 500 .88rem var(--font); padding: 8px 10px 7px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+.tab small { font-size: .72rem; background: var(--surface-2); border-radius: 999px; padding: 0 6px; font-variant-numeric: tabular-nums; }
+.tab:hover { color: var(--ink); } .tab.on { color: var(--ink); border-bottom-color: var(--brand); font-weight: 600; }
+
+main { padding-block: 18px 64px; display: flex; flex-direction: column; gap: 16px; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px 20px; flex-wrap: wrap; }
+.head > div:first-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.head p { max-width: 75ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; align-items: start; }
+
+.btn { font: 600 .85rem var(--font); border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 13px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover { border-color: var(--brand); }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.btn.ghost { background: transparent; } .btn.sm { padding: 4px 9px; font-size: .78rem; }
+.btn.danger { color: var(--err); }
+.x { border: 0; background: none; color: var(--ink-2); cursor: pointer; font-size: 1.05rem; line-height: 1; padding: 4px 6px; border-radius: 4px; }
+.x:hover { color: var(--err); background: var(--err-bg); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+input, select, textarea { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; min-width: 0; }
+textarea { width: 100%; min-height: 80px; resize: vertical; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
+input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); }
+.form { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px 14px; }
+.form label { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; color: var(--ink-2); font-weight: 500; }
+.form label.wide { grid-column: 1 / -1; }
+.form label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: .86rem; }
+.form .hint { font-weight: 400; font-size: .75rem; }
+
+.tw { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); font-weight: 600; background: var(--surface-2); white-space: nowrap; position: sticky; top: 0; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+td input, td select { width: 100%; padding: 4px 6px; border-color: transparent; background: transparent; border-radius: 4px; }
+td input:hover, td select:hover { border-color: var(--line); }
+td input:focus, td select:focus { background: var(--surface); border-color: var(--accent); }
+td input.n { text-align: right; } td input::placeholder { color: var(--ink-2); font-style: italic; }
+tr.grp td { background: var(--sub); font-weight: 600; padding-block: 8px; }
+tr.grp td .muted { font-weight: 400; }
+tr.sub td { font-weight: 600; background: var(--surface-2); }
+tr.tot td { font-weight: 700; font-size: .95rem; border-top: 2px solid var(--ink); }
+tr.off td { opacity: .55; }
+.c-des { min-width: 300px; } .c-sm { width: 82px; min-width: 82px; } .c-num { width: 100px; min-width: 100px; } .c-md { min-width: 130px; } .c-sel { min-width: 190px; }
+.out { color: var(--ink); } .strong { font-weight: 700; } .pos { color: var(--brand); }
+.flag { font-size: .7rem; color: var(--ink-2); display: block; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 10px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface); display: flex; flex-direction: column; gap: 2px; }
+.card span { font-size: .75rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.card b { font: 600 1.2rem var(--display); font-variant-numeric: tabular-nums; }
+.card.main { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); } .card.main span { color: var(--brand-ink); opacity: .85; }
+.list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.note { padding: 10px 12px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); font-size: .86rem; }
+.note.info { background: var(--surface-2); color: var(--ink-2); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; font-variant-numeric: tabular-nums; } .kv dt { color: var(--ink-2); } .kv dd { margin: 0; text-align: right; font-weight: 500; }
+.empty { padding: 18px; text-align: center; color: var(--ink-2); }
+
+dialog { border: 1px solid var(--line); border-radius: 10px; padding: 0; background: var(--surface); color: var(--ink); width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+dialog::backdrop { background: rgba(10, 18, 14, .45); }
+dialog form { display: flex; flex-direction: column; gap: 12px; padding: 16px; max-height: calc(100vh - 50px); }
+dialog .scroll { overflow: auto; flex: 1; min-height: 0; border: 1px solid var(--line); border-radius: 6px; }
+dialog .foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100vw - 32px); }
+.toast.on { opacity: 1; }
+@media (max-width: 700px) { .top { position: static; } .top-row .actions .btn { flex: 1 1 auto; justify-content: center; } }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+@media print {
+  .top, .noprint, .x { display: none !important; }
+  body { background: #fff; color: #000; } .panel, .tw { box-shadow: none; border-color: #999; }
+  main { padding: 0; }
+}
+</style>
+<header class="top">
+  <div class="wrap top-row">
+    <button class="logo" type="button" data-act="tab" data-v="dossier"><i></i>Chiffrage IMH</button>
+    <label class="pick"><span class="sr">Dossier</span><select id="dossier-pick" aria-label="Dossier ouvert"></select></label>
+    <div class="actions">
+      <button class="btn sm" type="button" data-act="new">Nouveau dossier</button>
+      <button class="btn sm ghost" type="button" data-act="dup">Dupliquer</button>
+      <button class="btn sm ghost" type="button" data-act="import-json">Importer</button>
+      <button class="btn sm ghost" type="button" data-act="export-json">Exporter</button>
+    </div>
+  </div>
+  <div class="wrap strip" id="strip"></div>
+  <nav class="wrap tabs" id="tabs" aria-label="Sections du chiffrage"></nav>
+</header>
+<main class="wrap" id="main"></main>
+<dialog id="dlg"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="file-json" accept=".json,application/json" hidden>
+<input type="file" id="file-csv" accept=".csv,text/csv,text/plain" hidden>
+
+<script>
+/* Référentiel IMH : gammes de contrat, plafonds, catégories, barème d'articles normalisés.
+   Source : classeurs « CHIFFRAGE DOMMAGES VIERGE <GAMME>.xlsx », supports de chiffrage IMH 2018
+   et grille « Estimation et vétusté des biens mobiliers, gamme 2017 socle et options ».
+   Plafond : {eur} montant fixe · {pct, max?} part du capital mobilier souscrit (plafonnée à max) ·
+   {field} montant saisi sur le dossier · null : pas de plafond. */
+const IMHData = (() => {
+  const STD_RUB = [
+    { id: "hab-tce", label: "Locaux d'habitation · Bâtiment TCE", corps: "immo", recup: true },
+    { id: "hab-emb", label: "Locaux d'habitation · Embellissements", corps: "emb", recup: true },
+    { id: "dep", label: "Dépendances", corps: "immo", recup: false },
+    { id: "clo", label: "Clôtures, murs de clôture, portails", corps: "immo", recup: false },
+  ];
+  const NATURE_RUB = [
+    { id: "mh-rep", label: "Réparation du mobil-home", corps: "immo", recup: false, plafond: { field: "valeurOccasionMH" }, note: "Dans la limite de la valeur de remplacement sur le marché de l'occasion" },
+    { id: "mh-rem", label: "Remplacement du mobil-home (valeur d'occasion, accessoires intégrés)", corps: "immo", recup: false },
+    { id: "mh-frais", label: "Frais d'enlèvement, démolition, réinstallation, raccordement", corps: "immo", recup: false, plafond: { eur: 3000 }, note: "Sur factures" },
+    { id: "mh-dep", label: "Dépendances, abri de jardin et leurs frais de démolition", corps: "immo", recup: false, plafond: { eur: 5000 } },
+  ];
+
+  /* Catégories mobilières. kind : neuf (valeur de remplacement, pas de vétusté sous le seuil d'âge),
+     taux (vétusté appréciée), occasion (valeur d'occasion, sans vétusté). fam : famille de la grille 2017. */
+  const C = {
+    meubles: { label: "Meubles meublants dont éléments de cuisine", kind: "neuf", fam: "equip" },
+    appareils: { label: "Appareils vidéo, audio, photo, électroménager, climatiseur portable", kind: "neuf", fam: "equip" },
+    info: { label: "Informatique", kind: "neuf", fam: "info" },
+    vetements: { label: "Vêtements", kind: "taux", fam: "vet" },
+    autres: { label: "Autres objets mobiliers", kind: "taux", fam: "autres" },
+    epoque: { label: "Meubles d'époque ou signés", kind: "taux", fam: "autres" },
+    bijoux: { label: "Bijoux et objets en métal précieux massif", kind: "occasion", fam: "occ" },
+    objets: { label: "Objets de valeur et collections (plus de 2 000 €)", kind: "occasion", fam: "occ" },
+    vins: { label: "Vins et spiritueux", kind: "occasion", fam: "occ" },
+  };
+  const cat = (id, extra) => ({ id, ...C[id], ...extra });
+  const AUTRES_LABEL = "Matériel professionnel de l'employeur et autres biens n'appartenant pas à l'assuré";
+  const TIERS_LABEL = "Biens confiés ou apportés par des tiers (hors matériel professionnel)";
+
+  const gammes = {
+    NATURE: {
+      label: "Nature", note: "Mobil-home", recupMax: 0,
+      rubriques: NATURE_RUB,
+      mobilier: [
+        { id: "mh-biens", label: "Biens acquis indépendamment de l'équipement du mobil-home (audio, vidéo, photo, électroménager, informatique)", kind: "neuf", fam: "equip", seuil: 1 },
+        { id: "vet-autres", label: "Vêtements et autres objets mobiliers", kind: "taux", fam: "vet" },
+        { id: "bij-obj", label: "Bijoux, objets de valeur et collections", kind: "occasion", fam: "occ" },
+      ],
+      plafondsMob: [{ label: "Bijoux, objets de valeur et collections", cats: ["bij-obj"], plafond: { eur: 1000 } }],
+      amenag: [
+        { id: "amen", label: "Aménagements immobiliers d'extérieur, y compris démolition et déblais", plafond: { eur: 5000 } },
+        { id: "meub-ext", label: "Meubles d'extérieur", plafond: { eur: 1500 } },
+      ],
+    },
+    INDISPENSABLE: {
+      label: "Indispensable", recupMax: 0.25, rubriques: STD_RUB,
+      mobilier: [cat("meubles", { seuil: 2 }), cat("appareils", { seuil: 2 }), cat("info", { seuil: 2 }), cat("vetements"), cat("autres"), cat("epoque"), cat("bijoux"), cat("objets"), cat("vins"),
+        { id: "tiers", label: TIERS_LABEL, kind: "taux", fam: "autres" }],
+      plafondsMob: [
+        { label: "Bijoux et objets de valeur (plafond global)", cats: ["bijoux", "objets"], plafond: { eur: 5250 } },
+        { label: "Vins et spiritueux", cats: ["vins"], plafond: { pct: 0.15 } },
+        { label: TIERS_LABEL, cats: ["tiers"], plafond: { eur: 1500 } },
+      ],
+      amenag: [{ id: "amen", label: "Aménagements immobiliers d'extérieur", plafond: { eur: 5000 } }],
+    },
+    CONFIANCE: {
+      label: "Confiance", recupMax: 0.25, rubriques: STD_RUB,
+      mobilier: [cat("meubles", { seuil: 2 }), cat("appareils", { seuil: 2 }), cat("info", { seuil: 2 }), cat("vetements"), cat("autres"), cat("epoque"), cat("bijoux"), cat("objets"), cat("vins"),
+        { id: "pro", label: "Matériel à usage professionnel appartenant à l'assuré", kind: "neuf", fam: "equip", seuil: 2 },
+        { id: "tiers", label: AUTRES_LABEL, kind: "taux", fam: "autres" }],
+      plafondsMob: [
+        { label: "Bijoux et objets en métal précieux massif", cats: ["bijoux"], plafond: { pct: 0.2, max: 4000 } },
+        { label: "Objets de valeur et collections", cats: ["objets"], plafond: { pct: 0.2, max: 4000 } },
+        { label: "Vins et spiritueux", cats: ["vins"], plafond: { eur: 2000 } },
+        { label: "Matériel professionnel de l'assuré", cats: ["pro"], plafond: { eur: 4000 } },
+        { label: AUTRES_LABEL, cats: ["tiers"], plafond: { eur: 2000 } },
+      ],
+      amenag: [{ id: "amen", label: "Aménagements immobiliers d'extérieur", plafond: { eur: 4000 } }],
+    },
+    CONFORT: {
+      label: "Confort", recupMax: 0.25, rubriques: STD_RUB,
+      mobilier: [cat("meubles", { seuil: 5 }), cat("appareils", { seuil: 5 }), cat("info", { seuil: 2 }), cat("vetements"), cat("autres"), cat("epoque"), cat("bijoux"), cat("objets"), cat("vins"),
+        { id: "pro", label: "Matériel professionnel appartenant à l'assuré ou à l'employeur", kind: "neuf", fam: "equip", seuil: 5 },
+        { id: "tiers", label: TIERS_LABEL, kind: "taux", fam: "autres" }],
+      plafondsMob: [
+        { label: "Bijoux et objets de valeur (plafond global)", cats: ["bijoux", "objets"], plafond: { eur: 21000 } },
+        { label: "Vins et spiritueux", cats: ["vins"], plafond: { pct: 0.3 } },
+        { label: "Matériel professionnel", cats: ["pro"], plafond: { eur: 1500 } },
+        { label: TIERS_LABEL, cats: ["tiers"], plafond: { eur: 3000 } },
+      ],
+      amenag: [
+        { id: "amen", label: "Aménagements immobiliers d'extérieur", plafond: { eur: 15000 } },
+        { id: "fuite-ext", label: "Recherche de fuites sur canalisation extérieure et surconsommation d'eau", plafond: { eur: 3000 } },
+        { id: "arbres", label: "Arbres et plantations", plafond: { eur: 3000 } },
+        { id: "piscine", label: "Piscines, leurs abris et leurs installations", plafond: { eur: 50000 } },
+        { id: "meub-ext", label: "Meubles d'extérieur", plafond: { eur: 3000 } },
+        { id: "loisirs", label: "Aménagements d'extérieur de loisirs ou d'agrément", plafond: { eur: 5000 } },
+        { id: "dev-dur", label: "Équipements de développement durable", plafond: { eur: 20000 } },
+        { id: "perte-elec", label: "Perte d'exploitation d'électricité (sur un an)", plafond: { eur: 3000 } },
+      ],
+    },
+    PERFORMANCE: {
+      label: "Performance", recupMax: 0.25, rubriques: STD_RUB,
+      mobilier: [cat("meubles", { seuil: 5 }), cat("appareils", { seuil: 5 }), cat("info", { seuil: 2 }), cat("vetements"), cat("autres"), cat("epoque"), cat("bijoux"), cat("objets"), cat("vins"),
+        { id: "pro", label: "Matériel à usage professionnel appartenant à l'assuré", kind: "neuf", fam: "equip", seuil: 5 },
+        { id: "tiers", label: AUTRES_LABEL, kind: "taux", fam: "autres" }],
+      plafondsMob: [
+        { label: "Bijoux et objets en métal précieux massif", cats: ["bijoux"], plafond: { pct: 0.4, max: 8000 } },
+        { label: "Objets de valeur et collections", cats: ["objets"], plafond: { pct: 0.4, max: 8000 } },
+        { label: "Vins et spiritueux", cats: ["vins"], plafond: { eur: 2000 } },
+        { label: "Matériel professionnel de l'assuré", cats: ["pro"], plafond: { eur: 4000 } },
+        { label: AUTRES_LABEL, cats: ["tiers"], plafond: { eur: 2000 } },
+      ],
+      amenag: [
+        { id: "amen", label: "Aménagements immobiliers d'extérieur", plafond: { eur: 8000 } },
+        { id: "terrasses", label: "Terrasses, murs de soutènement, chemins d'accès, escaliers", plafond: { eur: 6000 } },
+        { id: "fuite-ext", label: "Recherche de fuites sur canalisation extérieure enterrée (1 000 €) et surconsommation d'eau (1 000 €)", plafond: { eur: 2000 } },
+        { id: "arbres", label: "Arbres et plantations", plafond: { eur: 2000 } },
+        { id: "piscine", label: "Piscines, leurs abris et installation de chauffage", plafond: { eur: 50000 } },
+        { id: "loisirs", label: "Meubles et aménagements d'extérieur de loisirs ou d'agrément", plafond: { eur: 4000 } },
+        { id: "dev-dur", label: "Équipements de développement durable", plafond: { eur: 20000 } },
+      ],
+    },
+    TRANQUILLITE: {
+      label: "Tranquillité", recupMax: 0.25, rubriques: STD_RUB,
+      mobilier: [cat("meubles", { seuil: Infinity }), cat("appareils", { seuil: Infinity }), cat("info", { seuil: Infinity }), cat("vetements"), cat("autres"), cat("epoque"), cat("bijoux"), cat("objets"), cat("vins"),
+        { id: "pro", label: "Matériel professionnel appartenant à l'assuré ou à l'employeur", kind: "neuf", fam: "equip", seuil: Infinity },
+        { id: "tiers", label: TIERS_LABEL, kind: "taux", fam: "autres" }],
+      plafondsMob: [
+        { label: "Bijoux et objets de valeur (plafond global)", cats: ["bijoux", "objets"], plafond: { eur: 25000 } },
+        { label: "Vins et spiritueux", cats: ["vins"], plafond: { pct: 0.5 } },
+        { label: "Matériel professionnel", cats: ["pro"], plafond: { eur: 1500 } },
+        { label: TIERS_LABEL, cats: ["tiers"], plafond: { eur: 5000 } },
+      ],
+      amenag: [
+        { id: "amen", label: "Aménagements immobiliers d'extérieur", plafond: { eur: 25000 } },
+        { id: "fuite-ext", label: "Recherche de fuites sur canalisation extérieure et surconsommation d'eau", plafond: { eur: 5000 } },
+        { id: "arbres", label: "Arbres et plantations", plafond: { eur: 5000 } },
+        { id: "piscine", label: "Piscines, leurs abris et installation de chauffage", plafond: { eur: 100000 } },
+        { id: "meub-ext", label: "Meubles d'extérieur", plafond: { pct: 0.5 } },
+        { id: "loisirs", label: "Aménagements d'extérieur de loisirs ou d'agrément", plafond: null, note: "Valeur de reconstruction vétusté déduite" },
+        { id: "dev-dur", label: "Équipements de développement durable", plafond: null, note: "Valeur de reconstruction vétusté déduite" },
+        { id: "perte-elec", label: "Perte d'exploitation d'électricité (sur un an)", plafond: { eur: 3000 } },
+      ],
+    },
+  };
+
+  const autresPrejudices = [
+    "Travaux de recherche de fuite", "Gel de canalisations et appareils à effet d'eau", "Frais de démolition et déblais",
+    "Détériorations immobilières pour réparation des conducteurs électriques", "Frais de relogement", "Perte de loyer",
+    "Frais de garde, de déplacement et de replacement des objets mobiliers", "Détériorations immobilières pour porter secours",
+    "Frais de gardiennage, de clôture provisoire, de bâchage", "Autre",
+  ];
+  const nonGarantis = [
+    "Moyens de paiement, titres et valeurs mobilières", "Espèces, chèques déjeuner ou autres titres de paiement", "VTAM soumis à obligation d'assurance",
+    "Microtracteurs et leurs remorques", "Embarcations à moteur, moteurs hors-bord", "Planche à voile, kitesurf", "Marchandises destinées à l'exercice d'une profession",
+    "Animaux", "Appareils de locomotion aérienne", "Terrain", "Essentiel, bijoux", "Essentiel, objets précieux", "Essentiel, vins et spiritueux",
+    "Essentiel, matériel professionnel", "Essentiel, biens prêtés ou apportés par des tiers", "Essentiel, biens mobiliers dans une dépendance",
+    "Essentiel, biens immobiliers à une autre adresse", "Essentiel, détériorations immobilières (conducteurs électriques)", "Autre (à préciser)",
+  ];
+
+  const REAL = [
+    { id: "na", label: "Entreprise non agréée" },
+    { id: "ag", label: "Entreprise agréée" },
+    { id: "fo", label: "Fourniture par le sociétaire" },
+    { id: "po", label: "Pose par le sociétaire" },
+  ];
+  const TVA = [10, 20, 5.5, 0];
+  const UNITS = ["m²", "ml", "u", "forfait", "h", "m³"];
+
+  const GRILLES = [
+    { id: "contrat", label: "Contrat : 10 % par an après le seuil d'âge, 80 % au plus" },
+    { id: "2017-socle", label: "Gamme 2017, socle" },
+    { id: "2017-5ans", label: "Gamme 2017, option rééquipement à neuf 5 ans" },
+    { id: "2017-illimite", label: "Gamme 2017, option rééquipement à neuf illimité" },
+  ];
+
+  /* Articles normalisés des supports de chiffrage IMH 2018 (prix à importer par zone). */
+  const A = (grp, rub, list) => list.map(([des, unite]) => ({ grp, rub, des, unite }));
+  const articles = [
+    ...A("Plafonds", "hab-emb", [["Peinture mate/satinée", "m²"], ["Peinture brillante", "m²"], ["Peinture laque roulée", "m²"], ["Peinture laque tendue (spaltée)", "m²"], ["Peinture à projeter gouttelette", "m²"], ["Plus-value peinture corniche/moulure", "ml"], ["Plus-value peinture rosace en plâtre", "forfait"], ["Remplacement plaques de plâtre", "m²"], ["Plus-value plaques hydrofuges", "m²"], ["Entoilage plafond", "m²"], ["Dépose seule PP/tissu tendu/TDV", "m²"], ["Remplacement toile de verre peinte", "m²"], ["Remplacement papier peint", "m²"], ["Remplacement papier peint à peindre", "m²"], ["Faux plafond dalle minérale", "m²"], ["Lambris bois ou PVC", "m²"]]),
+    ...A("Murs", "hab-emb", [["Peinture mate/satinée", "m²"], ["Peinture brillante", "m²"], ["Peinture laque roulée", "m²"], ["Peinture laque tendue (spaltée)", "m²"], ["Peinture à projeter gouttelette", "m²"], ["Remplacement toile de verre peinte", "m²"], ["Remplacement papier peint", "m²"], ["Remplacement papier peint à peindre", "m²"], ["Remplacement frise/galon", "m²"], ["Remplacement plaques de plâtre", "m²"], ["Dépose seule PP/tissu tendu/TDV", "m²"], ["Lambris mural bois ou PVC", "m²"], ["Peinture radiateur standard", "forfait"], ["Peinture radiateur à ailettes", "forfait"], ["Plus-value peinture tuyaux", "ml"], ["Peinture décorative", "m²"], ["Peinture porte d'entrée palière/service", "u"], ["Peinture porte-fenêtre/volets 3 pentures", "u"], ["Peinture fenêtre/volets 2 pentures", "u"], ["Mise en teinte surface de boiserie", "m²"]]),
+    ...A("Travaux préparatoires", "hab-emb", [["Enduit en complément", "m²"], ["Recherche de teinte", "forfait"], ["Lessivage en conservation", "m²"], ["Couche anti-moisissures", "m²"]]),
+    ...A("Sols", "hab-emb", [["Dépose seule revêtement de sol", "m²"], ["Remplacement moquette ou sol PVC", "m²"], ["Ragréage", "m²"], ["Barre de seuil", "u"], ["Ponçage, vitrification de parquet < 10 m²", "forfait"], ["Ponçage/vitrification au-delà de 10 m²", "m²"], ["Ponçage et mise en cire de parquet", "m²"], ["Mise en teinte surface sol", "m²"]]),
+    ...A("Immobilier", "hab-tce", [["Reprise de plâtre sur plafond", "m²"], ["Reprise de plâtres sur murs", "m²"], ["Piquage seul d'enduit plâtre", "m²"], ["Remplacement parquet flottant avec feutre", "m²"], ["Remplacement parquet cloué", "m²"], ["Remplacement parquet collé", "m²"], ["Remplacement plaques de plâtre murs", "m²"], ["Ossature neuve pour plaque de plâtre", "m²"], ["Plus-value plaques hydrofuges", "m²"], ["Remplacement de plinthe bois ou PVC", "ml"], ["Remplacement de 1/4 de rond", "ml"], ["Laine de verre ou roche plafond/murs", "m²"], ["Préparation surface endommagée carrelage/faïence", "m²"], ["Remplacement carrelage sol", "forfait"], ["Remplacement faïence collée", "forfait"], ["Remplacement plinthe faïence", "ml"], ["Reprise de tablette douche/tablier baignoire", "ml"]]),
+    ...A("Forfaits petites interventions", "hab-emb", [["Forfait petits travaux de peinture et revêtement < 6 m²", "forfait"], ["Forfait petits travaux de remplacement parquets flottants ou collés < 8 m²", "forfait"], ["Forfait petits travaux de remplacement sol souple < 8 m²", "forfait"], ["Forfait petits travaux faïence/carrelage < 5 m²", "forfait"]]),
+    ...A("Interventions complémentaires", "hab-tce", [["Intervention pour séchage expressément demandée par la Mutuelle", "forfait"], ["Échafaudage pour travaux en plafond < 5 m (forfait)", "forfait"], ["Plus-value échafaudage pour escalier (forfait)", "forfait"], ["Main-d'œuvre prestation spécifique peinture", "h"], ["Main-d'œuvre prestation spécifique plâtrerie, habillage, isolation", "h"]]),
+  ].map((a, i) => ({ id: "a" + (i + 1), ...a, prix: {} }));
+
+  return { gammes, autresPrejudices, nonGarantis, REAL, TVA, UNITS, GRILLES, articles, zones: ["1", "2", "3", "4", "5"] };
+})();
+if (typeof module !== "undefined") module.exports = IMHData;
+</script>
+<script>
+/* Moteur de calcul du chiffrage IMH, sans dépendance au navigateur.
+   Reprend les formules des classeurs « CHIFFRAGE DOMMAGES <GAMME> » :
+   valeur à neuf = Q × PU ; vétusté = VAN × taux ; VVD = VAN − vétusté ;
+   vétusté récupérable = VAN × min(taux, 25 %) sur les locaux d'habitation ;
+   aménagements extérieurs = min(VVD TTC, plafond) ; mobilier selon la catégorie. */
+const IMH = (() => {
+  const R = typeof IMHData !== "undefined" ? IMHData : require("./gammes.js");
+  const num = (v) => { const n = parseFloat(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return Number.isFinite(n) ? n : 0; };
+  const blank = (v) => v == null || String(v).trim() === "";
+  const r2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
+  const sum = (a, f) => a.reduce((s, x) => s + (f ? f(x) : x), 0);
+
+  function plafondValue(p, d) {
+    if (!p) return Infinity;
+    if (p.eur != null) return p.eur;
+    if (p.pct != null) { const cap = num(d.capitalMobilier); const v = cap > 0 ? cap * p.pct : Infinity; return p.max != null ? Math.min(v, p.max) : v; }
+    if (p.field) { const v = num(d[p.field]); return v > 0 ? v : Infinity; }
+    return Infinity;
+  }
+  function plafondLabel(p) {
+    if (!p) return "Sans plafond";
+    if (p.eur != null) return `${p.eur.toLocaleString("fr-FR")} €`;
+    if (p.pct != null) return `${Math.round(p.pct * 100)} % du capital mobilier${p.max != null ? `, ${p.max.toLocaleString("fr-FR")} € au plus` : ""}`;
+    if (p.field === "valeurOccasionMH") return "Valeur d'occasion du mobil-home";
+    return "";
+  }
+
+  /* Âge en années révolues entre la date d'achat et la date de référence (sinistre). */
+  function ageYears(achat, ref) {
+    if (blank(achat)) return null;
+    const a = new Date(achat), r = blank(ref) ? new Date() : new Date(ref);
+    if (isNaN(a) || isNaN(r)) return null;
+    let y = r.getFullYear() - a.getFullYear();
+    if (r.getMonth() < a.getMonth() || (r.getMonth() === a.getMonth() && r.getDate() < a.getDate())) y--;
+    return Math.max(0, y);
+  }
+
+  /* Taux de vétusté proposé (en %), ou null quand il s'apprécie de gré à gré. */
+  function suggestVet(cat, age, grille) {
+    if (!cat || cat.kind === "occasion") return 0;
+    if (age == null) return null;
+    const y = age + 1; // « 1re année » = moins d'un an
+    if (!grille || grille === "contrat") {
+      if (cat.kind !== "neuf") return null;
+      return age < (cat.seuil == null ? 0 : cat.seuil) ? 0 : Math.min(80, 10 * age);
+    }
+    const opt = grille.replace("2017-", "");
+    if (cat.fam === "vet") return [0, 40, 60][y - 1] ?? 80;
+    if (cat.fam === "equip") { if (opt === "illimite") return 0; if (opt === "5ans" && y <= 5) return 0; return Math.min(80, 10 * (y - 1)); }
+    if (cat.fam === "info") { if (opt === "illimite") return 0; if (opt === "5ans") return y <= 5 ? 0 : 80; return Math.min(80, 20 * (y - 1)); }
+    return null;
+  }
+
+  function newDossier() {
+    return { id: "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ref: "", assure: "", dateSinistre: "", dateExpertise: "", cabinet: "", collaborateur: "",
+      gamme: "CONFIANCE", zone: "1", capitalMobilier: "", franchise: "", franchiseRecours: false, valeurOccasionMH: "", grilleMob: "contrat", observations: "",
+      immo: [], mob: [], autres: [], amen: [], ng: [] };
+  }
+
+  /* ----- Immobilier ----- */
+  function immoLine(l, rub, g) {
+    const van = num(l.q) * num(l.pu), t = num(l.vet) / 100;
+    const vet = van * t, vvd = van - vet;
+    const recup = rub && rub.recupOk ? van * Math.min(t, g.recupMax) : 0;
+    const tvaRate = l.real === "po" ? 0 : num(l.tva) / 100;
+    const tvaVvd = vvd * tvaRate, tvaRecup = recup * tvaRate, tva = tvaVvd + tvaRecup;
+    const total = vvd + recup + tva;
+    let acompte, differe;
+    if (l.real === "ag") { acompte = 0; differe = total; }
+    else if (l.real === "fo" || l.real === "po") { acompte = vvd + tvaVvd; differe = recup + tvaRecup; }
+    else { acompte = vvd; differe = recup + tva; }
+    return { van, vet, vvd, recup, nonRecup: vet - recup, tva, tvaRate, total, acompte, differe, vvdTtc: vvd + tvaVvd };
+  }
+
+  function compute(d) {
+    const g = R.gammes[d.gamme] || R.gammes.CONFIANCE;
+    const alertes = [], depassements = [];
+    const fix = (o) => { for (const k in o) if (typeof o[k] === "number") o[k] = r2(o[k]); return o; };
+
+    // Immobilier
+    const immoLines = {}, rubs = g.rubriques.map((r) => ({ ...r, recupOk: r.recup, van: 0, vet: 0, vvd: 0, recup: 0, nonRecup: 0, tva: 0, total: 0, n: 0 }));
+    const byRub = Object.fromEntries(rubs.map((r) => [r.id, r]));
+    const payImmo = { ag: [0, 0], as: [0, 0], na: [0, 0] };
+    d.immo.forEach((l, i) => {
+      const rub = byRub[l.rub];
+      if (!rub) { alertes.push(`Immobilier, ligne ${i + 1} : rubrique absente de la gamme ${g.label}, ligne non comptée.`); immoLines[l.id] = { excluded: true }; return; }
+      const c = immoLine(l, rub, g); immoLines[l.id] = c; rub.n++;
+      for (const k of ["van", "vet", "vvd", "recup", "nonRecup", "tva", "total"]) rub[k] += c[k];
+      if (num(l.pu) === 0 && !blank(l.des)) alertes.push(`Immobilier, « ${l.des} » : prix unitaire à saisir.`);
+    });
+    for (const r of rubs) {
+      r.plafondVal = plafondValue(r.plafond, d);
+      r.retenu = Math.min(r.total, r.plafondVal); r.ratio = r.total > 0 ? r.retenu / r.total : 1; r.depass = r.total - r.retenu;
+      if (r.depass > 0.005) depassements.push({ label: r.label, plafond: plafondLabel(r.plafond), montant: r2(r.depass) });
+      if (r.plafond && r.plafond.field && r.n && r.plafondVal === Infinity) alertes.push(`${r.label} : saisir la valeur d'occasion du mobil-home sur le dossier pour appliquer le plafond.`);
+    }
+    d.immo.forEach((l) => {
+      const c = immoLines[l.id]; if (c.excluded) return; const ratio = byRub[l.rub].ratio;
+      const key = l.real === "ag" ? "ag" : l.real === "fo" || l.real === "po" ? "as" : "na";
+      payImmo[key][0] += c.acompte * ratio; payImmo[key][1] += c.differe * ratio;
+    });
+    const corps = {};
+    for (const k of ["emb", "immo"]) {
+      const rs = rubs.filter((r) => r.corps === k);
+      corps[k] = fix({ van: sum(rs, (r) => r.van), vet: sum(rs, (r) => r.vet), vvd: sum(rs, (r) => r.vvd), recup: sum(rs, (r) => r.recup), nonRecup: sum(rs, (r) => r.nonRecup), tva: sum(rs, (r) => r.tva), total: sum(rs, (r) => r.total), retenu: sum(rs, (r) => r.retenu) });
+    }
+    const corpsTotal = fix(Object.fromEntries(Object.keys(corps.emb).map((k) => [k, corps.emb[k] + corps.immo[k]])));
+
+    // Mobilier
+    const cats = g.mobilier.map((c) => ({ ...c, total: 0, valeur: 0, n: 0 })), byCat = Object.fromEntries(cats.map((c) => [c.id, c]));
+    const mobLines = {};
+    d.mob.forEach((l, i) => {
+      const c = byCat[l.cat];
+      if (!c) { alertes.push(`Mobilier, ligne ${i + 1} : catégorie absente de la gamme ${g.label}, ligne non comptée.`); mobLines[l.id] = { excluded: true }; return; }
+      const age = ageYears(l.achat, d.dateSinistre), sugg = suggestVet(c, age, d.grilleMob);
+      const valeur = num(l.valeur);
+      const vetPct = c.kind === "occasion" ? 0 : !blank(l.vet) ? num(l.vet) : sugg != null ? sugg : 0;
+      const vet = valeur * vetPct / 100, indem = valeur - vet;
+      mobLines[l.id] = { age, sugg, vetPct, vet, indem, auto: c.kind !== "occasion" && blank(l.vet) };
+      if (c.kind !== "occasion" && blank(l.vet) && sugg == null && valeur > 0) alertes.push(`Mobilier, « ${l.des || c.label} » : vétusté à apprécier (aucune proposée).`);
+      c.total += indem; c.valeur += valeur; c.n++;
+    });
+    const groupes = (g.plafondsMob || []).map((p) => {
+      const total = sum(p.cats, (id) => (byCat[id] ? byCat[id].total : 0)), pv = plafondValue(p.plafond, d), retenu = Math.min(total, pv);
+      if (p.plafond && p.plafond.pct != null && p.plafond.max == null && num(d.capitalMobilier) <= 0 && total > 0) alertes.push(`${p.label} : saisir le capital mobilier souscrit pour appliquer le plafond.`);
+      if (total - retenu > 0.005) depassements.push({ label: p.label, plafond: plafondLabel(p.plafond), montant: r2(total - retenu) });
+      return { label: p.label, cats: p.cats, plafond: plafondLabel(p.plafond), total: r2(total), retenu: r2(retenu) };
+    });
+    const capped = new Set(groupes.flatMap((p) => p.cats));
+    let mobRetenu = sum(groupes, (p) => p.retenu) + sum(cats.filter((c) => !capped.has(c.id)), (c) => c.total);
+    const mobTotal = sum(cats, (c) => c.total), capital = num(d.capitalMobilier);
+    if (capital > 0 && mobRetenu > capital) { depassements.push({ label: "Mobilier, capital souscrit", plafond: `${capital.toLocaleString("fr-FR")} €`, montant: r2(mobRetenu - capital) }); mobRetenu = capital; }
+
+    // Autres préjudices
+    const autresLines = {}, parNature = {};
+    d.autres.forEach((l) => { const ht = num(l.q) * num(l.pu), ttc = ht * (1 + num(l.tva) / 100); autresLines[l.id] = { ht, ttc }; parNature[l.nat] = (parNature[l.nat] || 0) + ttc; });
+    const autresTotal = sum(Object.values(autresLines), (x) => x.ttc);
+
+    // Aménagements extérieurs
+    const amenCats = (g.amenag || []).map((a) => ({ ...a, van: 0, vvd: 0, ttc: 0, n: 0 })), byAmen = Object.fromEntries(amenCats.map((a) => [a.id, a]));
+    const amenLines = {};
+    d.amen.forEach((l, i) => {
+      const a = byAmen[l.cat];
+      if (!a) { alertes.push(`Aménagements extérieurs, ligne ${i + 1} : catégorie non garantie par la gamme ${g.label}, ligne non comptée.`); amenLines[l.id] = { excluded: true }; return; }
+      const van = num(l.q) * num(l.pu), vet = van * num(l.vet) / 100, vvd = van - vet, ttc = vvd * (1 + num(l.tva) / 100);
+      amenLines[l.id] = { van, vet, vvd, ttc }; a.van += van; a.vvd += vvd; a.ttc += ttc; a.n++;
+    });
+    for (const a of amenCats) {
+      const pv = plafondValue(a.plafond, d); a.retenu = Math.min(a.ttc, pv); a.plafondTxt = a.note && !a.plafond ? a.note : plafondLabel(a.plafond);
+      if (a.plafond && a.plafond.pct != null && num(d.capitalMobilier) <= 0 && a.ttc > 0) alertes.push(`${a.label} : saisir le capital mobilier souscrit pour appliquer le plafond.`);
+      if (a.ttc - a.retenu > 0.005) depassements.push({ label: a.label, plafond: a.plafondTxt, montant: r2(a.ttc - a.retenu) });
+    }
+    const amenRetenu = sum(amenCats, (a) => a.retenu);
+
+    // Non garantis (pour mémoire)
+    const ngLines = {};
+    d.ng.forEach((l) => { const van = num(l.van), ttc = van * (1 + num(l.tva) / 100), vet = ttc * num(l.vet) / 100; ngLines[l.id] = { ttc, vet, vvd: ttc - vet }; });
+
+    // Récapitulatif des règlements
+    const fr = num(d.franchise);
+    if (blank(d.franchise)) alertes.push("Franchise non renseignée sur le dossier.");
+    const rows = [
+      { key: "ag", label: "Travaux par entreprise agréée", acompte: payImmo.ag[0], differe: payImmo.ag[1], recours: 0 },
+      { key: "as", label: "Travaux par l'assuré", acompte: payImmo.as[0], differe: payImmo.as[1], recours: 0 },
+      { key: "na", label: "Travaux par entreprise non agréée", acompte: payImmo.na[0], differe: payImmo.na[1], recours: 0 },
+      { key: "mob", label: "Mobilier", acompte: mobRetenu, differe: 0, recours: 0 },
+      { key: "autres", label: "Autres dommages garantis", acompte: autresTotal, differe: 0, recours: 0 },
+      { key: "amen", label: "Aménagements extérieurs garantis", acompte: amenRetenu, differe: 0, recours: 0 },
+      { key: "fr", label: "Franchise", acompte: -fr, differe: 0, recours: d.franchiseRecours ? fr : 0 },
+    ].map((r) => fix({ ...r, total: r.acompte + r.differe + r.recours }));
+    const totals = fix({ acompte: sum(rows, (r) => r.acompte), differe: sum(rows, (r) => r.differe), recours: sum(rows, (r) => r.recours) });
+    totals.total = r2(totals.acompte + totals.differe + totals.recours);
+    if (totals.acompte < 0) alertes.push("L'acompte est négatif : la franchise dépasse les montants réglables immédiatement.");
+
+    return {
+      gamme: g, alertes, depassements,
+      immo: { lines: immoLines, rubriques: rubs.map(fix), corps, corpsTotal },
+      mob: { lines: mobLines, cats: cats.map(fix), groupes, total: r2(mobTotal), retenu: r2(mobRetenu) },
+      autres: { lines: autresLines, parNature, total: r2(autresTotal) },
+      amen: { lines: amenLines, cats: amenCats.map(fix), retenu: r2(amenRetenu) },
+      ng: { lines: ngLines, total: r2(sum(Object.values(ngLines), (x) => x.ttc)) },
+      pay: { rows, totals },
+    };
+  }
+
+  /* Barème : CSV « groupe;article;unité;rubrique;zone 1;zone 2;… » (séparateur ; ou ,). */
+  function parseBaremeCsv(text) {
+    const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) throw new Error("Le fichier doit contenir une ligne d'en-tête et au moins un article.");
+    const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ";" : ",";
+    const split = (l) => { const out = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === sep && !q) { out.push(cur.trim()); cur = ""; } else cur += ch; } out.push(cur.trim()); return out; };
+    const head = split(lines[0]).map((h) => h.toLowerCase());
+    const col = (re) => head.findIndex((h) => re.test(h));
+    const iG = col(/^groupe|corps/), iA = col(/article|désignation|designation|libell/), iU = col(/^unit/), iR = col(/^rubrique/);
+    if (iA < 0) throw new Error("Colonne « article » introuvable dans l'en-tête.");
+    const zoneCols = head.map((h, i) => [h, i]).filter(([h]) => /^zone/.test(h)).map(([h, i]) => [h.replace(/^zone\s*/, "").trim() || String(i), i]);
+    if (!zoneCols.length) throw new Error("Aucune colonne de prix « zone … » dans l'en-tête.");
+    const articles = lines.slice(1).map((l, n) => {
+      const c = split(l), prix = {};
+      for (const [z, i] of zoneCols) if (!blank(c[i])) prix[z] = num(c[i]);
+      return { id: "c" + (n + 1), grp: iG >= 0 ? c[iG] || "Divers" : "Divers", des: c[iA] || "", unite: iU >= 0 ? c[iU] || "u" : "u", rub: iR >= 0 && c[iR] ? c[iR] : "hab-tce", prix };
+    }).filter((a) => a.des);
+    return { zones: zoneCols.map(([z]) => z), articles };
+  }
+  function baremeCsv(b) {
+    const esc = (v) => (/[;"\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+    return "﻿" + [["groupe", "article", "unité", "rubrique", ...b.zones.map((z) => "zone " + z)], ...b.articles.map((a) => [a.grp, a.des, a.unite, a.rub, ...b.zones.map((z) => (a.prix[z] == null ? "" : String(a.prix[z]).replace(".", ",")))])].map((r) => r.map(esc).join(";")).join("\r\n");
+  }
+
+  return { compute, num, blank, r2, sum, ageYears, suggestVet, plafondValue, plafondLabel, newDossier, parseBaremeCsv, baremeCsv, R };
+})();
+if (typeof module !== "undefined") module.exports = IMH;
+</script>
+<script>
+/* Interface du chiffrage IMH : dossiers enregistrés dans le navigateur, saisie en tableaux, récapitulatif, barème par zone. */
+(() => {
+  const R = IMHData, { num, blank, r2 } = IMH;
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const h = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const EUR = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+  const eur = (x) => EUR.format(Number(x) || 0);
+  const eur0 = (x) => (Math.abs(Number(x) || 0) < 0.005 ? "" : eur(x));
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const opts = (list, v) => list.map(([k, l]) => `<option value="${h(k)}"${String(k) === String(v) ? " selected" : ""}>${h(l)}</option>`).join("");
+  const KEY = "imh-chiffrage-v1";
+
+  /* ----- Données ----- */
+  function exemple() {
+    const d = Object.assign(IMH.newDossier(), { ref: "7443", assure: "Exemple, dossier 7443", gamme: "CONFIANCE", zone: "5", franchise: "150", dateSinistre: "2026-10-12", dateExpertise: "2026-11-05", capitalMobilier: "20000",
+      observations: "Dossier d'exemple : les travaux immobiliers reprennent le classeur « CHIFFRAGE DOMMAGES 7443.xlsx », le mobilier et les frais sont ajoutés pour la démonstration." });
+    const L = (o) => Object.assign({ id: uid() }, o);
+    d.immo = [
+      L({ rub: "hab-tce", real: "na", piece: "Séjour", des: "Remise en état conduit pouzzolane et conduit inox", unite: "forfait", q: "1", pu: "2726.36", tva: 10, vet: "25" }),
+      L({ rub: "hab-tce", real: "na", piece: "Toiture", des: "Remplacement chapeau de cheminée", unite: "u", q: "1", pu: "603", tva: 10, vet: "25" }),
+      L({ rub: "hab-tce", real: "na", piece: "Séjour, cuisine", des: "Mise en peinture plafond séjour cuisine", unite: "forfait", q: "1", pu: "2561.56", tva: 10, vet: "25" }),
+    ];
+    d.mob = [
+      L({ cat: "appareils", des: "Téléviseur 55 pouces", just: "Oui", achat: "2021-03-02", valeur: "799", vet: "" }),
+      L({ cat: "vetements", des: "Manteaux (fumées)", just: "Non", achat: "", valeur: "420", vet: "40" }),
+    ];
+    d.autres = [L({ nat: "Frais de relogement", des: "Hôtel, 3 nuits", q: "3", pu: "85", tva: 10 })];
+    return d;
+  }
+  const defaultBareme = () => ({ zones: R.zones.slice(), articles: JSON.parse(JSON.stringify(R.articles)) });
+  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; } }
+  let db = load();
+  if (!db || !Array.isArray(db.dossiers) || !db.dossiers.length) { const d = exemple(); db = { dossiers: [d], current: d.id, bareme: defaultBareme() }; }
+  if (!db.bareme) db.bareme = defaultBareme();
+  let saveT;
+  const flush = () => { clearTimeout(saveT); saveT = null; try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { /* stockage indisponible : le dossier reste en mémoire */ } };
+  const save = () => { clearTimeout(saveT); saveT = setTimeout(flush, 200); };
+  addEventListener("pagehide", () => { if (saveT) flush(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && saveT) flush(); });
+  const cur = () => db.dossiers.find((x) => x.id === db.current) || db.dossiers[0];
+  const ui = { tab: "dossier" };
+  try { ui.tab = sessionStorage.getItem(KEY + "-tab") || "dossier"; } catch { /* sans stockage */ }
+
+  /* ----- Colonnes des tableaux de saisie ----- */
+  const g = () => R.gammes[cur().gamme] || R.gammes.CONFIANCE;
+  const pctOut = (x) => (x == null ? "" : `${r2(x).toLocaleString("fr-FR")} %`);
+  const COLS = {
+    immo: [
+      { f: "real", label: "Réalisation", type: "select", cls: "c-sel", opts: () => R.REAL.map((x) => [x.id, x.label]) },
+      { f: "piece", label: "Pièce", cls: "c-md" },
+      { f: "des", label: "Désignation", cls: "c-des" },
+      { f: "unite", label: "Unité", type: "select", cls: "c-sm", opts: () => R.UNITS.map((u) => [u, u]) },
+      { f: "q", label: "Q", type: "num", cls: "c-sm" },
+      { f: "pu", label: "PU HT", type: "num", cls: "c-num" },
+      { f: "tva", label: "TVA %", type: "select", cls: "c-sm", opts: () => R.TVA.map((t) => [t, t ? `${String(t).replace(".", ",")} %` : "Exo"]) },
+      { f: "vet", label: "Vét. %", type: "num", cls: "c-sm" },
+      { k: "van", label: "Valeur à neuf HT", out: (c) => eur0(c.van) },
+      { k: "vvd", label: "VVD HT", out: (c) => eur0(c.vvd) },
+      { k: "recup", label: "Vét. récupérable", out: (c) => eur0(c.recup) },
+      { k: "total", label: "TTC après travaux", out: (c) => eur0(c.total), strong: true },
+      { f: "rub", label: "Rubrique", type: "select", cls: "c-sel", opts: () => g().rubriques.map((r) => [r.id, r.label]), rerender: true },
+    ],
+    mob: [
+      { f: "cat", label: "Catégorie", type: "select", cls: "c-sel", opts: () => g().mobilier.map((c) => [c.id, c.label]), rerender: true },
+      { f: "des", label: "Désignation", cls: "c-des" },
+      { f: "just", label: "Justificatif", type: "select", cls: "c-sm", opts: () => [["", "—"], ["Oui", "Oui"], ["Non", "Non"], ["Vu", "Vu"]] },
+      { f: "achat", label: "Date d'achat", type: "date", cls: "c-md" },
+      { f: "valeur", label: "Valeur TTC", type: "num", cls: "c-num" },
+      { f: "vet", label: "Vét. %", type: "num", cls: "c-sm", ph: (c) => (c.sugg != null ? `auto ${c.sugg}` : "") },
+      { k: "age", label: "Âge", out: (c) => (c.age == null ? "" : `${c.age} an${c.age > 1 ? "s" : ""}`) },
+      { k: "vetPct", label: "Vét. retenue", out: (c) => (c.excluded ? "" : pctOut(c.vetPct)) },
+      { k: "indem", label: "Indemnité", out: (c) => eur0(c.indem), strong: true },
+    ],
+    autres: [
+      { f: "nat", label: "Nature du préjudice", type: "select", cls: "c-sel", opts: () => R.autresPrejudices.map((x) => [x, x]) },
+      { f: "des", label: "Précision de l'expert", cls: "c-des" },
+      { f: "q", label: "Q", type: "num", cls: "c-sm" },
+      { f: "pu", label: "PU HT", type: "num", cls: "c-num" },
+      { f: "tva", label: "TVA %", type: "select", cls: "c-sm", opts: () => R.TVA.map((t) => [t, t ? `${String(t).replace(".", ",")} %` : "Exo"]) },
+      { k: "ht", label: "Montant HT", out: (c) => eur0(c.ht) },
+      { k: "ttc", label: "Montant TTC", out: (c) => eur0(c.ttc), strong: true },
+    ],
+    amen: [
+      { f: "cat", label: "Catégorie garantie", type: "select", cls: "c-sel", opts: () => (g().amenag || []).map((a) => [a.id, a.label]), rerender: true },
+      { f: "des", label: "Désignation", cls: "c-des" },
+      { f: "unite", label: "Unité", type: "select", cls: "c-sm", opts: () => R.UNITS.map((u) => [u, u]) },
+      { f: "q", label: "Q", type: "num", cls: "c-sm" },
+      { f: "pu", label: "PU HT", type: "num", cls: "c-num" },
+      { f: "tva", label: "TVA %", type: "select", cls: "c-sm", opts: () => R.TVA.map((t) => [t, t ? `${String(t).replace(".", ",")} %` : "Exo"]) },
+      { f: "vet", label: "Vét. %", type: "num", cls: "c-sm" },
+      { k: "van", label: "Valeur à neuf HT", out: (c) => eur0(c.van) },
+      { k: "ttc", label: "VVD TTC", out: (c) => eur0(c.ttc), strong: true },
+    ],
+    ng: [
+      { f: "nat", label: "Nature non garantie", type: "select", cls: "c-sel", opts: () => R.nonGarantis.map((x) => [x, x]) },
+      { f: "des", label: "Précision", cls: "c-des" },
+      { f: "van", label: "VAN HT", type: "num", cls: "c-md" },
+      { f: "tva", label: "TVA %", type: "select", cls: "c-sm", opts: () => R.TVA.map((t) => [t, t ? `${String(t).replace(".", ",")} %` : "Exo"]) },
+      { f: "vet", label: "Vét. %", type: "num", cls: "c-sm" },
+      { k: "ttc", label: "Montant TTC", out: (c) => eur0(c.ttc) },
+      { k: "vvd", label: "VVD TTC", out: (c) => eur0(c.vvd) },
+    ],
+  };
+  const NEW = {
+    immo: (rub) => ({ rub: rub || g().rubriques[0].id, real: "na", piece: "", des: "", unite: "m²", q: "", pu: "", tva: 10, vet: "" }),
+    mob: () => ({ cat: g().mobilier[0].id, des: "", just: "", achat: "", valeur: "", vet: "" }),
+    autres: () => ({ nat: R.autresPrejudices[0], des: "", q: "1", pu: "", tva: 10 }),
+    amen: () => ({ cat: (g().amenag || [{}])[0].id, des: "", unite: "m²", q: "", pu: "", tva: 10, vet: "" }),
+    ng: () => ({ nat: R.nonGarantis[0], des: "", van: "", tva: 20, vet: "" }),
+  };
+
+  function cell(sec, l, c, calc) {
+    if (c.out) return `<td class="num${c.strong ? " strong" : ""}" data-o="${sec}:${l.id}:${c.k}">${h(c.out(calc || {}, l))}</td>`;
+    const id = `${sec}-${l.id}-${c.f}`, v = l[c.f] == null ? "" : l[c.f];
+    const attrs = `id="${id}" data-sec="${sec}" data-id="${l.id}" data-f="${c.f}" aria-label="${h(c.label)}"${c.rerender ? " data-rerender" : ""}`;
+    if (c.type === "select") {
+      const list = c.opts(); const known = list.some(([k]) => String(k) === String(v));
+      return `<td class="${c.cls || ""}"><select ${attrs}>${known ? "" : `<option value="${h(v)}" selected>Hors gamme (${h(v)})</option>`}${opts(list, v)}</select></td>`;
+    }
+    if (c.type === "date") return `<td class="${c.cls || ""}"><input type="date" ${attrs} value="${h(v)}"></td>`;
+    const dis = sec === "mob" && c.f === "vet" && calc && (g().mobilier.find((x) => x.id === l.cat) || {}).kind === "occasion";
+    const ph = c.ph && calc ? c.ph(calc) : "";
+    return `<td class="${c.cls || ""}"><input ${attrs} value="${h(v)}"${c.type === "num" ? ' inputmode="decimal" class="n"' : ""}${ph ? ` placeholder="${h(ph)}" data-ph="${sec}:${l.id}"` : c.ph ? ` data-ph="${sec}:${l.id}"` : ""}${dis ? ' disabled title="Valeur d\'occasion : pas de vétusté"' : ""}></td>`;
+  }
+  const row = (sec, l, res) => { const calc = res[sec].lines[l.id] || {}; return `<tr class="${calc.excluded ? "off" : ""}">${COLS[sec].map((c) => cell(sec, l, c, calc)).join("")}<td><button class="x" type="button" data-act="del-line" data-sec="${sec}" data-id="${l.id}" title="Supprimer la ligne" aria-label="Supprimer la ligne">×</button></td></tr>`; };
+  const thead = (sec) => `<thead><tr>${COLS[sec].map((c) => `<th class="${c.out || c.type === "num" ? "num" : ""}">${h(c.label)}</th>`).join("")}<th></th></tr></thead>`;
+
+  /* ----- Valeurs calculées mises à jour pendant la saisie ----- */
+  function outMap(res) {
+    const d = cur(), m = {};
+    for (const sec of Object.keys(COLS)) for (const l of d[sec]) { const calc = res[sec].lines[l.id] || {}; for (const c of COLS[sec]) if (c.out) m[`${sec}:${l.id}:${c.k}`] = c.out(calc, l); }
+    for (const r of res.immo.rubriques) for (const k of ["van", "vvd", "recup", "total", "retenu"]) m[`rub:${r.id}:${k}`] = eur0(r[k]);
+    for (const c of res.mob.cats) { m[`mc:${c.id}:valeur`] = eur0(c.valeur); m[`mc:${c.id}:total`] = eur0(c.total); }
+    res.mob.groupes.forEach((p, i) => { m[`mg:${i}:total`] = eur0(p.total); m[`mg:${i}:retenu`] = eur(p.retenu); });
+    for (const a of res.amen.cats) { m[`ac:${a.id}:ttc`] = eur0(a.ttc); m[`ac:${a.id}:retenu`] = eur(a.retenu); }
+    Object.assign(m, { "mob:total": eur(res.mob.total), "mob:retenu": eur(res.mob.retenu), "amen:retenu": eur(res.amen.retenu), "autres:total": eur(res.autres.total), "ng:total": eur(res.ng.total),
+      "immo:total": eur(res.immo.corpsTotal.total), "immo:retenu": eur(res.immo.corpsTotal.retenu) });
+    return m;
+  }
+  function refresh() {
+    const res = IMH.compute(cur()), m = outMap(res);
+    $$("[data-o]").forEach((el) => { const v = m[el.dataset.o]; if (v != null && el.textContent !== v) el.textContent = v; });
+    $$("[data-ph]").forEach((el) => { const [sec, id] = el.dataset.ph.split(":"); const c = (res[sec].lines[id] || {}); el.placeholder = c.sugg != null ? `auto ${c.sugg}` : ""; });
+    renderStrip(res);
+  }
+
+  /* ----- En-tête ----- */
+  const TABS = [["dossier", "Dossier"], ["immo", "Immobilier"], ["mob", "Mobilier"], ["autres", "Autres préjudices"], ["amen", "Aménagements ext."], ["ng", "Non garantis"], ["recap", "Récapitulatif"], ["bareme", "Barème IMH"]];
+  function renderStrip(res) {
+    const d = cur(), t = res.pay.totals, nA = res.alertes.length, nD = res.depassements.length;
+    $("#strip").innerHTML = `<span class="chip gamme">${h(res.gamme.label)}</span><span class="chip">Zone ${h(d.zone || "—")}</span>
+      <span class="k big"><span>Indemnité</span><b>${eur(t.total)}</b></span><span class="k"><span>Acompte</span><b>${eur(t.acompte)}</b></span>
+      <span class="k"><span>Différé facture</span><b>${eur(t.differe)}</b></span>${t.recours ? `<span class="k"><span>Différé recours</span><b>${eur(t.recours)}</b></span>` : ""}
+      ${nD ? `<button class="chip warn" type="button" data-act="tab" data-v="recap">${nD} plafond${nD > 1 ? "s" : ""} dépassé${nD > 1 ? "s" : ""}</button>` : ""}
+      ${nA ? `<button class="chip err" type="button" data-act="tab" data-v="recap">${nA} point${nA > 1 ? "s" : ""} à vérifier</button>` : `<span class="chip ok">Aucun point à vérifier</span>`}`;
+  }
+  function renderHeader(res) {
+    $("#dossier-pick").innerHTML = db.dossiers.map((d) => `<option value="${h(d.id)}"${d.id === db.current ? " selected" : ""}>${h([d.ref || "Sans référence", d.assure].filter(Boolean).join(" · "))}</option>`).join("");
+    const d = cur(), counts = { immo: d.immo.length, mob: d.mob.length, autres: d.autres.length, amen: d.amen.length, ng: d.ng.length };
+    $("#tabs").innerHTML = TABS.map(([k, l]) => `<button class="tab${ui.tab === k ? " on" : ""}" type="button" data-act="tab" data-v="${k}"${ui.tab === k ? ' aria-current="page"' : ""}>${l}${counts[k] ? `<small>${counts[k]}</small>` : ""}</button>`).join("");
+    renderStrip(res);
+  }
+
+  /* ----- Écrans ----- */
+  const field = (f, label, type, extra = "") => {
+    const d = cur(), v = d[f] == null ? "" : d[f], id = `d-${f}`, a = `id="${id}" data-sec="d" data-f="${f}"`;
+    if (type === "textarea") return `<label class="wide" for="${id}">${label}<textarea ${a}>${h(v)}</textarea></label>`;
+    if (type === "check") return `<label class="check" for="${id}"><input type="checkbox" ${a}${v ? " checked" : ""}>${label}</label>`;
+    if (Array.isArray(type)) return `<label for="${id}">${label}<select ${a} data-rerender>${opts(type, v)}</select>${extra}</label>`;
+    return `<label for="${id}">${label}<input ${a} type="${type === "num" ? "text" : type || "text"}"${type === "num" ? ' inputmode="decimal"' : ""} value="${h(v)}">${extra}</label>`;
+  };
+  function viewDossier() {
+    const d = cur(), gm = g();
+    const plaf = (p) => IMH.plafondLabel(p);
+    const ref = `<dl class="kv">
+      <dt>Vétusté récupérable (locaux d'habitation)</dt><dd>${gm.recupMax ? `jusqu'à ${gm.recupMax * 100} % de la VAN` : "non prévue"}</dd>
+      ${gm.rubriques.filter((r) => r.plafond).map((r) => `<dt>${h(r.label)}</dt><dd>${h(plaf(r.plafond))}</dd>`).join("")}
+      ${gm.mobilier.filter((c) => c.kind === "neuf").map((c) => `<dt>${h(c.label)}</dt><dd>${c.seuil === Infinity ? "à neuf illimité" : `pas de vétusté avant ${c.seuil} an${c.seuil > 1 ? "s" : ""}`}</dd>`).join("")}
+      ${gm.plafondsMob.map((p) => `<dt>${h(p.label)}</dt><dd>${h(plaf(p.plafond))}</dd>`).join("")}
+      ${(gm.amenag || []).map((a) => `<dt>${h(a.label)}</dt><dd>${h(a.plafond ? plaf(a.plafond) : a.note || "Sans plafond")}</dd>`).join("")}
+    </dl>`;
+    return `<section class="head"><div><h1>Dossier</h1><p class="muted">Références du dossier, contrat et paramètres qui pilotent les plafonds et la vétusté.</p></div>
+      <div class="actions"><button class="btn sm danger" type="button" data-act="del-dossier">Supprimer le dossier</button></div></section>
+      <div class="grid2">
+        <div class="panel"><h2>Références</h2><div class="form">
+          ${field("ref", "Référence du dossier")}${field("assure", "Assuré")}${field("dateSinistre", "Date du sinistre", "date")}${field("dateExpertise", "Date d'expertise", "date")}
+          ${field("cabinet", "Cabinet")}${field("collaborateur", "Collaborateur")}${field("observations", "Observations", "textarea")}
+        </div></div>
+        <div class="panel"><h2>Contrat et règlement</h2><div class="form">
+          ${field("gamme", "Gamme de contrat", Object.entries(R.gammes).map(([k, x]) => [k, x.label + (x.note ? ` (${x.note})` : "")]))}
+          ${field("zone", "Zone du barème IMH", db.bareme.zones.map((z) => [z, "Zone " + z]))}
+          ${field("capitalMobilier", "Capital mobilier souscrit (€)", "num", '<span class="hint">Sert aux plafonds exprimés en % du capital.</span>')}
+          ${field("franchise", "Franchise (€)", "num")}
+          ${d.gamme === "NATURE" ? field("valeurOccasionMH", "Valeur d'occasion du mobil-home (€)", "num", '<span class="hint">Limite la réparation du mobil-home.</span>') : ""}
+          ${field("grilleMob", "Barème de vétusté mobilier", R.GRILLES.map((x) => [x.id, x.label]))}
+          ${field("franchiseRecours", "Franchise remboursée à l'issue du recours", "check")}
+        </div></div>
+      </div>
+      <div class="panel"><h2>Ce que prévoit la gamme ${h(gm.label)}</h2>${ref}</div>`;
+  }
+
+  function viewImmo(res) {
+    const d = cur(), gm = g(), known = new Set(gm.rubriques.map((r) => r.id)), ncol = COLS.immo.length + 1;
+    const groups = gm.rubriques.map((r) => ({ r, lines: d.immo.filter((l) => l.rub === r.id) }));
+    const orphans = d.immo.filter((l) => !known.has(l.rub));
+    const body = groups.map(({ r, lines }) => {
+      const rr = res.immo.rubriques.find((x) => x.id === r.id);
+      return `<tr class="grp"><td colspan="${ncol}"><div class="actions" style="justify-content:space-between"><span>${h(r.label)} ${r.recup && gm.recupMax ? '<span class="muted">· vétusté récupérable</span>' : ""}${r.plafond ? ` <span class="muted">· plafond ${h(IMH.plafondLabel(r.plafond))}</span>` : ""}${r.note ? ` <span class="muted">· ${h(r.note)}</span>` : ""}</span>
+        <span class="actions noprint"><button class="btn sm" type="button" data-act="add-line" data-sec="immo" data-v="${r.id}">Ajouter une ligne</button><button class="btn sm ghost" type="button" data-act="bareme-pick" data-v="${r.id}">Depuis le barème</button></span></div></td></tr>
+        ${lines.map((l) => row("immo", l, res)).join("")}
+        ${lines.length ? `<tr class="sub"><td colspan="8">Sous-total ${h(r.label)}${r.plafond ? ` <span class="muted">· retenu <span data-o="rub:${r.id}:retenu">${eur0(rr.retenu)}</span></span>` : ""}</td><td class="num" data-o="rub:${r.id}:van">${eur0(rr.van)}</td><td class="num" data-o="rub:${r.id}:vvd">${eur0(rr.vvd)}</td><td class="num" data-o="rub:${r.id}:recup">${eur0(rr.recup)}</td><td class="num" data-o="rub:${r.id}:total">${eur0(rr.total)}</td><td colspan="2"></td></tr>` : ""}`;
+    }).join("") + (orphans.length ? `<tr class="grp"><td colspan="${ncol}">Hors gamme ${h(gm.label)} <span class="muted">· choisir une rubrique pour compter ces lignes</span></td></tr>${orphans.map((l) => row("immo", l, res)).join("")}` : "");
+    return `<section class="head"><div><h1>Dommages immobiliers</h1><p class="muted">Valeur à neuf = Q × PU. La vétusté récupérable sur les locaux d'habitation est limitée à ${gm.recupMax ? gm.recupMax * 100 + " %" : "0 %"} de la valeur à neuf. La pose par le sociétaire est sans TVA.</p></div></section>
+      <div class="tw"><table>${thead("immo")}<tbody>${body}</tbody><tfoot><tr class="tot"><td colspan="11">Total travaux, TTC après travaux</td><td class="num" data-o="immo:total">${eur(res.immo.corpsTotal.total)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+  }
+
+  function flatTable(sec, res, addLabel) {
+    const d = cur();
+    return `<div class="tw"><table>${thead(sec)}<tbody>${d[sec].length ? d[sec].map((l) => row(sec, l, res)).join("") : `<tr><td colspan="${COLS[sec].length + 1}" class="empty">Aucune ligne. « ${addLabel} » pour commencer.</td></tr>`}</tbody></table></div>
+      <div class="actions noprint"><button class="btn primary" type="button" data-act="add-line" data-sec="${sec}">${addLabel}</button></div>`;
+  }
+  function viewMob(res) {
+    const d = cur(), gm = g(), grille = R.GRILLES.find((x) => x.id === d.grilleMob) || R.GRILLES[0];
+    const cats = res.mob.cats.filter((c) => c.n);
+    return `<section class="head"><div><h1>Dommages mobiliers</h1><p class="muted">Vétusté proposée d'après la date d'achat et la date du sinistre (${h(grille.label.toLowerCase())}). Un taux saisi remplace la proposition. Bijoux, objets de valeur et vins sont pris en valeur d'occasion.</p></div></section>
+      ${flatTable("mob", res, "Ajouter un bien")}
+      <div class="grid2">
+        <div class="panel"><h2>Par catégorie</h2>${cats.length ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th class="num">Valeur</th><th class="num">Indemnité</th></tr></thead><tbody>${cats.map((c) => `<tr><td>${h(c.label)}</td><td class="num" data-o="mc:${c.id}:valeur">${eur0(c.valeur)}</td><td class="num" data-o="mc:${c.id}:total">${eur0(c.total)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Aucun bien saisi.</p>'}</div>
+        <div class="panel"><h2>Plafonds ${h(gm.label)}</h2><div class="tw"><table><thead><tr><th>Plafond</th><th class="num">Montant</th><th class="num">Retenu</th></tr></thead><tbody>
+          ${res.mob.groupes.map((p, i) => `<tr><td>${h(p.label)} <span class="flag">${h(p.plafond)}</span></td><td class="num" data-o="mg:${i}:total">${eur0(p.total)}</td><td class="num" data-o="mg:${i}:retenu">${eur(p.retenu)}</td></tr>`).join("")}
+          <tr class="tot"><td>Mobilier retenu${num(d.capitalMobilier) > 0 ? ` <span class="flag">dans la limite du capital de ${eur(num(d.capitalMobilier))}</span>` : ""}</td><td class="num" data-o="mob:total">${eur(res.mob.total)}</td><td class="num" data-o="mob:retenu">${eur(res.mob.retenu)}</td></tr>
+        </tbody></table></div></div>
+      </div>`;
+  }
+  function viewAutres(res) {
+    return `<section class="head"><div><h1>Autres préjudices garantis</h1><p class="muted">Recherche de fuite, gel, démolition, relogement, perte de loyer, frais de garde, gardiennage… Réglés en acompte, TVA comprise.</p></div></section>
+      ${flatTable("autres", res, "Ajouter un préjudice")}<p class="strong">Total autres préjudices : <span data-o="autres:total">${eur(res.autres.total)}</span></p>`;
+  }
+  function viewAmen(res) {
+    const gm = g();
+    return `<section class="head"><div><h1>Aménagements extérieurs garantis</h1><p class="muted">Chaque catégorie est retenue en valeur vétusté déduite TTC, dans la limite de son plafond ${h(gm.label)}.</p></div></section>
+      ${flatTable("amen", res, "Ajouter une ligne")}
+      <div class="panel"><h2>Plafonds ${h(gm.label)}</h2><div class="tw"><table><thead><tr><th>Catégorie</th><th>Plafond</th><th class="num">VVD TTC</th><th class="num">Retenu</th></tr></thead><tbody>
+        ${res.amen.cats.map((a) => `<tr><td>${h(a.label)}</td><td>${h(a.plafondTxt)}</td><td class="num" data-o="ac:${a.id}:ttc">${eur0(a.ttc)}</td><td class="num" data-o="ac:${a.id}:retenu">${eur(a.retenu)}</td></tr>`).join("")}
+        <tr class="tot"><td colspan="3">Aménagements extérieurs retenus</td><td class="num" data-o="amen:retenu">${eur(res.amen.retenu)}</td></tr></tbody></table></div></div>`;
+  }
+  function viewNg(res) {
+    return `<section class="head"><div><h1>Dommages non garantis</h1><p class="muted">Pour mémoire : ces montants ne sont pas indemnisés au titre du contrat ${h(g().label)}.</p></div></section>
+      ${flatTable("ng", res, "Ajouter un dommage")}<p class="strong">Total non garanti : <span data-o="ng:total">${eur(res.ng.total)}</span></p>`;
+  }
+
+  function viewRecap(res) {
+    const d = cur(), gm = g(), t = res.pay.totals, c = res.immo.corps, ct = res.immo.corpsTotal;
+    const crow = (label, x, cls = "") => `<tr class="${cls}"><td>${label}</td><td class="num">${eur0(x.van)}</td><td class="num">${eur0(x.vet)}</td><td class="num">${eur0(x.vvd)}</td><td class="num">${eur0(x.recup)}</td><td class="num">${eur0(x.nonRecup)}</td><td class="num">${eur0(x.tva)}</td><td class="num strong">${eur0(x.total)}</td></tr>`;
+    const capped = res.immo.rubriques.filter((r) => r.plafond && r.n);
+    const prow = (r) => `<tr><td>${h(r.label)}</td><td class="num">${eur0(r.acompte)}</td><td class="num">${eur0(r.differe)}</td><td class="num">${eur0(r.recours)}</td><td class="num strong">${eur0(r.total)}</td></tr>`;
+    const xl = window.claude ? "" : `<button class="btn ghost" type="button" data-act="print">Imprimer</button>`;
+    const parNat = Object.entries(res.autres.parNature);
+    return `<section class="head"><div><h1>Récapitulatif ${h(gm.label)}</h1><p class="muted">${h([d.ref && "Dossier " + d.ref, d.assure, d.dateSinistre && "sinistre du " + new Date(d.dateSinistre).toLocaleDateString("fr-FR")].filter(Boolean).join(" · "))}</p></div>
+      <div class="actions noprint"><button class="btn primary" type="button" data-act="export-xlsx">Exporter vers Excel</button>${xl}</div></section>
+      <div class="cards"><div class="card main"><span>Indemnité totale</span><b>${eur(t.total)}</b></div><div class="card"><span>Acompte à régler</span><b>${eur(t.acompte)}</b></div>
+        <div class="card"><span>Différé à réception de facture</span><b>${eur(t.differe)}</b></div><div class="card"><span>Différé à l'issue du recours</span><b>${eur(t.recours)}</b></div></div>
+      ${res.alertes.length ? `<div class="note"><strong>Points à vérifier</strong><ul class="list">${res.alertes.map((a) => `<li>${h(a)}</li>`).join("")}</ul></div>` : ""}
+      <div class="panel"><h2>Règlement</h2><div class="tw"><table><thead><tr><th></th><th class="num">Acompte à régler</th><th class="num">Différé à réception de la facture</th><th class="num">Différé à l'issue du recours</th><th class="num">Total</th></tr></thead>
+        <tbody>${res.pay.rows.map(prow).join("")}<tr class="tot"><td>Solde ou total</td><td class="num">${eur(t.acompte)}</td><td class="num">${eur(t.differe)}</td><td class="num">${eur(t.recours)}</td><td class="num">${eur(t.total)}</td></tr></tbody></table></div>
+        <p class="muted">Entreprise non agréée : VVD HT en acompte, vétusté récupérable et TVA sur facture. Entreprise agréée : tout sur facture. Travaux de l'assuré : VVD (TVA comprise pour les fournitures) en acompte, vétusté récupérable sur justificatifs.</p></div>
+      <div class="panel"><h2>Les travaux par corps d'état</h2><div class="tw"><table><thead><tr><th></th><th class="num">VAN HT</th><th class="num">Vétusté</th><th class="num">Reste HT, vétusté déduite</th><th class="num">Vétusté récupérée</th><th class="num">Vétusté non récupérable</th><th class="num">TVA</th><th class="num">Total TTC après travaux</th></tr></thead>
+        <tbody>${crow("Embellissements", c.emb)}${crow("Immobilier", c.immo)}${crow("Total", ct, "tot")}</tbody></table></div>
+        ${capped.length ? `<div class="tw"><table><thead><tr><th>Rubrique plafonnée</th><th>Plafond</th><th class="num">TTC</th><th class="num">Retenu</th></tr></thead><tbody>${capped.map((r) => `<tr><td>${h(r.label)}</td><td>${h(IMH.plafondLabel(r.plafond))}</td><td class="num">${eur(r.total)}</td><td class="num">${eur(r.retenu)}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>
+      <div class="grid2">
+        <div class="panel"><h2>Le mobilier</h2>${res.mob.cats.some((x) => x.n) ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th class="num">Valeur</th><th class="num">Indemnité</th></tr></thead><tbody>${res.mob.cats.filter((x) => x.n).map((x) => `<tr><td>${h(x.label)}</td><td class="num">${eur(x.valeur)}</td><td class="num">${eur(x.total)}</td></tr>`).join("")}<tr class="tot"><td>Préjudice mobilier garanti</td><td></td><td class="num">${eur(res.mob.retenu)}</td></tr></tbody></table></div>` : '<p class="muted">Aucun bien mobilier.</p>'}</div>
+        <div class="panel"><h2>Autres préjudices et aménagements</h2><dl class="kv">${parNat.map(([n, v]) => `<dt>${h(n)}</dt><dd>${eur(v)}</dd>`).join("") || '<dt class="muted">Aucun autre préjudice</dt><dd></dd>'}
+          ${res.amen.cats.filter((a) => a.n).map((a) => `<dt>${h(a.label)}</dt><dd>${eur(a.retenu)}</dd>`).join("")}</dl></div>
+      </div>
+      <div class="grid2">
+        <div class="panel"><h2>Dépassements de plafonds</h2>${res.depassements.length ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th>Plafond</th><th class="num">Dépassement</th></tr></thead><tbody>${res.depassements.map((x) => `<tr><td>${h(x.label)}</td><td>${h(x.plafond)}</td><td class="num">${eur(x.montant)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Aucun plafond contractuel dépassé.</p>'}</div>
+        <div class="panel"><h2>Dommages non garantis</h2>${d.ng.length ? `<dl class="kv">${d.ng.map((l) => `<dt>${h(l.nat)}${l.des ? ` · ${h(l.des)}` : ""}</dt><dd>${eur(res.ng.lines[l.id].ttc)}</dd>`).join("")}<dt class="strong">Total</dt><dd class="strong">${eur(res.ng.total)}</dd></dl>` : '<p class="muted">Aucun dommage non garanti saisi.</p>'}</div>
+      </div>
+      ${d.observations ? `<div class="panel"><h2>Observations</h2><p>${h(d.observations).replace(/\n/g, "<br>")}</p></div>` : ""}`;
+  }
+
+  function viewBareme() {
+    const b = db.bareme, d = cur(), priced = b.articles.filter((a) => Object.keys(a.prix || {}).length).length;
+    const rubs = R.gammes.CONFIANCE.rubriques.map((r) => [r.id, r.label]);
+    let grp = null;
+    const rows = b.articles.map((a) => {
+      const head = a.grp !== grp ? ((grp = a.grp), `<tr class="grp"><td colspan="${4 + b.zones.length}">${h(a.grp)}</td></tr>`) : "";
+      return `${head}<tr><td class="c-des"><input id="bar-${a.id}-des" data-sec="bar" data-id="${a.id}" data-f="des" value="${h(a.des)}" aria-label="Article"></td>
+        <td class="c-sm"><select id="bar-${a.id}-unite" data-sec="bar" data-id="${a.id}" data-f="unite" aria-label="Unité">${opts(R.UNITS.map((u) => [u, u]), a.unite)}</select></td>
+        <td class="c-sel"><select id="bar-${a.id}-rub" data-sec="bar" data-id="${a.id}" data-f="rub" aria-label="Rubrique">${opts(rubs, a.rub)}</select></td>
+        ${b.zones.map((z) => `<td class="c-sm"><input class="n" inputmode="decimal" id="bar-${a.id}-z${h(z)}" data-sec="bar" data-id="${a.id}" data-f="z:${h(z)}" value="${h(a.prix[z] == null ? "" : a.prix[z])}" aria-label="Prix zone ${h(z)}"></td>`).join("")}
+        <td><button class="x" type="button" data-act="del-article" data-id="${a.id}" aria-label="Supprimer l'article">×</button></td></tr>`;
+    }).join("");
+    return `<section class="head"><div><h1>Barème IMH</h1><p class="muted">Articles normalisés des supports de chiffrage IMH 2018. ${priced ? `${priced} article${priced > 1 ? "s" : ""} sur ${b.articles.length} ont un prix.` : "Aucun prix n'est encore renseigné : saisissez-les ici ou importez le barème en CSV."} Le dossier ouvert utilise la zone ${h(d.zone)}.</p></div>
+      <div class="actions"><button class="btn primary" type="button" data-act="import-csv">Importer un CSV</button><button class="btn" type="button" data-act="export-csv">Exporter en CSV</button><button class="btn ghost" type="button" data-act="add-article">Ajouter un article</button><button class="btn ghost" type="button" data-act="reset-bareme">Rétablir la liste IMH</button></div></section>
+      <p class="note info">Format attendu : une ligne d'en-tête <code>groupe;article;unité;rubrique;zone 1;zone 2;…</code> puis un article par ligne. La rubrique vaut <code>hab-tce</code>, <code>hab-emb</code>, <code>dep</code> ou <code>clo</code>. L'import remplace le barème actuel.</p>
+      <div class="tw"><table><thead><tr><th>Article</th><th>Unité</th><th>Rubrique par défaut</th>${b.zones.map((z) => `<th class="num">Zone ${h(z)} €</th>`).join("")}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
+
+  /* ----- Rendu ----- */
+  function render() {
+    const d = cur(), res = IMH.compute(d), a = document.activeElement, focusId = a && a.id, sel = a && a.selectionStart;
+    renderHeader(res);
+    const V = { dossier: viewDossier, immo: viewImmo, mob: viewMob, autres: viewAutres, amen: viewAmen, ng: viewNg, recap: viewRecap, bareme: viewBareme };
+    $("#main").innerHTML = (V[ui.tab] || viewDossier)(res);
+    if (focusId && !focusId.startsWith("dossier-pick")) { const el = document.getElementById(focusId); if (el && el.closest("main")) { el.focus(); try { if (sel != null) el.setSelectionRange(sel, sel); } catch { /* champ sans curseur */ } } }
+  }
+
+  /* ----- Fichiers ----- */
+  let toastT;
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), 2600); }
+  async function saveFile(filename, data, mime) {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: mime });
+    try { const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; if (dl) { await dl.save({ filename, data: blob }); return; } }
+    catch (err) { if (err && err.code === "declined") return; }
+    try { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+    catch { toast("Le téléchargement n'est pas disponible dans cette vue."); }
+  }
+  const baseName = () => `chiffrage-imh-${(cur().ref || "dossier").replace(/[^\w-]+/g, "_")}`;
+  const XLSX_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  const loadXlsx = () => (window.XLSX ? Promise.resolve(window.XLSX) : new Promise((ok, ko) => { const s = document.createElement("script"); s.src = XLSX_URL; s.onload = () => ok(window.XLSX); s.onerror = ko; document.head.appendChild(s); }));
+  function workbook(d, res) {
+    const gm = res.gamme, rubL = (id) => (gm.rubriques.find((r) => r.id === id) || {}).label || id, realL = (id) => (R.REAL.find((r) => r.id === id) || {}).label || "";
+    const catL = (id) => (gm.mobilier.find((c) => c.id === id) || {}).label || id, amenL = (id) => ((gm.amenag || []).find((c) => c.id === id) || {}).label || id;
+    const t = res.pay.totals;
+    return {
+      "Dossier": [["Référence", d.ref], ["Assuré", d.assure], ["Contrat", gm.label], ["Zone IMH", d.zone], ["Date du sinistre", d.dateSinistre], ["Date d'expertise", d.dateExpertise], ["Cabinet", d.cabinet], ["Collaborateur", d.collaborateur], ["Capital mobilier", num(d.capitalMobilier)], ["Franchise", num(d.franchise)], ["Observations", d.observations]],
+      "Immobilier": [["Rubrique", "Réalisation", "Pièce", "Désignation", "Unité", "Q", "PU HT", "Valeur à neuf HT", "Taux de vétusté", "Vétusté", "Valeur vétusté déduite HT", "Vétusté récupérable", "TVA %", "TVA", "Total TTC après travaux"],
+        ...d.immo.map((l) => { const c = res.immo.lines[l.id]; return [rubL(l.rub), realL(l.real), l.piece, l.des, l.unite, num(l.q), num(l.pu), r2(c.van || 0), num(l.vet) / 100, r2(c.vet || 0), r2(c.vvd || 0), r2(c.recup || 0), l.real === "po" ? 0 : num(l.tva) / 100, r2(c.tva || 0), r2(c.total || 0)]; })],
+      "Mobilier": [["Catégorie", "Désignation", "Justificatif", "Date d'achat", "Valeur", "Taux de vétusté", "Vétusté", "Indemnité"],
+        ...d.mob.map((l) => { const c = res.mob.lines[l.id]; return [catL(l.cat), l.des, l.just, l.achat, num(l.valeur), (c.vetPct || 0) / 100, r2(c.vet || 0), r2(c.indem || 0)]; }), [], ["Plafond", "", "", "", "Montant", "", "", "Retenu"], ...res.mob.groupes.map((p) => [p.label + " (" + p.plafond + ")", "", "", "", p.total, "", "", p.retenu]), ["Mobilier retenu", "", "", "", res.mob.total, "", "", res.mob.retenu]],
+      "Autres préjudices": [["Nature du préjudice", "Précision de l'expert", "Q", "PU HT", "TVA %", "Montant HT", "Montant TTC"], ...d.autres.map((l) => { const c = res.autres.lines[l.id]; return [l.nat, l.des, num(l.q), num(l.pu), num(l.tva) / 100, r2(c.ht), r2(c.ttc)]; })],
+      "Aménagements ext": [["Catégorie", "Désignation", "Unité", "Q", "PU HT", "Taux de vétusté", "TVA %", "Valeur à neuf HT", "VVD TTC"], ...d.amen.map((l) => { const c = res.amen.lines[l.id]; return [amenL(l.cat), l.des, l.unite, num(l.q), num(l.pu), num(l.vet) / 100, num(l.tva) / 100, r2(c.van || 0), r2(c.ttc || 0)]; }),
+        [], ["Catégorie", "Plafond", "", "", "", "", "", "VVD TTC", "Retenu"], ...res.amen.cats.map((a) => [a.label, a.plafondTxt, "", "", "", "", "", a.ttc, r2(a.retenu)])],
+      "Récapitulatif": [[`Contrat ${gm.label}`, d.ref, d.assure], [], ["Par corps d'état", "VAN HT", "Vétusté", "Reste HT vétusté déduite", "Vétusté récupérée", "Vétusté non récupérable", "TVA", "Total TTC après travaux"],
+        ...[["Embellissements", res.immo.corps.emb], ["Immobilier", res.immo.corps.immo], ["Total", res.immo.corpsTotal]].map(([n, x]) => [n, x.van, x.vet, x.vvd, x.recup, x.nonRecup, x.tva, x.total]), [],
+        ["Récapitulatif", "Acompte à régler", "Différé à la réception de la facture", "Différé à l'issue du recours", "Total"], ...res.pay.rows.map((r) => [r.label, r.acompte, r.differe, r.recours, r.total]), ["Solde ou total", t.acompte, t.differe, t.recours, t.total]],
+      "Dépassement plafonds": [["Catégorie", "Plafond", "Dépassement"], ...res.depassements.map((x) => [x.label, x.plafond, x.montant])],
+      "Non garantis": [["Nature du préjudice non garanti", "Précision", "VAN HT", "TVA %", "Montant TTC", "Taux de vétusté", "VVD TTC"], ...d.ng.map((l) => { const c = res.ng.lines[l.id]; return [l.nat, l.des, num(l.van), num(l.tva) / 100, r2(c.ttc), num(l.vet) / 100, r2(c.vvd)]; })],
+    };
+  }
+
+  /* ----- Dialogues ----- */
+  const dlg = () => $("#dlg");
+  function confirmBox(msg, label, fn) {
+    dlg().innerHTML = `<form method="dialog"><p>${h(msg)}</p><div class="foot"><button class="btn" value="no">Annuler</button><button class="btn primary" value="ok" id="dlg-ok">${h(label)}</button></div></form>`;
+    dlg().onclose = () => { if (dlg().returnValue === "ok") fn(); };
+    dlg().returnValue = ""; dlg().showModal();
+  }
+  function pickFromBareme(rubId) {
+    const d = cur(), b = db.bareme, gm = g();
+    const list = (q) => { const k = q.trim().toLowerCase(); let grp = null; return b.articles.filter((a) => !k || (a.grp + " " + a.des).toLowerCase().includes(k)).map((a) => {
+      const p = a.prix[d.zone], head = a.grp !== grp ? ((grp = a.grp), `<tr class="grp"><td colspan="4">${h(a.grp)}</td></tr>`) : "";
+      return `${head}<tr><td><input type="checkbox" id="pk-${a.id}" data-pick="${a.id}" aria-label="Choisir ${h(a.des)}"></td><td><label for="pk-${a.id}">${h(a.des)}</label></td><td class="num">${p == null ? '<span class="muted">à saisir</span>' : eur(p)}</td><td class="c-sm"><input class="n" inputmode="decimal" id="pq-${a.id}" data-qty="${a.id}" placeholder="${h(a.unite)}" aria-label="Quantité"></td></tr>`; }).join("") || '<tr><td colspan="4" class="empty">Aucun article ne correspond.</td></tr>'; };
+    dlg().innerHTML = `<form method="dialog"><h2>Ajouter depuis le barème IMH · zone ${h(d.zone)}</h2>
+      <div class="form"><label for="pk-q">Rechercher<input id="pk-q" type="search" placeholder="peinture, plinthe, ragréage…"></label>
+        <label for="pk-rub">Rubrique<select id="pk-rub">${opts(gm.rubriques.map((r) => [r.id, r.label]), rubId)}</select></label>
+        <label for="pk-real">Réalisation<select id="pk-real">${opts(R.REAL.map((x) => [x.id, x.label]), "na")}</select></label>
+        <label for="pk-piece">Pièce<input id="pk-piece"></label><label for="pk-vet">Vétusté %<input id="pk-vet" inputmode="decimal"></label>
+        <label for="pk-tva">TVA<select id="pk-tva">${opts(R.TVA.map((t) => [t, t ? t + " %" : "Exo"]), 10)}</select></label></div>
+      <div class="scroll"><table><thead><tr><th></th><th>Article</th><th class="num">Prix zone ${h(d.zone)}</th><th class="num">Quantité</th></tr></thead><tbody id="pk-list">${list("")}</tbody></table></div>
+      <div class="foot"><button class="btn" value="no">Annuler</button><button class="btn primary" value="ok">Ajouter les articles cochés</button></div></form>`;
+    $("#pk-q").addEventListener("input", (e) => { $("#pk-list").innerHTML = list(e.target.value); });
+    $("#pk-list").addEventListener("input", (e) => { if (e.target.dataset.qty && e.target.value) { const c = $(`#pk-${e.target.dataset.qty}`); if (c) c.checked = true; } });
+    dlg().onclose = () => {
+      if (dlg().returnValue !== "ok") return;
+      const picked = $$("[data-pick]:checked", dlg()); if (!picked.length) return;
+      const base = { rub: $("#pk-rub").value, real: $("#pk-real").value, piece: $("#pk-piece").value, vet: $("#pk-vet").value, tva: num($("#pk-tva").value) };
+      for (const el of picked) { const a = b.articles.find((x) => x.id === el.dataset.pick), q = $(`#pq-${a.id}`).value;
+        d.immo.push({ id: uid(), ...base, des: a.des, unite: a.unite, q: q || "1", pu: a.prix[d.zone] == null ? "" : String(a.prix[d.zone]), src: "Barème IMH" }); }
+      save(); render(); toast(`${picked.length} article${picked.length > 1 ? "s" : ""} ajouté${picked.length > 1 ? "s" : ""}.`);
+    };
+    dlg().returnValue = ""; dlg().showModal(); $("#pk-q").focus();
+  }
+  function pasteCsv() {
+    dlg().innerHTML = `<form method="dialog"><h2>Importer le barème</h2><p class="muted">Choisissez un fichier CSV, ou collez son contenu ci-dessous (export Excel en CSV séparateur point-virgule).</p>
+      <div class="actions"><button class="btn" type="button" id="csv-file">Choisir un fichier…</button></div>
+      <label for="csv-text" class="muted">Contenu CSV<textarea id="csv-text" rows="8" placeholder="groupe;article;unité;rubrique;zone 1;zone 2&#10;Murs;Peinture mate/satinée;m²;hab-emb;18,50;19,20"></textarea></label>
+      <div class="foot"><button class="btn" value="no">Annuler</button><button class="btn primary" value="ok">Importer</button></div></form>`;
+    $("#csv-file").onclick = () => $("#file-csv").click();
+    dlg().onclose = () => { if (dlg().returnValue === "ok") importCsv($("#csv-text").value); };
+    dlg().returnValue = ""; dlg().showModal();
+  }
+  function importCsv(text) {
+    try { const b = IMH.parseBaremeCsv(text); db.bareme = b; const d = cur(); if (!b.zones.includes(d.zone)) d.zone = b.zones[0]; save(); render(); toast(`Barème importé : ${b.articles.length} articles, ${b.zones.length} zone${b.zones.length > 1 ? "s" : ""}.`); }
+    catch (err) { toast(err.message); }
+  }
+
+  /* ----- Actions ----- */
+  const acts = {
+    tab(el) { ui.tab = el.dataset.v; try { sessionStorage.setItem(KEY + "-tab", ui.tab); } catch { /* sans stockage */ } window.scrollTo(0, 0); },
+    "add-line"(el) { const sec = el.dataset.sec, l = { id: uid(), ...NEW[sec](el.dataset.v) }; cur()[sec].push(l); save(); render(); const f = $(`[data-id="${l.id}"][data-f="des"]`); if (f) f.focus(); return false; },
+    "del-line"(el) { const d = cur(), sec = el.dataset.sec; d[sec] = d[sec].filter((l) => l.id !== el.dataset.id); save(); },
+    "bareme-pick"(el) { pickFromBareme(el.dataset.v); return false; },
+    new() { const d = IMH.newDossier(); d.zone = db.bareme.zones[0] || "1"; db.dossiers.push(d); db.current = d.id; ui.tab = "dossier"; save(); },
+    dup() { const d = JSON.parse(JSON.stringify(cur())); d.id = IMH.newDossier().id; d.ref = (d.ref || "") + " (copie)"; db.dossiers.push(d); db.current = d.id; save(); toast("Dossier dupliqué."); },
+    "del-dossier"() { const d = cur(); confirmBox(`Supprimer le dossier ${d.ref || "sans référence"} et tout son chiffrage ?`, "Supprimer", () => { db.dossiers = db.dossiers.filter((x) => x !== d); if (!db.dossiers.length) db.dossiers.push(exemple()); db.current = db.dossiers[0].id; ui.tab = "dossier"; save(); render(); }); return false; },
+    "export-json"() { saveFile(baseName() + ".json", JSON.stringify({ format: "chiffrage-imh", version: 1, dossier: cur() }, null, 1), "application/json"); return false; },
+    "import-json"() { $("#file-json").click(); return false; },
+    "export-xlsx"() {
+      const d = cur(), res = IMH.compute(d);
+      loadXlsx().then((X) => {
+        const wb = X.utils.book_new();
+        for (const [name, rows] of Object.entries(workbook(d, res))) {
+          const ws = X.utils.aoa_to_sheet(rows);
+          ws["!cols"] = rows.reduce((w, r) => { r.forEach((v, i) => (w[i] = Math.min(60, Math.max(w[i] || 8, String(v == null ? "" : v).length + 2)))); return w; }, []).map((wch) => ({ wch }));
+          X.utils.book_append_sheet(wb, ws, name);
+        }
+        saveFile(baseName() + ".xlsx", new Blob([X.write(wb, { type: "array", bookType: "xlsx" })], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+      }).catch(() => toast("Excel indisponible hors connexion : exportez le dossier en JSON."));
+      return false;
+    },
+    print() { window.print(); return false; },
+    "import-csv"() { pasteCsv(); return false; },
+    "export-csv"() { saveFile("bareme-imh.csv", IMH.baremeCsv(db.bareme), "text/csv;charset=utf-8"); return false; },
+    "add-article"() { db.bareme.articles.push({ id: "n" + uid(), grp: "Articles ajoutés", rub: "hab-tce", des: "Nouvel article", unite: "u", prix: {} }); save(); },
+    "del-article"(el) { db.bareme.articles = db.bareme.articles.filter((a) => a.id !== el.dataset.id); save(); },
+    "reset-bareme"() { confirmBox("Remplacer le barème par la liste d'articles IMH sans prix ?", "Rétablir", () => { db.bareme = defaultBareme(); save(); render(); }); return false; },
+  };
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-act]"); if (!el) return;
+    const fn = acts[el.dataset.act]; if (!fn) return;
+    e.preventDefault(); if (fn(el) !== false) render();
+  });
+  function setField(el) {
+    const { sec, id, f } = el.dataset, v = el.type === "checkbox" ? el.checked : el.value;
+    if (sec === "d") cur()[f] = v;
+    else if (sec === "bar") { const a = db.bareme.articles.find((x) => x.id === id); if (!a) return; if (f.startsWith("z:")) { const z = f.slice(2); if (blank(v)) delete a.prix[z]; else a.prix[z] = num(v); } else a[f] = v; }
+    else { const l = cur()[sec].find((x) => x.id === id); if (!l) return; l[f] = f === "tva" ? num(v) : v; }
+    save();
+  }
+  document.addEventListener("input", (e) => { const el = e.target; if (!el.dataset || !el.dataset.sec) return; setField(el); refresh(); });
+  document.addEventListener("change", (e) => {
+    const el = e.target;
+    if (el.id === "dossier-pick") { db.current = el.value; save(); render(); return; }
+    if (el.id === "file-json" || el.id === "file-csv") {
+      const file = el.files[0]; if (!file) return; const rd = new FileReader();
+      rd.onload = () => {
+        if (el.id === "file-csv") { if (dlg().open) dlg().close("no"); importCsv(String(rd.result)); }
+        else { try { const j = JSON.parse(String(rd.result)), d = j.dossier || j; if (!Array.isArray(d.immo)) throw new Error(); d.id = IMH.newDossier().id; for (const k of ["mob", "autres", "amen", "ng"]) d[k] = d[k] || []; db.dossiers.push(d); db.current = d.id; save(); render(); toast("Dossier importé."); }
+          catch { toast("Ce fichier n'est pas un dossier de chiffrage IMH exporté depuis cet outil."); } }
+        el.value = "";
+      };
+      rd.readAsText(file, "utf-8"); return;
+    }
+    if (el.dataset && el.dataset.sec && (el.tagName === "SELECT" || el.type === "checkbox")) { setField(el); if (el.dataset.rerender != null || el.dataset.sec === "d") render(); else refresh(); }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.matches("td input") && !e.isComposing) { // passer à la ligne suivante, même colonne
+      const td = e.target.closest("td"), tr = td.closest("tr"), idx = [...tr.children].indexOf(td);
+      let next = tr.nextElementSibling; while (next && !next.children[idx]?.querySelector("input:not([disabled])")) next = next.nextElementSibling;
+      if (next) { e.preventDefault(); next.children[idx].querySelector("input").focus(); }
+    }
+  });
+  render();
+  window.IMHApp = { db: () => db, compute: () => IMH.compute(cur()), render };
+})();
+</script>
+</body>
+</html>
