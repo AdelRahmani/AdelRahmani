@@ -54,7 +54,7 @@ src/app/
 | Modèles de chiffrage par pièce (ensemble de prestations appliqué à une pièce, quantités tirées du plan, modèles gérés par les référents métier) | à développer, retenu pour la nouvelle version |
 | Empreinte carbone des chiffrages (facteur kg CO2e par prestation du bordereau, total par ligne, pièce, nature et chiffrage, comparaison des solutions, synthèse et rapport) | à développer, retenu pour la nouvelle version : source des facteurs à choisir et valider |
 | Travail hors connexion (application installée sur la tablette, chiffrage gardé sur l'appareil puis synchronisé avec l'API .NET au retour du réseau) | second temps : jugé trop lourd pour la première version |
-| Historique des modifications (qui, quoi, quand) et copie figée du chiffrage à la vérification | à développer, retenu pour la nouvelle version : à prévoir dans le schéma SQL |
+| Historique des modifications (qui, quoi, quand) et copie figée du chiffrage à la vérification | second temps : place à prévoir dès maintenant dans le schéma SQL |
 | Relevé automatique des mesures (télémètre Bluetooth, scan LiDAR) | second temps, sur le même format de plan |
 | Assistant photo : prestations suggérées d'après les photos, choisies dans le bordereau, validées par l'expert, appel par le back .NET dans un cadre validé par EUREXO (RGPD) | second temps, après un test sur photos de sinistres anonymisées |
 | Dommages : mobilier | affichage et saisie directe ; fenêtre d'ajout à porter |
