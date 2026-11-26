@@ -1,4 +1,4 @@
-/* Parcours complet dans Chromium : node imh/tests/e2e.js (après python3 imh/build.py). */
+/* Parcours complet dans Chromium : node chiffmat/tests/e2e.js (après python3 chiffmat/build.py). */
 const { chromium } = require("playwright");
 const path = require("path");
 const assert = require("assert");

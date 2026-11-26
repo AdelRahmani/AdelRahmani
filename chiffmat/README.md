@@ -1,12 +1,16 @@
-# Chiffrage IMH
+# ChiffMAT
 
-Outil de chiffrage autonome construit à partir des classeurs « CHIFFRAGE DOMMAGES VIERGE <GAMME>.xlsx », des supports de chiffrage IMH 2018 et de la grille de vétusté mobilière 2017. Il remplace la saisie dans les classeurs : on choisit la gamme du contrat, on saisit les lignes, et les plafonds, la vétusté et le récapitulatif de règlement se calculent.
+ChiffMAT est l'outil de chiffrage des dommages construit à partir des classeurs « CHIFFRAGE DOMMAGES VIERGE <GAMME>.xlsx », des supports de chiffrage IMH 2018 et de la grille de vétusté mobilière 2017. Il remplace la saisie dans les classeurs : on choisit la gamme du contrat, on saisit les lignes, et les plafonds, la vétusté et le récapitulatif de règlement se calculent.
 
 ## Utilisation
 
-Ouvrir `imh/index.html` dans un navigateur. Pas d'installation ni de serveur. Les dossiers sont enregistrés dans le navigateur ; « Exporter » les sauvegarde en JSON, « Importer » les recharge.
+Ouvrir `chiffmat/index.html` dans un navigateur. Pas d'installation ni de serveur. Les dossiers sont enregistrés dans le navigateur ; « Exporter » les sauvegarde en JSON, « Importer » les recharge.
 
 Onglets : Dossier · Immobilier · Mobilier · Autres préjudices · Aménagements ext. · Non garantis · Récapitulatif · Barème IMH. Les mêmes sections que les feuilles des classeurs.
+
+## Présentation
+
+Couleurs et typographie d'Usura (charte Eurexo : violet #563A95, bleu #3995D1, vert #80C356, Raleway et Space Grotesk), thème clair ou sombre avec le même réglage mémorisé qu'Usura. Le bandeau en haut de page donne en permanence l'indemnité, l'acompte, le différé sur facture et le différé après recours ; chaque onglet affiche son nombre de lignes et son montant.
 
 ## Gammes et plafonds repris des classeurs
 
@@ -58,7 +62,7 @@ Murs;Peinture mate/satinée;m²;hab-emb;18,50;19,00;19,50;20,00;21,50
 ## Développement
 
 ```
-python3 imh/build.py          # assemble imh/src/ en imh/index.html
-node imh/tests/calc.test.js   # règles de calcul
-node imh/tests/e2e.js         # parcours dans Chromium (Playwright)
+python3 chiffmat/build.py          # assemble chiffmat/src/ en chiffmat/index.html
+node chiffmat/tests/calc.test.js   # règles de calcul
+node chiffmat/tests/e2e.js         # parcours dans Chromium (Playwright)
 ```

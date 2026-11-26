@@ -47,9 +47,9 @@ Dans Dommages, « Importer un devis ou une facture » lit un PDF, un fichier tex
 - L'export Excel est un classeur généré dans le navigateur, pas le modèle Excel de l'app d'origine.
 - La zone tarifaire se choisit sur le dossier au lieu d'être déduite du département du réparateur.
 
-## Chiffrage IMH
+## ChiffMAT
 
-[`imh/`](imh/README.md) : outil de chiffrage autonome construit sur les classeurs IMH par gamme de contrat (Nature, Indispensable, Confiance, Confort, Performance, Tranquillité), avec leurs plafonds, la vétusté récupérable et le barème IMH par zone.
+[`chiffmat/`](chiffmat/README.md) : outil de chiffrage autonome, aux couleurs d'Usura, construit sur les classeurs IMH par gamme de contrat (Nature, Indispensable, Confiance, Confort, Performance, Tranquillité), avec leurs plafonds, la vétusté récupérable et le barème IMH par zone.
 
 ## Réécriture Angular
 

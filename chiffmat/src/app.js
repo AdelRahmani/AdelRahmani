@@ -1,4 +1,4 @@
-/* Interface du chiffrage IMH : dossiers enregistrés dans le navigateur, saisie en tableaux, récapitulatif, barème par zone. */
+/* ChiffMAT, interface : dossiers enregistrés dans le navigateur, saisie en tableaux, récapitulatif, barème par zone. */
 (() => {
   const R = IMHData, { num, blank, r2 } = IMH;
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -8,7 +8,9 @@
   const eur0 = (x) => (Math.abs(Number(x) || 0) < 0.005 ? "" : eur(x));
   const uid = () => Math.random().toString(36).slice(2, 10);
   const opts = (list, v) => list.map(([k, l]) => `<option value="${h(k)}"${String(k) === String(v) ? " selected" : ""}>${h(l)}</option>`).join("");
-  const KEY = "imh-chiffrage-v1";
+  const KEY = "chiffmat-v1", OLD_KEY = "imh-chiffrage-v1";
+  const EUR0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  const eurK = (x) => EUR0.format(Number(x) || 0);
 
   /* ----- Données ----- */
   function exemple() {
@@ -28,7 +30,7 @@
     return d;
   }
   const defaultBareme = () => ({ zones: R.zones.slice(), articles: JSON.parse(JSON.stringify(R.articles)) });
-  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch { return null; } }
+  function load() { try { const s = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY); return s ? JSON.parse(s) : null; } catch { return null; } }
   let db = load();
   if (!db || !Array.isArray(db.dossiers) || !db.dossiers.length) { const d = exemple(); db = { dossiers: [d], current: d.id, bareme: defaultBareme() }; }
   if (!db.bareme) db.bareme = defaultBareme();
@@ -49,7 +51,7 @@
       { f: "real", label: "Réalisation", type: "select", cls: "c-sel", opts: () => R.REAL.map((x) => [x.id, x.label]) },
       { f: "piece", label: "Pièce", cls: "c-md" },
       { f: "des", label: "Désignation", cls: "c-des" },
-      { f: "unite", label: "Unité", type: "select", cls: "c-sm", opts: () => R.UNITS.map((u) => [u, u]) },
+      { f: "unite", label: "Unité", type: "select", cls: "c-unit", opts: () => R.UNITS.map((u) => [u, u]) },
       { f: "q", label: "Q", type: "num", cls: "c-sm" },
       { f: "pu", label: "PU HT", type: "num", cls: "c-num" },
       { f: "tva", label: "TVA %", type: "select", cls: "c-sm", opts: () => R.TVA.map((t) => [t, t ? `${String(t).replace(".", ",")} %` : "Exo"]) },
@@ -83,7 +85,7 @@
     amen: [
       { f: "cat", label: "Catégorie garantie", type: "select", cls: "c-sel", opts: () => (g().amenag || []).map((a) => [a.id, a.label]), rerender: true },
       { f: "des", label: "Désignation", cls: "c-des" },
-      { f: "unite", label: "Unité", type: "select", cls: "c-sm", opts: () => R.UNITS.map((u) => [u, u]) },
+      { f: "unite", label: "Unité", type: "select", cls: "c-unit", opts: () => R.UNITS.map((u) => [u, u]) },
       { f: "q", label: "Q", type: "num", cls: "c-sm" },
       { f: "pu", label: "PU HT", type: "num", cls: "c-num" },
       { f: "tva", label: "TVA %", type: "select", cls: "c-sm", opts: () => R.TVA.map((t) => [t, t ? `${String(t).replace(".", ",")} %` : "Exo"]) },
@@ -146,22 +148,40 @@
 
   /* ----- En-tête ----- */
   const TABS = [["dossier", "Dossier"], ["immo", "Immobilier"], ["mob", "Mobilier"], ["autres", "Autres préjudices"], ["amen", "Aménagements ext."], ["ng", "Non garantis"], ["recap", "Récapitulatif"], ["bareme", "Barème IMH"]];
+  const tabAmount = (k, res) => ({ immo: res.immo.corpsTotal.retenu, mob: res.mob.retenu, autres: res.autres.total, amen: res.amen.retenu, ng: res.ng.total }[k]);
   function renderStrip(res) {
     const d = cur(), t = res.pay.totals, nA = res.alertes.length, nD = res.depassements.length;
-    $("#strip").innerHTML = `<span class="chip gamme">${h(res.gamme.label)}</span><span class="chip">Zone ${h(d.zone || "—")}</span>
-      <span class="k big"><span>Indemnité</span><b>${eur(t.total)}</b></span><span class="k"><span>Acompte</span><b>${eur(t.acompte)}</b></span>
-      <span class="k"><span>Différé facture</span><b>${eur(t.differe)}</b></span>${t.recours ? `<span class="k"><span>Différé recours</span><b>${eur(t.recours)}</b></span>` : ""}
-      ${nD ? `<button class="chip warn" type="button" data-act="tab" data-v="recap">${nD} plafond${nD > 1 ? "s" : ""} dépassé${nD > 1 ? "s" : ""}</button>` : ""}
-      ${nA ? `<button class="chip err" type="button" data-act="tab" data-v="recap">${nA} point${nA > 1 ? "s" : ""} à vérifier</button>` : `<span class="chip ok">Aucun point à vérifier</span>`}`;
+    const dateS = d.dateSinistre ? `Sinistre du ${new Date(d.dateSinistre).toLocaleDateString("fr-FR")}` : "Date du sinistre à saisir";
+    $("#strip").innerHTML = `<div class="dossier-id"><span class="ref">${h(d.ref ? "Dossier " + d.ref : "Dossier sans référence")}</span>
+        <span class="muted">${h([d.assure, dateS].filter(Boolean).join(" · "))}</span>
+        <div class="chips"><span class="chip gamme">${h(res.gamme.label)}</span><span class="chip neutre">Zone ${h(d.zone || "—")}</span>
+          ${nD ? `<button class="chip warn" type="button" data-act="tab" data-v="recap">${nD} plafond${nD > 1 ? "s" : ""} dépassé${nD > 1 ? "s" : ""}</button>` : ""}
+          ${nA ? `<button class="chip err" type="button" data-act="tab" data-v="recap">${nA} point${nA > 1 ? "s" : ""} à vérifier</button>` : `<span class="chip ok">Aucun point à vérifier</span>`}</div></div>
+      <div class="kpis"><div class="kpi total"><span>Indemnité</span><b>${eur(t.total)}</b></div><div class="kpi acompte"><span>Acompte</span><b>${eur(t.acompte)}</b></div>
+        <div class="kpi differe"><span>Différé facture</span><b>${eur(t.differe)}</b></div><div class="kpi recours"><span>Différé recours</span><b>${eur(t.recours)}</b></div></div>`;
+    $("#mini-total").innerHTML = `Indemnité<b>${eur(t.total)}</b>`;
+    for (const [k] of TABS) { const el = document.querySelector(`[data-tabamt="${k}"]`); if (el) el.textContent = eurK(tabAmount(k, res)); }
   }
   function renderHeader(res) {
     $("#dossier-pick").innerHTML = db.dossiers.map((d) => `<option value="${h(d.id)}"${d.id === db.current ? " selected" : ""}>${h([d.ref || "Sans référence", d.assure].filter(Boolean).join(" · "))}</option>`).join("");
-    const d = cur(), counts = { immo: d.immo.length, mob: d.mob.length, autres: d.autres.length, amen: d.amen.length, ng: d.ng.length };
-    $("#tabs").innerHTML = TABS.map(([k, l]) => `<button class="tab${ui.tab === k ? " on" : ""}" type="button" data-act="tab" data-v="${k}"${ui.tab === k ? ' aria-current="page"' : ""}>${l}${counts[k] ? `<small>${counts[k]}</small>` : ""}</button>`).join("");
+    const d = cur();
+    $("#tabs").innerHTML = TABS.map(([k, l]) => { const n = d[k] && d[k].length;
+      return `<button class="onglet${ui.tab === k ? " on" : ""}" type="button" data-act="tab" data-v="${k}"${ui.tab === k ? ' aria-current="page"' : ""}>${l}${n ? ` <small class="compte">${n}</small> <small data-tabamt="${k}">${eurK(tabAmount(k, res))}</small>` : ""}</button>`; }).join("");
     renderStrip(res);
+  }
+  /* Thème clair / sombre, même mémoire que Usura (clé catnat-theme). */
+  const THEME_KEY = "catnat-theme";
+  try { const t = localStorage.getItem(THEME_KEY); if (t === "clair") document.documentElement.setAttribute("data-theme", "light"); else if (t === "sombre") document.documentElement.setAttribute("data-theme", "dark"); } catch { /* sans stockage */ }
+  function toggleTheme() {
+    const root = document.documentElement, set = root.getAttribute("data-theme");
+    const dark = set ? set === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+    try { localStorage.setItem(THEME_KEY, dark ? "clair" : "sombre"); } catch { /* sans stockage */ }
+    $("#theme").setAttribute("aria-label", dark ? "Passer en mode sombre" : "Passer en mode clair");
   }
 
   /* ----- Écrans ----- */
+  const H = (eb, t, txt) => `<section class="head"><div><span class="eyebrow">${eb}</span><h1>${t}</h1><p class="muted">${txt}</p></div>`;
   const field = (f, label, type, extra = "") => {
     const d = cur(), v = d[f] == null ? "" : d[f], id = `d-${f}`, a = `id="${id}" data-sec="d" data-f="${f}"`;
     if (type === "textarea") return `<label class="wide" for="${id}">${label}<textarea ${a}>${h(v)}</textarea></label>`;
@@ -179,14 +199,14 @@
       ${gm.plafondsMob.map((p) => `<dt>${h(p.label)}</dt><dd>${h(plaf(p.plafond))}</dd>`).join("")}
       ${(gm.amenag || []).map((a) => `<dt>${h(a.label)}</dt><dd>${h(a.plafond ? plaf(a.plafond) : a.note || "Sans plafond")}</dd>`).join("")}
     </dl>`;
-    return `<section class="head"><div><h1>Dossier</h1><p class="muted">Références du dossier, contrat et paramètres qui pilotent les plafonds et la vétusté.</p></div>
+    return `<section class="head"><div><span class="eyebrow">Étape 1</span><h1>Dossier</h1><p class="muted">Références du dossier, contrat et paramètres qui pilotent les plafonds et la vétusté.</p></div>
       <div class="actions"><button class="btn sm danger" type="button" data-act="del-dossier">Supprimer le dossier</button></div></section>
       <div class="grid2">
-        <div class="panel"><h2>Références</h2><div class="form">
+        <div class="card"><h2>Références</h2><div class="form">
           ${field("ref", "Référence du dossier")}${field("assure", "Assuré")}${field("dateSinistre", "Date du sinistre", "date")}${field("dateExpertise", "Date d'expertise", "date")}
           ${field("cabinet", "Cabinet")}${field("collaborateur", "Collaborateur")}${field("observations", "Observations", "textarea")}
         </div></div>
-        <div class="panel"><h2>Contrat et règlement</h2><div class="form">
+        <div class="card"><h2>Contrat et règlement</h2><div class="form">
           ${field("gamme", "Gamme de contrat", Object.entries(R.gammes).map(([k, x]) => [k, x.label + (x.note ? ` (${x.note})` : "")]))}
           ${field("zone", "Zone du barème IMH", db.bareme.zones.map((z) => [z, "Zone " + z]))}
           ${field("capitalMobilier", "Capital mobilier souscrit (€)", "num", '<span class="hint">Sert aux plafonds exprimés en % du capital.</span>')}
@@ -196,57 +216,60 @@
           ${field("franchiseRecours", "Franchise remboursée à l'issue du recours", "check")}
         </div></div>
       </div>
-      <div class="panel"><h2>Ce que prévoit la gamme ${h(gm.label)}</h2>${ref}</div>`;
+      <div class="card"><div class="card-head"><h2>Ce que prévoit la gamme ${h(gm.label)}</h2><span class="chip gamme">${h(gm.label)}</span></div>${ref}</div>`;
   }
 
   function viewImmo(res) {
     const d = cur(), gm = g(), known = new Set(gm.rubriques.map((r) => r.id)), ncol = COLS.immo.length + 1;
-    const groups = gm.rubriques.map((r) => ({ r, lines: d.immo.filter((l) => l.rub === r.id) }));
+    const groups = gm.rubriques.map((r) => ({ r, lines: d.immo.filter((l) => l.rub === r.id) })).filter((x) => x.lines.length);
     const orphans = d.immo.filter((l) => !known.has(l.rub));
+    const tags = (r) => `${r.recup && gm.recupMax ? '<span class="tag recup">vétusté récupérable</span>' : ""}${r.plafond ? `<span class="tag plaf">plafond ${h(IMH.plafondLabel(r.plafond))}</span>` : ""}${r.note ? `<span class="tag">${h(r.note)}</span>` : ""}`;
     const body = groups.map(({ r, lines }) => {
       const rr = res.immo.rubriques.find((x) => x.id === r.id);
-      return `<tr class="grp"><td colspan="${ncol}"><div class="actions" style="justify-content:space-between"><span>${h(r.label)} ${r.recup && gm.recupMax ? '<span class="muted">· vétusté récupérable</span>' : ""}${r.plafond ? ` <span class="muted">· plafond ${h(IMH.plafondLabel(r.plafond))}</span>` : ""}${r.note ? ` <span class="muted">· ${h(r.note)}</span>` : ""}</span>
+      return `<tr class="grp"><td colspan="${ncol}"><div class="grp-t"><span class="actions"><b>${h(r.label)}</b>${tags(r)}</span>
         <span class="actions noprint"><button class="btn sm" type="button" data-act="add-line" data-sec="immo" data-v="${r.id}">Ajouter une ligne</button><button class="btn sm ghost" type="button" data-act="bareme-pick" data-v="${r.id}">Depuis le barème</button></span></div></td></tr>
         ${lines.map((l) => row("immo", l, res)).join("")}
-        ${lines.length ? `<tr class="sub"><td colspan="8">Sous-total ${h(r.label)}${r.plafond ? ` <span class="muted">· retenu <span data-o="rub:${r.id}:retenu">${eur0(rr.retenu)}</span></span>` : ""}</td><td class="num" data-o="rub:${r.id}:van">${eur0(rr.van)}</td><td class="num" data-o="rub:${r.id}:vvd">${eur0(rr.vvd)}</td><td class="num" data-o="rub:${r.id}:recup">${eur0(rr.recup)}</td><td class="num" data-o="rub:${r.id}:total">${eur0(rr.total)}</td><td colspan="2"></td></tr>` : ""}`;
-    }).join("") + (orphans.length ? `<tr class="grp"><td colspan="${ncol}">Hors gamme ${h(gm.label)} <span class="muted">· choisir une rubrique pour compter ces lignes</span></td></tr>${orphans.map((l) => row("immo", l, res)).join("")}` : "");
-    return `<section class="head"><div><h1>Dommages immobiliers</h1><p class="muted">Valeur à neuf = Q × PU. La vétusté récupérable sur les locaux d'habitation est limitée à ${gm.recupMax ? gm.recupMax * 100 + " %" : "0 %"} de la valeur à neuf. La pose par le sociétaire est sans TVA.</p></div></section>
-      <div class="tw"><table>${thead("immo")}<tbody>${body}</tbody><tfoot><tr class="tot"><td colspan="11">Total travaux, TTC après travaux</td><td class="num" data-o="immo:total">${eur(res.immo.corpsTotal.total)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+        <tr class="sub"><td colspan="8">Sous-total${r.plafond ? ` <span class="muted">· retenu <span data-o="rub:${r.id}:retenu">${eur0(rr.retenu)}</span></span>` : ""}</td><td class="num" data-o="rub:${r.id}:van">${eur0(rr.van)}</td><td class="num" data-o="rub:${r.id}:vvd">${eur0(rr.vvd)}</td><td class="num" data-o="rub:${r.id}:recup">${eur0(rr.recup)}</td><td class="num" data-o="rub:${r.id}:total">${eur0(rr.total)}</td><td colspan="2"></td></tr>`;
+    }).join("") + (orphans.length ? `<tr class="grp"><td colspan="${ncol}"><div class="grp-t"><span class="actions"><b>Hors gamme ${h(gm.label)}</b><span class="tag">choisir une rubrique pour compter ces lignes</span></span></div></td></tr>${orphans.map((l) => row("immo", l, res)).join("")}` : "");
+    const ajout = `<div class="ajout-rub noprint"><span>Ajouter dans</span>${gm.rubriques.map((r) => `<button class="btn sm dashed" type="button" data-act="add-line" data-sec="immo" data-v="${r.id}">+ ${h(r.label)}</button>`).join("")}<button class="btn sm primary" type="button" data-act="bareme-pick" data-v="${gm.rubriques[0].id}">Depuis le barème IMH</button></div>`;
+    return `${H("Étape 2", "Dommages immobiliers", `Valeur à neuf = Q × PU. Vétusté récupérable limitée à ${gm.recupMax ? gm.recupMax * 100 + " %" : "0 %"} de la valeur à neuf sur les locaux d'habitation. Entrée passe à la ligne suivante.`)}</section>
+      ${d.immo.length ? `<div class="tw"><table>${thead("immo")}<tbody>${body}</tbody><tfoot><tr class="tot"><td colspan="11">Total travaux, TTC après travaux</td><td class="num" data-o="immo:total">${eur(res.immo.corpsTotal.total)}</td><td colspan="2"></td></tr></tfoot></table></div>` : `<div class="card empty"><b>Aucun dommage immobilier</b>Ajoutez une ligne dans une rubrique ou reprenez des articles du barème IMH.</div>`}
+      ${ajout}`;
   }
 
   function flatTable(sec, res, addLabel) {
     const d = cur();
-    return `<div class="tw"><table>${thead(sec)}<tbody>${d[sec].length ? d[sec].map((l) => row(sec, l, res)).join("") : `<tr><td colspan="${COLS[sec].length + 1}" class="empty">Aucune ligne. « ${addLabel} » pour commencer.</td></tr>`}</tbody></table></div>
+    return `${d[sec].length ? `<div class="tw"><table>${thead(sec)}<tbody>${d[sec].map((l) => row(sec, l, res)).join("")}</tbody></table></div>` : `<div class="card empty"><b>Rien de saisi pour l'instant</b>« ${addLabel} » pour commencer.</div>`}
       <div class="actions noprint"><button class="btn primary" type="button" data-act="add-line" data-sec="${sec}">${addLabel}</button></div>`;
   }
   function viewMob(res) {
     const d = cur(), gm = g(), grille = R.GRILLES.find((x) => x.id === d.grilleMob) || R.GRILLES[0];
     const cats = res.mob.cats.filter((c) => c.n);
-    return `<section class="head"><div><h1>Dommages mobiliers</h1><p class="muted">Vétusté proposée d'après la date d'achat et la date du sinistre (${h(grille.label.toLowerCase())}). Un taux saisi remplace la proposition. Bijoux, objets de valeur et vins sont pris en valeur d'occasion.</p></div></section>
+    return `<section class="head"><div><span class="eyebrow">Étape 3</span><h1>Dommages mobiliers</h1><p class="muted">Vétusté proposée d'après la date d'achat et la date du sinistre (${h(grille.label.toLowerCase())}), affichée en bleu. Un taux saisi la remplace. Bijoux, objets de valeur et vins en valeur d'occasion.</p></div></section>
       ${flatTable("mob", res, "Ajouter un bien")}
       <div class="grid2">
-        <div class="panel"><h2>Par catégorie</h2>${cats.length ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th class="num">Valeur</th><th class="num">Indemnité</th></tr></thead><tbody>${cats.map((c) => `<tr><td>${h(c.label)}</td><td class="num" data-o="mc:${c.id}:valeur">${eur0(c.valeur)}</td><td class="num" data-o="mc:${c.id}:total">${eur0(c.total)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Aucun bien saisi.</p>'}</div>
-        <div class="panel"><h2>Plafonds ${h(gm.label)}</h2><div class="tw"><table><thead><tr><th>Plafond</th><th class="num">Montant</th><th class="num">Retenu</th></tr></thead><tbody>
+        <div class="card"><h2>Par catégorie</h2>${cats.length ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th class="num">Valeur</th><th class="num">Indemnité</th></tr></thead><tbody>${cats.map((c) => `<tr><td>${h(c.label)}</td><td class="num" data-o="mc:${c.id}:valeur">${eur0(c.valeur)}</td><td class="num" data-o="mc:${c.id}:total">${eur0(c.total)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Aucun bien saisi.</p>'}</div>
+        <div class="card"><h2>Plafonds ${h(gm.label)}</h2><div class="tw"><table><thead><tr><th>Plafond</th><th class="num">Montant</th><th class="num">Retenu</th></tr></thead><tbody>
           ${res.mob.groupes.map((p, i) => `<tr><td>${h(p.label)} <span class="flag">${h(p.plafond)}</span></td><td class="num" data-o="mg:${i}:total">${eur0(p.total)}</td><td class="num" data-o="mg:${i}:retenu">${eur(p.retenu)}</td></tr>`).join("")}
           <tr class="tot"><td>Mobilier retenu${num(d.capitalMobilier) > 0 ? ` <span class="flag">dans la limite du capital de ${eur(num(d.capitalMobilier))}</span>` : ""}</td><td class="num" data-o="mob:total">${eur(res.mob.total)}</td><td class="num" data-o="mob:retenu">${eur(res.mob.retenu)}</td></tr>
         </tbody></table></div></div>
       </div>`;
   }
   function viewAutres(res) {
-    return `<section class="head"><div><h1>Autres préjudices garantis</h1><p class="muted">Recherche de fuite, gel, démolition, relogement, perte de loyer, frais de garde, gardiennage… Réglés en acompte, TVA comprise.</p></div></section>
-      ${flatTable("autres", res, "Ajouter un préjudice")}<p class="strong">Total autres préjudices : <span data-o="autres:total">${eur(res.autres.total)}</span></p>`;
+    return `<section class="head"><div><span class="eyebrow">Étape 4</span><h1>Autres préjudices garantis</h1><p class="muted">Recherche de fuite, gel, démolition, relogement, perte de loyer, frais de garde, gardiennage… Réglés en acompte, TVA comprise.</p></div><div class="kpi acompte"><span>Total</span><b data-o="autres:total">${eur(res.autres.total)}</b></div></section>
+      ${flatTable("autres", res, "Ajouter un préjudice")}`;
   }
   function viewAmen(res) {
     const gm = g();
-    return `<section class="head"><div><h1>Aménagements extérieurs garantis</h1><p class="muted">Chaque catégorie est retenue en valeur vétusté déduite TTC, dans la limite de son plafond ${h(gm.label)}.</p></div></section>
+    return `<section class="head"><div><span class="eyebrow">Étape 5</span><h1>Aménagements extérieurs garantis</h1><p class="muted">Chaque catégorie est retenue en valeur vétusté déduite TTC, dans la limite de son plafond ${h(gm.label)}.</p></div></section>
       ${flatTable("amen", res, "Ajouter une ligne")}
-      <div class="panel"><h2>Plafonds ${h(gm.label)}</h2><div class="tw"><table><thead><tr><th>Catégorie</th><th>Plafond</th><th class="num">VVD TTC</th><th class="num">Retenu</th></tr></thead><tbody>
+      <div class="card"><h2>Plafonds ${h(gm.label)}</h2><div class="tw"><table><thead><tr><th>Catégorie</th><th>Plafond</th><th class="num">VVD TTC</th><th class="num">Retenu</th></tr></thead><tbody>
         ${res.amen.cats.map((a) => `<tr><td>${h(a.label)}</td><td>${h(a.plafondTxt)}</td><td class="num" data-o="ac:${a.id}:ttc">${eur0(a.ttc)}</td><td class="num" data-o="ac:${a.id}:retenu">${eur(a.retenu)}</td></tr>`).join("")}
         <tr class="tot"><td colspan="3">Aménagements extérieurs retenus</td><td class="num" data-o="amen:retenu">${eur(res.amen.retenu)}</td></tr></tbody></table></div></div>`;
   }
   function viewNg(res) {
-    return `<section class="head"><div><h1>Dommages non garantis</h1><p class="muted">Pour mémoire : ces montants ne sont pas indemnisés au titre du contrat ${h(g().label)}.</p></div></section>
-      ${flatTable("ng", res, "Ajouter un dommage")}<p class="strong">Total non garanti : <span data-o="ng:total">${eur(res.ng.total)}</span></p>`;
+    return `<section class="head"><div><span class="eyebrow">Pour mémoire</span><h1>Dommages non garantis</h1><p class="muted">Ces montants ne sont pas indemnisés au titre du contrat ${h(g().label)}.</p></div><div class="kpi"><span>Total non garanti</span><b data-o="ng:total">${eur(res.ng.total)}</b></div></section>
+      ${flatTable("ng", res, "Ajouter un dommage")}`;
   }
 
   function viewRecap(res) {
@@ -256,27 +279,28 @@
     const prow = (r) => `<tr><td>${h(r.label)}</td><td class="num">${eur0(r.acompte)}</td><td class="num">${eur0(r.differe)}</td><td class="num">${eur0(r.recours)}</td><td class="num strong">${eur0(r.total)}</td></tr>`;
     const xl = window.claude ? "" : `<button class="btn ghost" type="button" data-act="print">Imprimer</button>`;
     const parNat = Object.entries(res.autres.parNature);
-    return `<section class="head"><div><h1>Récapitulatif ${h(gm.label)}</h1><p class="muted">${h([d.ref && "Dossier " + d.ref, d.assure, d.dateSinistre && "sinistre du " + new Date(d.dateSinistre).toLocaleDateString("fr-FR")].filter(Boolean).join(" · "))}</p></div>
+    const pos = (x) => Math.max(0, x), base = pos(t.acompte) + pos(t.differe) + pos(t.recours) || 1, pc = (x) => `${(pos(x) / base * 100).toFixed(2)}%`;
+    const repart = `<div class="repart"><div class="repart-bar" role="img" aria-label="Répartition du règlement : acompte ${eur(t.acompte)}, différé facture ${eur(t.differe)}, différé recours ${eur(t.recours)}"><i class="a" style="width:${pc(t.acompte)}"></i><i class="d" style="width:${pc(t.differe)}"></i><i class="r" style="width:${pc(t.recours)}"></i></div>
+      <div class="legende"><span><i style="background:var(--violet-c)"></i>Acompte à régler ${eur(t.acompte)}</span><span><i style="background:var(--bleu-c)"></i>Différé à réception de facture ${eur(t.differe)}</span><span><i style="background:var(--vert-c)"></i>Différé à l'issue du recours ${eur(t.recours)}</span></div></div>`;
+    return `${H("Synthèse", `Récapitulatif ${h(gm.label)}`, h([d.ref && "Dossier " + d.ref, d.assure, d.dateSinistre && "sinistre du " + new Date(d.dateSinistre).toLocaleDateString("fr-FR")].filter(Boolean).join(" · ")))}
       <div class="actions noprint"><button class="btn primary" type="button" data-act="export-xlsx">Exporter vers Excel</button>${xl}</div></section>
-      <div class="cards"><div class="card main"><span>Indemnité totale</span><b>${eur(t.total)}</b></div><div class="card"><span>Acompte à régler</span><b>${eur(t.acompte)}</b></div>
-        <div class="card"><span>Différé à réception de facture</span><b>${eur(t.differe)}</b></div><div class="card"><span>Différé à l'issue du recours</span><b>${eur(t.recours)}</b></div></div>
-      ${res.alertes.length ? `<div class="note"><strong>Points à vérifier</strong><ul class="list">${res.alertes.map((a) => `<li>${h(a)}</li>`).join("")}</ul></div>` : ""}
-      <div class="panel"><h2>Règlement</h2><div class="tw"><table><thead><tr><th></th><th class="num">Acompte à régler</th><th class="num">Différé à réception de la facture</th><th class="num">Différé à l'issue du recours</th><th class="num">Total</th></tr></thead>
+      ${res.alertes.length ? `<div class="alertes"><strong>Points à vérifier avant d'envoyer</strong><ul>${res.alertes.map((a) => `<li>${h(a)}</li>`).join("")}</ul></div>` : ""}
+      <div class="card"><div class="card-head"><h2>Règlement</h2><span class="num-f strong brand">${eur(t.total)}</span></div>${repart}<div class="tw"><table><thead><tr><th></th><th class="num">Acompte à régler</th><th class="num">Différé à réception de la facture</th><th class="num">Différé à l'issue du recours</th><th class="num">Total</th></tr></thead>
         <tbody>${res.pay.rows.map(prow).join("")}<tr class="tot"><td>Solde ou total</td><td class="num">${eur(t.acompte)}</td><td class="num">${eur(t.differe)}</td><td class="num">${eur(t.recours)}</td><td class="num">${eur(t.total)}</td></tr></tbody></table></div>
-        <p class="muted">Entreprise non agréée : VVD HT en acompte, vétusté récupérable et TVA sur facture. Entreprise agréée : tout sur facture. Travaux de l'assuré : VVD (TVA comprise pour les fournitures) en acompte, vétusté récupérable sur justificatifs.</p></div>
-      <div class="panel"><h2>Les travaux par corps d'état</h2><div class="tw"><table><thead><tr><th></th><th class="num">VAN HT</th><th class="num">Vétusté</th><th class="num">Reste HT, vétusté déduite</th><th class="num">Vétusté récupérée</th><th class="num">Vétusté non récupérable</th><th class="num">TVA</th><th class="num">Total TTC après travaux</th></tr></thead>
+        <ul class="regles"><li>Entreprise non agréée : VVD HT en acompte, vétusté récupérable et TVA à réception de la facture.</li><li>Entreprise agréée : tout à réception de la facture.</li><li>Travaux de l'assuré : VVD (TVA comprise pour les fournitures) en acompte, vétusté récupérable sur justificatifs.</li></ul></div>
+      <div class="card"><h2>Les travaux par corps d'état</h2><div class="tw"><table><thead><tr><th></th><th class="num">VAN HT</th><th class="num">Vétusté</th><th class="num">Reste HT, vétusté déduite</th><th class="num">Vétusté récupérée</th><th class="num">Vétusté non récupérable</th><th class="num">TVA</th><th class="num">Total TTC après travaux</th></tr></thead>
         <tbody>${crow("Embellissements", c.emb)}${crow("Immobilier", c.immo)}${crow("Total", ct, "tot")}</tbody></table></div>
         ${capped.length ? `<div class="tw"><table><thead><tr><th>Rubrique plafonnée</th><th>Plafond</th><th class="num">TTC</th><th class="num">Retenu</th></tr></thead><tbody>${capped.map((r) => `<tr><td>${h(r.label)}</td><td>${h(IMH.plafondLabel(r.plafond))}</td><td class="num">${eur(r.total)}</td><td class="num">${eur(r.retenu)}</td></tr>`).join("")}</tbody></table></div>` : ""}</div>
       <div class="grid2">
-        <div class="panel"><h2>Le mobilier</h2>${res.mob.cats.some((x) => x.n) ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th class="num">Valeur</th><th class="num">Indemnité</th></tr></thead><tbody>${res.mob.cats.filter((x) => x.n).map((x) => `<tr><td>${h(x.label)}</td><td class="num">${eur(x.valeur)}</td><td class="num">${eur(x.total)}</td></tr>`).join("")}<tr class="tot"><td>Préjudice mobilier garanti</td><td></td><td class="num">${eur(res.mob.retenu)}</td></tr></tbody></table></div>` : '<p class="muted">Aucun bien mobilier.</p>'}</div>
-        <div class="panel"><h2>Autres préjudices et aménagements</h2><dl class="kv">${parNat.map(([n, v]) => `<dt>${h(n)}</dt><dd>${eur(v)}</dd>`).join("") || '<dt class="muted">Aucun autre préjudice</dt><dd></dd>'}
+        <div class="card"><h2>Le mobilier</h2>${res.mob.cats.some((x) => x.n) ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th class="num">Valeur</th><th class="num">Indemnité</th></tr></thead><tbody>${res.mob.cats.filter((x) => x.n).map((x) => `<tr><td>${h(x.label)}</td><td class="num">${eur(x.valeur)}</td><td class="num">${eur(x.total)}</td></tr>`).join("")}<tr class="tot"><td>Préjudice mobilier garanti</td><td></td><td class="num">${eur(res.mob.retenu)}</td></tr></tbody></table></div>` : '<p class="muted">Aucun bien mobilier.</p>'}</div>
+        <div class="card"><h2>Autres préjudices et aménagements</h2><dl class="kv">${parNat.map(([n, v]) => `<dt>${h(n)}</dt><dd>${eur(v)}</dd>`).join("") || '<dt class="muted">Aucun autre préjudice</dt><dd></dd>'}
           ${res.amen.cats.filter((a) => a.n).map((a) => `<dt>${h(a.label)}</dt><dd>${eur(a.retenu)}</dd>`).join("")}</dl></div>
       </div>
       <div class="grid2">
-        <div class="panel"><h2>Dépassements de plafonds</h2>${res.depassements.length ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th>Plafond</th><th class="num">Dépassement</th></tr></thead><tbody>${res.depassements.map((x) => `<tr><td>${h(x.label)}</td><td>${h(x.plafond)}</td><td class="num">${eur(x.montant)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Aucun plafond contractuel dépassé.</p>'}</div>
-        <div class="panel"><h2>Dommages non garantis</h2>${d.ng.length ? `<dl class="kv">${d.ng.map((l) => `<dt>${h(l.nat)}${l.des ? ` · ${h(l.des)}` : ""}</dt><dd>${eur(res.ng.lines[l.id].ttc)}</dd>`).join("")}<dt class="strong">Total</dt><dd class="strong">${eur(res.ng.total)}</dd></dl>` : '<p class="muted">Aucun dommage non garanti saisi.</p>'}</div>
+        <div class="card"><h2>Dépassements de plafonds</h2>${res.depassements.length ? `<div class="tw"><table><thead><tr><th>Catégorie</th><th>Plafond</th><th class="num">Dépassement</th></tr></thead><tbody>${res.depassements.map((x) => `<tr><td>${h(x.label)}</td><td>${h(x.plafond)}</td><td class="num">${eur(x.montant)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">Aucun plafond contractuel dépassé.</p>'}</div>
+        <div class="card"><h2>Dommages non garantis</h2>${d.ng.length ? `<dl class="kv">${d.ng.map((l) => `<dt>${h(l.nat)}${l.des ? ` · ${h(l.des)}` : ""}</dt><dd>${eur(res.ng.lines[l.id].ttc)}</dd>`).join("")}<dt class="strong">Total</dt><dd class="strong">${eur(res.ng.total)}</dd></dl>` : '<p class="muted">Aucun dommage non garanti saisi.</p>'}</div>
       </div>
-      ${d.observations ? `<div class="panel"><h2>Observations</h2><p>${h(d.observations).replace(/\n/g, "<br>")}</p></div>` : ""}`;
+      ${d.observations ? `<div class="card"><h2>Observations</h2><p>${h(d.observations).replace(/\n/g, "<br>")}</p></div>` : ""}`;
   }
 
   function viewBareme() {
@@ -291,9 +315,9 @@
         ${b.zones.map((z) => `<td class="c-sm"><input class="n" inputmode="decimal" id="bar-${a.id}-z${h(z)}" data-sec="bar" data-id="${a.id}" data-f="z:${h(z)}" value="${h(a.prix[z] == null ? "" : a.prix[z])}" aria-label="Prix zone ${h(z)}"></td>`).join("")}
         <td><button class="x" type="button" data-act="del-article" data-id="${a.id}" aria-label="Supprimer l'article">×</button></td></tr>`;
     }).join("");
-    return `<section class="head"><div><h1>Barème IMH</h1><p class="muted">Articles normalisés des supports de chiffrage IMH 2018. ${priced ? `${priced} article${priced > 1 ? "s" : ""} sur ${b.articles.length} ont un prix.` : "Aucun prix n'est encore renseigné : saisissez-les ici ou importez le barème en CSV."} Le dossier ouvert utilise la zone ${h(d.zone)}.</p></div>
+    return `<section class="head"><div><span class="eyebrow">Référentiel</span><h1>Barème IMH</h1><p class="muted">Articles normalisés des supports de chiffrage IMH 2018. ${priced ? `${priced} article${priced > 1 ? "s" : ""} sur ${b.articles.length} ont un prix.` : "Aucun prix n'est encore renseigné : saisissez-les ici ou importez le barème en CSV."} Le dossier ouvert utilise la zone ${h(d.zone)}.</p></div>
       <div class="actions"><button class="btn primary" type="button" data-act="import-csv">Importer un CSV</button><button class="btn" type="button" data-act="export-csv">Exporter en CSV</button><button class="btn ghost" type="button" data-act="add-article">Ajouter un article</button><button class="btn ghost" type="button" data-act="reset-bareme">Rétablir la liste IMH</button></div></section>
-      <p class="note info">Format attendu : une ligne d'en-tête <code>groupe;article;unité;rubrique;zone 1;zone 2;…</code> puis un article par ligne. La rubrique vaut <code>hab-tce</code>, <code>hab-emb</code>, <code>dep</code> ou <code>clo</code>. L'import remplace le barème actuel.</p>
+      <p class="note-info">Format attendu : une ligne d'en-tête <code>groupe;article;unité;rubrique;zone 1;zone 2;…</code> puis un article par ligne. La rubrique vaut <code>hab-tce</code>, <code>hab-emb</code>, <code>dep</code> ou <code>clo</code>. L'import remplace le barème actuel.</p>
       <div class="tw"><table><thead><tr><th>Article</th><th>Unité</th><th>Rubrique par défaut</th>${b.zones.map((z) => `<th class="num">Zone ${h(z)} €</th>`).join("")}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
@@ -411,6 +435,7 @@
       return false;
     },
     print() { window.print(); return false; },
+    theme() { toggleTheme(); return false; },
     "import-csv"() { pasteCsv(); return false; },
     "export-csv"() { saveFile("bareme-imh.csv", IMH.baremeCsv(db.bareme), "text/csv;charset=utf-8"); return false; },
     "add-article"() { db.bareme.articles.push({ id: "n" + uid(), grp: "Articles ajoutés", rub: "hab-tce", des: "Nouvel article", unite: "u", prix: {} }); save(); },

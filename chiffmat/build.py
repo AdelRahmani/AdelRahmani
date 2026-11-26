@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Assemble imh/src/ en une page autonome : imh/index.html (à ouvrir tel quel) et imh/dist/page.html (corps seul, pour la publication)."""
+"""Assemble chiffmat/src/ en une page autonome : chiffmat/index.html (à ouvrir tel quel) et chiffmat/dist/page.html (corps seul, pour la publication)."""
 from pathlib import Path
 
 root = Path(__file__).parent
 src = root / "src"
 read = lambda n: (src / n).read_text(encoding="utf-8")
 
-FONTS = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap">'
+FONTS = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">'
 page = "\n".join([
-    "<title>Chiffrage IMH</title>",
+    "<title>ChiffMAT</title>",
     '<meta name="claude:viewport-fit-sides" content="cover">',
     FONTS,
     "<style>\n" + read("app.css") + "</style>",
@@ -24,4 +24,4 @@ page = "\n".join([
     '<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n</head>\n<body>\n'
     + page + "\n</body>\n</html>\n", encoding="utf-8")
-print("imh/index.html et imh/dist/page.html générés")
+print("chiffmat/index.html et chiffmat/dist/page.html générés")
