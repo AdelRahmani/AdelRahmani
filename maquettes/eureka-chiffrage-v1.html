@@ -389,6 +389,13 @@ tr.flash td, .mbv-card.flash { animation: flash 2s ease-out; }
 .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
 .imp tr.off td { opacity: .45; }
 body.dragging .drop { border-color: var(--accent); background: var(--accent-soft); }
+.drop-ov { display: none; position: fixed; inset: 0; z-index: 30; background: rgba(6, 11, 21, .55); place-items: center; padding: 24px; pointer-events: none; }
+body.dragging .drop-ov { display: grid; }
+.drop-card { width: min(560px, 100%); aspect-ratio: 16 / 9; max-height: 70vh; border: 3px dashed var(--accent); border-radius: 26px; background: var(--surface); color: var(--accent-text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 24px; box-shadow: 0 30px 80px rgba(0, 0, 0, .35); animation: dropin .18s ease-out; }
+.drop-card b { font: 600 22px var(--display); color: var(--ink); }
+.drop-card > span { color: var(--ink-2); }
+@keyframes dropin { from { transform: scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .drop-card { animation: none; } }
 @media (max-width: 640px) { .mbv-pv { grid-template-columns: repeat(2, minmax(0, 1fr)); } .subtab { min-width: 0; flex: 1; } .subtab-acts { margin-left: 0; } }
 @media (prefers-reduced-motion: reduce) { tr.flash td, .mbv-card.flash { animation: none; } }
 
@@ -417,6 +424,7 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
 <header class="bar" id="bar"></header>
 <main class="gutter"><div class="wrap" id="app"></div></main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="drop-ov" aria-hidden="true"><div class="drop-card"><svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5h12l8 8v22H12z M24 5v8h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M22 30V19M17.5 23.5L22 19l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Lâchez le fichier pour l'importer</b><span>Devis ou facture en PDF, chiffrage Excel, CSV ou texte</span><span class="fmt"><i>PDF</i><i>XLSX</i><i>XLS</i><i>ODS</i><i>CSV</i><i>TXT</i></span></div></div>
 <dialog id="dlg" aria-label="Importer un devis"></dialog>
 
 <script>
@@ -1167,7 +1175,7 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
       '<div class="targets"><span class="lbl">Chiffrer dans</span>' + chips + "</div>" +
       '<div class="cmd"><label class="cmd-box" for="cmd"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M13.5 13.5L18 18" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg><input id="cmd" autocomplete="off" role="combobox" aria-expanded="' + (S.q ? "true" : "false") + '" aria-controls="cmd-res" placeholder="Tapez une prestation, une pièce ou un modèle : « peinture murs séjour »" value="' + esc(S.q) + '"><span class="kbd">Ctrl K</span></label><div id="cmd-res-wrap">' + resHtml(cmdResults()) + "</div></div>" +
       hb +
-      '<div class="drop"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h9l6 6v16H8z M17 3v6h6 M12 16h8 M12 20h6" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-2)"/></svg><div style="flex:1;min-width:0"><b>Déposez ici un devis, une facture ou un chiffrage Excel</b><div class="small muted">PDF, XLSX, XLS, ODS, CSV ou texte · lecture sans IA ; nature et détail proposés, vérifiés avant l\'intégration.</div></div><button type="button" class="btn" data-act="import">Choisir un fichier</button></div>' +
+      '<div class="drop"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h9l6 6v16H8z M17 3v6h6 M12 16h8 M12 20h6" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-2)"/></svg><div style="flex:1;min-width:0"><b>Glissez ici un devis, une facture ou un chiffrage Excel</b><div class="small muted">PDF, XLSX, XLS, ODS, CSV ou texte · lecture sans IA ; nature et détail proposés, vérifiés avant l\'intégration.</div></div><button type="button" class="btn" data-act="import">Choisir un fichier</button></div>' +
       '<section class="card lines-card" aria-label="Lignes du chiffrage"><div class="tw"><table class="lines"><thead><tr><th>Prestation</th><th>Quantité</th><th>P.U. HT</th><th>TVA</th><th>Vét. %</th><th>Vét. €</th><th>Mode</th><th class="r">TTC</th><th class="r">Montant ' + regime + '</th><th class="r">Vét. déduite ' + regime + '</th><th class="r">kg CO2e</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="12"><div class="empty">Aucune ligne. Tapez une prestation ou appliquez un modèle.</div></td></tr>') + "</tbody></table></div></section>" +
       '<p class="small faint">Vétusté calculée sur le montant ' + regime + ' (régime fiscal du règlement). Un montant de vétusté saisi remplace le pourcentage. IP : indemnité pécuniaire · REN : réparation en nature.</p>' +
       altsBlock(alts.filter((x) => !x.mbv)))) +
@@ -1876,7 +1884,7 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
     let body = '<div class="dlg"><div class="dlg-head"><div style="flex:1;min-width:0"><h2>Importer un chiffrage</h2><div class="imp-steps">' + steps.map((x, i) => '<span class="' + (i < at ? "done" : i === at ? "now" : "") + '"><b>' + (i + 1) + "</b>" + x[1] + "</span>").join("") + '</div></div><button type="button" class="x" data-dlg="close" aria-label="Fermer">×</button></div>';
     if (im.step === "source") {
       body += '<label class="dropzone" id="imp-drop" for="imp-file"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5h12l8 8v22H12z M24 5v8h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M22 30V19M17.5 23.5L22 19l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-        '<b>Déposez un devis, une facture ou un chiffrage Excel</b><span class="muted small">ou cliquez pour choisir un fichier</span><span class="fmt"><i>PDF</i><i>XLSX</i><i>XLS</i><i>ODS</i><i>CSV</i><i>TXT</i></span>' +
+        '<b>Déposez un devis, une facture ou un chiffrage Excel</b><span class="muted small">glissez-le ici, ou cliquez pour choisir un fichier</span><span class="fmt"><i>PDF</i><i>XLSX</i><i>XLS</i><i>ODS</i><i>CSV</i><i>TXT</i></span>' +
         '<input type="file" id="imp-file" accept=".pdf,.xlsx,.xlsm,.xls,.ods,.csv,.txt,application/pdf,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden></label>' +
         (im.busy ? '<div class="alert info"><span>' + esc(im.busy) + "</span></div>" : "") + (im.err ? '<div class="alert bad"><span>' + esc(im.err) + "</span></div>" : "") +
         '<details class="paste"><summary>Ou collez le texte du document</summary><textarea id="imp-text" aria-label="Texte du document" placeholder="Désignation    Qté   U   P.U. HT   Total HT"></textarea><div class="dlg-foot"><button type="button" class="btn" data-dlg="read">Lire le texte</button></div></details>' +
@@ -1950,7 +1958,7 @@ body.dragging .drop { border-color: var(--accent); background: var(--accent-soft
     if (k === "on") x.on = el.checked; if (k === "n") { x.n = el.value; x.d = ""; x.kw = ""; x.fromDoc = false; } if (k === "d") x.d = el.value; if (k === "room") x.room = el.value;
     drawImport();
   });
-  ["dragover", "dragenter"].forEach((t) => document.addEventListener(t, (e) => { if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes("Files")) return; e.preventDefault(); document.body.classList.add("dragging"); const z = document.getElementById("imp-drop"); if (z) z.classList.add("over"); }));
+  ["dragover", "dragenter"].forEach((t) => document.addEventListener(t, (e) => { if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes("Files")) return; e.preventDefault(); if (!dlg.open) document.body.classList.add("dragging"); const z = document.getElementById("imp-drop"); if (z) z.classList.add("over"); }));
   ["dragleave", "drop"].forEach((t) => document.addEventListener(t, (e) => { if (t === "dragleave" && e.relatedTarget) return; document.body.classList.remove("dragging"); const z = document.getElementById("imp-drop"); if (z) z.classList.remove("over"); }));
   document.addEventListener("drop", (e) => {
     const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return; e.preventDefault();
