@@ -62,6 +62,7 @@ button { cursor: pointer; }
 
 /* barre du dossier */
 .bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: var(--bar); color: var(--bar-ink); }
+.bar::after { content: ""; display: block; height: 3px; background: linear-gradient(90deg, #2349E6, #7B97FF 45%, #F4B400 75%, #3CC57C); }
 .bar-in { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding-block: 10px; }
 .brand { display: flex; align-items: center; gap: 10px; font: 600 16px var(--display); white-space: nowrap; }
 .brand svg { flex: none; }
@@ -332,7 +333,7 @@ table { border-collapse: collapse; width: 100%; }
 .report { border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); font-size: 12.5px; }
 .report .rl { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
 .report .rh { font-weight: 700; border-top: 1px solid var(--line); padding-top: 6px; }
-dialog { border: 0; border-radius: 18px; padding: 0; width: min(860px, calc(100vw - 32px)); max-height: calc(100vh - 48px); background: var(--surface); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, .35); }
+dialog { border: 0; border-radius: 20px; padding: 0; width: min(1000px, calc(100vw - 32px)); max-height: calc(100vh - 48px); background: var(--surface); color: var(--ink); box-shadow: 0 30px 80px rgba(0, 0, 0, .35); }
 dialog::backdrop { background: rgba(6, 11, 21, .55); }
 .dlg { display: flex; flex-direction: column; gap: 14px; padding: 20px; }
 .dlg textarea { width: 100%; min-height: 170px; font: 500 12.5px/1.5 var(--mono); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px; background: var(--surface-2); resize: vertical; }
@@ -341,6 +342,55 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
 .imp td { padding: 7px 8px; border-bottom: 1px solid var(--line); }
 .imp select { border: 1px solid var(--line-2); border-radius: 7px; padding: 4px 6px; background: var(--surface); max-width: 190px; }
 .dlg-foot { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+
+/* Mobilier, onglets d'estimation, import */
+.subtabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; }
+.subtab { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); min-width: 190px; text-align: left; box-shadow: var(--shadow); }
+.subtab b { font-weight: 600; font-size: 14px; }
+.subtab > span { font: 600 13px var(--mono); color: var(--ink-2); }
+.subtab[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.subtab-acts { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.count { font: 600 11.5px var(--mono); background: var(--sunken); border-radius: 99px; padding: 1px 7px; margin-left: 4px; color: var(--ink-2); }
+.mbv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.mbv-card { padding: 16px; display: flex; flex-direction: column; gap: 11px; }
+.mbv-top { display: flex; align-items: center; gap: 11px; }
+.mbv-ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); flex: none; }
+.mbv-name { font: 600 16px var(--display); letter-spacing: -.01em; }
+.mbv-meta, .mbv-foot { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.mbv-val { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.mbv-vd { font: 700 16px var(--mono); }
+.mbv-pv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mbv-pv > div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mbv-pv span { font-size: 11.5px; color: var(--ink-2); font-weight: 600; }
+.mbv-pv b { font: 600 14px var(--mono); }
+.mbv-pv .hl { background: var(--ink); border-color: var(--ink); }
+.mbv-pv .hl span, .mbv-pv .hl b { color: var(--surface); }
+.mbv-pv .bad { grid-column: 1 / -1; background: var(--bad-bg); color: var(--bad); border: 0; }
+.mbv-card .flag-in { padding: 6px 9px; }
+.tag.tape { background: var(--tape-soft); color: var(--warn); }
+.tag.nat::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .7; }
+@keyframes flash { from { background-color: var(--tape-soft); } to { background-color: transparent; } }
+tr.flash td, .mbv-card.flash { animation: flash 2s ease-out; }
+.dlg-head { display: flex; gap: 12px; align-items: flex-start; }
+.imp-steps { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+.imp-steps span { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
+.imp-steps b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--sunken); font-size: 11px; }
+.imp-steps .now { color: var(--ink); }
+.imp-steps .now b { background: var(--accent); color: var(--accent-ink); }
+.imp-steps .done b { background: var(--ok-bg); color: var(--ok); }
+.dropzone { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 34px 20px; border: 2px dashed var(--line-2); border-radius: 18px; text-align: center; cursor: pointer; color: var(--ink-2); background: var(--surface-2); transition: border-color .2s, background-color .2s; }
+.dropzone:hover, .dropzone.over { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+.dropzone b { color: var(--ink); font-size: 16px; }
+.fmt { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.fmt i { font: 600 11px var(--mono); font-style: normal; padding: 2px 7px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
+.paste summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--accent-text); }
+.paste[open] summary { margin-bottom: 10px; }
+.map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.imp tr.off td { opacity: .45; }
+body.dragging .drop { border-color: var(--accent); background: var(--accent-soft); }
+@media (max-width: 640px) { .mbv-pv { grid-template-columns: repeat(2, minmax(0, 1fr)); } .subtab { min-width: 0; flex: 1; } .subtab-acts { margin-left: 0; } }
+@media (prefers-reduced-motion: reduce) { tr.flash td, .mbv-card.flash { animation: none; } }
 
 @media (max-width: 1180px) {
   .loc, .est, .ind, .syn { grid-template-columns: minmax(0, 1fr); }
@@ -415,15 +465,32 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     { id: "dde-sol", name: "Dégât des eaux, sol", items: [["depose-sol"], ["parquet-strat"], ["plinthes"]] },
     { id: "zone", name: "Reprise localisée de la zone abîmée", items: [["reprise-zone"]] }
   ];
+  const MBV = "Dommages mobiliers et biens volés";
+  // catégories du mobilier : correspondance TypeBien Sinapps proposée, barème (taux/an, franchise en années, plafond) et facteur carbone fictifs
+  const MBV_CATS = {
+    "Mobilier": { type: "MobiliersCourantsMeublants", rate: 10, fr: 0, max: 80, co2: 90 },
+    "Électroménager": { type: "ElectrodomestiquesBlanc", rate: 10, fr: 1, max: 80, co2: 280 },
+    "Hi-fi - Vidéo - Informatique": { type: "ElectrodomestiquesBrun", rate: 20, fr: 0, max: 80, co2: 160 },
+    "Vêtements et linge": { type: "VetementsChaussuresLinge", rate: 20, fr: 0, max: 80, co2: 18 },
+    "Objets de valeur": { type: "ObjetDeValeur", rate: null, fr: 0, max: null, co2: 20 },
+    "Matériel professionnel": { type: "Autres", rate: 15, fr: 0, max: 80, co2: 120 }
+  };
+  const GOOD_STATUS = ["Bien volé", "Réparable", "Non réparable"];
+  const PROOFS = ["Biens non justifiés", "Justifiés en existence et valeur", "Justifiés en existence"];
+  const EVENT_DATE = "2026-10-02";
   const GUESS = [
-    [["peint", "lessiv", "enduit", "papier peint", "tapiss"], "Embellissement", "Peinture / P. peints"],
-    [["parquet"], "Embellissement", "Parquets"],
-    [["carrel", "faience", "credence"], "Embellissement", "Carrelage et revêtement céramique"],
-    [["sol", "lino", "moquette", "plinthe", "pvc"], "Embellissement", "Revêtements de sol"],
-    [["plafond"], "Embellissement", "Faux plafond"],
     [["fuite", "camera", "thermique"], "Immobilier", "Recherche de fuite"],
     [["plomb", "robinet", "flexible", "canalis", "siphon"], "Immobilier", "Plomberie"],
     [["prise", "electri", "interrupteur", "tableau"], "Immobilier", "Électricité"],
+    [["lave-linge", "lave linge", "seche-linge", "refrigerateur", "frigo", "congelateur", "micro-onde", "lave-vaisselle"], MBV, "Électroménager"],
+    [["televiseur", "ordinateur", "console", "enceinte", "hi-fi", "hifi"], MBV, "Hi-fi - Vidéo - Informatique"],
+    [["vetement", "chaussure", "manteau", "linge de maison"], MBV, "Vêtements et linge"],
+    [["peint", "lessiv", "enduit", "papier peint", "tapiss", "impression"], "Embellissement", "Peinture / P. peints"],
+    [["canape", "meuble", "chaise", "armoire", "matelas", "tapis", "commode", "buffet", "sommier"], MBV, "Mobilier"],
+    [["parquet"], "Embellissement", "Parquets"],
+    [["carrel", "faience", "credence"], "Embellissement", "Carrelage et revêtement céramique"],
+    [["sol", "lino", "moquette", "plinthe", "pvc", "ragreage"], "Embellissement", "Revêtements de sol"],
+    [["plafond"], "Embellissement", "Faux plafond"],
     [["porte", "fenetre", "menuis", "placard"], "Immobilier", "Menuiserie intérieure"],
     [["macon", "cloison", "platre", "doublage"], "Immobilier", "Maçonnerie"],
     [["assech", "deshumid", "moisiss", "ventil"], "Immobilier", "Assèchement"],
@@ -432,6 +499,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   const ROOM_TYPES = ["Chambre", "Salle de bains", "WC", "Bureau", "Dégagement", "Cellier"];
 
   function initial() {
+    const M = (o) => Object.assign({ kind: "mbv", n: MBV, unit: "U", brand: "", reference: "", eqBrand: "", eqReference: "", vat: 20, obsIn: null, mode: "IP", beneficiaryName: "", source: "Saisie", toCheck: false }, o, { co2: MBV_CATS[o.d].co2 });
     const L = (o) => Object.assign({ cat: null, link: null, qty: null, vat: 10, vet: 0, obsIn: null, mode: "IP", beneficiaryName: "", source: "Bordereau" }, o);
     const st = {
       rooms: [
@@ -456,7 +524,10 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
         L({ id: 5, lineIndex: "A02B02C01", room: "r1", cat: "fuite", name: "Recherche de fuite non destructive", n: "Immobilier", d: "Recherche de fuite", unit: "FFT", qty: 1, pu: 332.8, co2: 3 }),
         L({ id: 6, lineIndex: "A01B02C01", room: "r2", cat: "parquet-strat", name: "Parquet stratifié, fourniture et pose", n: "Embellissement", d: "Parquets flottants", unit: "m²", link: "floor", pu: 43.68, co2: 6.8, age: 8, scale: 56 }),
         L({ id: 7, lineIndex: "A01B03C01", room: "r2", cat: "plinthes", name: "Plinthes médium à peindre", n: "Embellissement", d: "Revêtements de sol", unit: "ml", link: "skirting", pu: 11.65, vet: 25, co2: 0.9 }),
-        L({ id: 8, lineIndex: "A02B01C02", room: "r2", name: "Traitement anti-moisissures des murs", n: "Immobilier", d: "Assèchement", unit: "m²", link: "walls", pu: 9.8, co2: 0.6, source: "Hors bordereau", proposed: true, kw: "moisissures" })
+        L({ id: 8, lineIndex: "A02B01C02", room: "r2", name: "Traitement anti-moisissures des murs", n: "Immobilier", d: "Assèchement", unit: "m²", link: "walls", pu: 9.8, co2: 0.6, source: "Hors bordereau", proposed: true, kw: "moisissures" }),
+        M({ id: 9, lineIndex: "A99B01C01", room: "r1", d: "Électroménager", name: "Lave-linge 8 kg", goodStatus: "Non réparable", proof: "Justifiés en existence et valeur", reference: "8 kg, 1 400 tr/min", purchaseDate: "2021-03-15", claimedAmount: 520, ht: 415.83, vet: 40 }),
+        M({ id: 10, lineIndex: "A99B02C01", room: "r1", d: "Mobilier", name: "Meuble bas de cuisine", goodStatus: "Non réparable", proof: "Justifiés en existence", purchaseDate: "2020-05-10", claimedAmount: 260, ht: 190, vet: 60 }),
+        M({ id: 11, lineIndex: "A99B02C02", room: "r2", d: "Mobilier", name: "Tapis laine 160 x 230", goodStatus: "Réparable", proof: "Biens non justifiés", purchaseDate: "2022-09-01", claimedAmount: 180, ht: 149, vet: 30 })
       ],
       coverages: [
         { id: "ca", name: "Dégâts des eaux", label: "Multirisque habitation · contrat 4471203", stance: 1, comment: "" },
@@ -466,12 +537,12 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
         { id: "b1", type: "ASSURE", name: "Camille Exemple", stanceId: "ca", discount: null, penalization: null, deferredPenalization: null, deductible: 150, deferredDeductible: 0 },
         { id: "b2", type: "EDP", name: "Réno Services", stanceId: "ca", discount: null, penalization: null, deferredPenalization: null, deductible: 0, deferredDeductible: 0 }
       ],
-      comps: {}, ttc: true, position: null, status: 1, co2Saved: 0, nextId: 9, nextObj: 10
+      comps: {}, ttc: true, position: null, status: 1, co2Saved: 0, nextId: 12, nextObj: 10
     };
     return st;
   }
   const DATA_KEYS = ["rooms", "lines", "coverages", "beneficiaries", "comps", "ttc", "position", "status", "co2Saved", "nextId", "nextObj"];
-  const UI0 = () => ({ tab: "localisation", sel: "r1", selWall: 3, tool: "select", view: null, estRoom: "r1", q: "", cmdIdx: 0, hb: null, pending: null, imp: null, verifyMsg: null, benId: "b1", option: 1, genericPct: 25, onlyMine: false, benForm: null });
+  const UI0 = () => ({ tab: "localisation", sel: "r1", selWall: 3, tool: "select", view: null, estRoom: "r1", q: "", cmdIdx: 0, hb: null, pending: null, imp: null, verifyMsg: null, benId: "b1", option: 1, genericPct: 25, onlyMine: false, benForm: null, estView: "prest", mbvForm: null, flash: [] });
   let S = Object.assign(initial(), UI0());
   const undo = [];
 
@@ -500,10 +571,13 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   function mut(fn, keepStatus) {
     if (isReadOnly(S.status)) { toast("Estimation « " + STATUS[S.status] + " » : lecture seule. « Recommencer » remet la démonstration à zéro."); render(); return false; }
     undo.push(snapshot()); if (undo.length > 60) undo.shift();
+    const before = new Set(S.lines.map((l) => l.id));
     fn();
     if (!keepStatus) S.status = 1;
     S.verifyMsg = null;
+    S.flash = S.lines.filter((l) => !before.has(l.id)).map((l) => l.id);
     render();
+    S.flash = [];
     return true;
   }
   function doUndo() { const s = undo.pop(); if (!s) return; Object.assign(S, s); if (!room(S.sel)) S.sel = S.rooms[0] && S.rooms[0].id; if (!room(S.estRoom)) S.estRoom = S.sel; S.selWall = null; render(); toast("Dernière action annulée"); }
@@ -596,8 +670,13 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   // ================= règles d'Eureka Chiffrage : lignes de dommages =================
   const pad2 = (n) => String(n).padStart(2, "0");
   /** Index de ligne AxxBxxCxx : nature / détail / prestation (nextLineIndex) */
-  function nextLineIndex(lines, l1, l2) {
-    const sorted = lines.slice().sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
+  function nextLineIndex(all, l1, l2) {
+    const isM = l1 === MBV, sorted = all.filter((d) => (d.kind === "mbv") === isM && d.lineIndex).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
+    if (isM) {
+      const same = sorted.filter((d) => d.d === l2);
+      if (same.length) { const last = same[same.length - 1].lineIndex; return last.slice(0, 7) + pad2(+last.slice(-2) + 1); }
+      return "A99B" + pad2((sorted.length ? +sorted[sorted.length - 1].lineIndex.slice(4, 6) : 0) + 1) + "C01";
+    }
     const first = sorted.find((d) => d.n === l1);
     if (!first) { if (!sorted.length) return "A01B01C01"; return "A" + pad2(+sorted[sorted.length - 1].lineIndex.slice(1, 3) + 1) + "B01C01"; }
     const aIdx = first.lineIndex.slice(0, 3), same = sorted.filter((d) => d.n === l1 && d.d === l2);
@@ -607,6 +686,10 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   function qtyOf(l) { if (!l.link) return numv(l.qty); const r = room(l.room); return r ? measures(r)[l.link] : 0; }
   /** linePrices + damageAmounts : vétusté sur le TTC ou le HT selon le régime fiscal ; un montant saisi remplace le % */
   function amt(l) {
+    if (l.kind === "mbv") {
+      const ht = numv(l.ht), ttcA = r2(ht * (1 + numv(l.vat) / 100)), base = S.ttc ? ttcA : ht, entered = !blank(l.obsIn), obsPct = entered ? 0 : numv(l.vet), obsAmount = entered ? numv(l.obsIn) : r2(base * obsPct / 100);
+      return { q: 1, priceNoVAT: r2(ht), priceWithVAT: ttcA, base: r2(base), obsPct, obsAmount, priceWithObs: r2(base - obsAmount), co2t: numv(l.co2) };
+    }
     const q = qtyOf(l), ht = l.pu * q;
     const priceNoVAT = r2(ht), priceWithVAT = r2(ht * (1 + l.vat / 100));
     const base = r2(l.pu * q * (S.ttc ? 1 + l.vat / 100 : 1));
@@ -628,6 +711,14 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     return null;
   }
   function flags(l) {
+    if (l.kind === "mbv") {
+      const f = [], age = yearsBetween(l.purchaseDate, EVENT_DATE), sc = scaleObs(l.d, age);
+      if (l.toCheck) f.push({ tone: "info", text: "Repris du document : vérifiez l'état du bien et le justificatif", fix: "Vérifié", act: "mbv-ok" });
+      if (sc != null && blank(l.obsIn) && Math.abs(sc - l.obsPct) > 0.05) f.push({ tone: "warn", text: "Barème : " + frp(sc) + " % pour " + age + " an" + (age > 1 ? "s" : "") + " (saisi : " + frp(l.obsPct) + " %)", fix: "Appliquer " + frp(sc) + " %", act: "fix-scale" });
+      if (l.obsAmount > l.base) f.push({ tone: "bad", text: "La vétusté dépasse la valeur du bien" });
+      if (l.goodStatus === "Bien volé" && l.proof === "Biens non justifiés") f.push({ tone: "warn", text: "Bien volé sans justificatif" });
+      return f;
+    }
     const f = [];
     if (!l.n || !l.d) f.push({ tone: "bad", text: "Nature et détail Sinapps obligatoires", fix: "Choisir", act: "edit-nature" });
     if (l.proposed) f.push({ tone: "info", text: "Nature et détail proposés d'après « " + l.kw + " » : à confirmer par l'expert", fix: "Confirmer", act: "confirm" });
@@ -643,9 +734,9 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   function buildGroups(L, comps) {
     const map = new Map();
     L.filter((d) => !blank(d.name)).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1)).forEach((d) => {
-      const key = [RO, d.n, d.d, d.mode, d.beneficiaryName || ""].join("_").trim();
+      const isM = d.kind === "mbv", key = (isM ? [RO, d.d, d.name] : [RO, d.n, d.d, d.mode, d.beneficiaryName || ""]).join("_").trim();
       let g = map.get(key);
-      if (!g) { g = { key, riskObjectId: RO, l1: d.n, l2: d.d, mode: d.mode, beneficiaryName: d.beneficiaryName || "", isTaxed: !!S.ttc, priceNoVATTotal: 0, priceWithTaxTotal: 0, obsTotal: 0, priceWithObsTotal: 0, count: 0 }; map.set(key, g); }
+      if (!g) { g = { key, riskObjectId: RO, isMbv: isM, l1: isM ? d.d : d.n, l2: isM ? d.name : d.d, mode: d.mode, beneficiaryName: isM ? "" : d.beneficiaryName || "", isTaxed: !!S.ttc, priceNoVATTotal: 0, priceWithTaxTotal: 0, obsTotal: 0, priceWithObsTotal: 0, count: 0 }; map.set(key, g); }
       g.priceNoVATTotal += numv(d.priceNoVAT); g.priceWithTaxTotal += numv(d.priceWithVAT); g.obsTotal += numv(d.obsAmount); g.priceWithObsTotal += numv(d.priceWithObs); g.count++;
     });
     return Array.from(map.values()).map((g) => {
@@ -773,7 +864,8 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       else if (l.proposed) out.push({ text: lb + " : nature et détail proposés, à confirmer", rule: "DommageDetailParNature", tab: "estimations" });
       if (VAT.indexOf(l.vat) < 0) out.push({ text: lb + " : TVA à " + fr(l.vat, 1) + " % refusée par Sinapps", rule: "RG_CHIFFRAGE_EXP_0068", tab: "estimations" });
       if (l.obsPct > 100) out.push({ text: lb + " : le taux de vétusté dépasse 100 %", rule: "RG_CHIFFRAGE_EXP_0048", tab: "estimations" });
-      if (r2(l.obsAmount) > r2(S.ttc ? l.priceWithVAT : l.priceNoVAT)) out.push({ text: lb + " : la vétusté dépasse le montant de la ligne", rule: "RG_CHIFFRAGE_EXP_0004", tab: "estimations" });
+      if (r2(l.obsAmount) > r2(S.ttc ? l.priceWithVAT : l.priceNoVAT)) out.push({ text: lb + " : la vétusté dépasse le montant de la ligne", rule: l.kind === "mbv" ? "RG_CHIFFRAGE_EXP_0062" : "RG_CHIFFRAGE_EXP_0004", tab: "estimations" });
+      if (l.kind === "mbv" && l.goodStatus === "Bien volé" && blank(l.proof)) out.push({ text: lb + " : le justificatif est obligatoire pour un bien volé", rule: "RG_CHIFFRAGE_EXP_0058", tab: "estimations" });
     });
     return out;
   }
@@ -1012,6 +1104,10 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   function altList(c) {
     const out = [];
     c.L.forEach((l) => {
+      if (l.kind === "mbv") {
+        if ((l.d === "Électroménager" || l.d === "Hi-fi - Vidéo - Informatique") && l.goodStatus === "Non réparable" && l.eqBrand !== "Reconditionné") out.push({ id: l.id, mbv: true, to: "recond", title: "Équivalent reconditionné · " + l.name, why: "Valeur d'un équivalent reconditionné garanti au lieu du neuf : −30 % sur la valeur, ordre de grandeur fictif", de: r2(-0.3 * l.base * (1 - l.obsPct / 100)), dc: l.co2 * 0.65 });
+        return;
+      }
       const k = S.ttc ? 1 + l.vat / 100 : 1;
       if (l.cat === "peint-murs") { const e = catById("peint-eco"); out.push({ id: l.id, to: "peint-eco", title: "Peinture écolabel au lieu d'acrylique · " + nameOfRoom(l.room), why: fr(l.q) + " m² de murs, même nature et même détail Sinapps", de: r2(l.q * (e.pu - l.pu) * k), dc: l.q * (l.co2 - e.co2) }); }
       if (l.cat === "parquet-strat") { const e = catById("parquet-reemploi"); out.push({ id: l.id, to: "parquet-reemploi", title: "Parquet de réemploi au lieu de stratifié neuf · " + nameOfRoom(l.room), why: fr(l.q) + " m² de sol, détail Sinapps « Parquets »", de: r2(l.q * (e.pu - l.pu) * k), dc: l.q * (l.co2 - e.co2) }); }
@@ -1042,10 +1138,10 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     }
     let rows = "";
     S.rooms.concat([{ id: null, name: "Sans pièce" }]).forEach((r) => {
-      const rl = c.L.filter((l) => (l.room || null) === r.id).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1)); if (!rl.length) return;
+      const rl = c.L.filter((l) => !l.kind && (l.room || null) === r.id).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1)); if (!rl.length) return;
       rows += '<tr class="room-h' + (r.id === S.estRoom ? " target" : "") + '"><td colspan="8">' + esc(r.name) + (r.id ? ' <span class="small faint" style="font-weight:500">· ' + fr(measures(r).floor) + " m² au sol</span>" : "") + '</td><td class="amt">' + eur(sum(rl, "base")) + '</td><td class="amt">' + eur(sum(rl, "priceWithObs")) + '</td><td class="amt" style="color:var(--carbon)">' + kg(sumf(rl, "co2t")) + "</td><td></td></tr>";
       rl.forEach((l) => {
-        rows += '<tr><td><div class="name">' + esc(l.name) + '</div><div class="sub"><span class="tag src mono">' + l.lineIndex + "</span>" + (l.n && l.d ? '<span class="tag nat">' + esc(l.n) + " › " + esc(l.d) + "</span>" : '<span class="tag bad">Nature à choisir</span>') + '<span class="tag src">' + esc(l.source || "") + "</span></div></td>" +
+        rows += '<tr' + (S.flash.indexOf(l.id) >= 0 ? ' class="flash"' : "") + '><td><div class="name">' + esc(l.name) + '</div><div class="sub"><span class="tag src mono">' + l.lineIndex + "</span>" + (l.n && l.d ? '<span class="tag nat">' + esc(l.n) + " › " + esc(l.d) + "</span>" : '<span class="tag bad">Nature à choisir</span>') + '<span class="tag src">' + esc(l.source || "") + "</span></div></td>" +
           "<td>" + (l.link ? '<span class="q">' + fr(l.q) + " " + l.unit + '</span><div class="sub"><span class="tag plan">plan · ' + LINK[l.link] + "</span></div>" : '<input class="cell-inp" data-chg="qty" data-id="' + l.id + '" value="' + fr(l.q) + '" aria-label="Quantité"> <span class="small faint">' + l.unit + "</span>") + "</td>" +
           '<td><input class="cell-inp" data-chg="pu" data-id="' + l.id + '" value="' + fr(l.pu) + '" aria-label="Prix unitaire HT"></td>' +
           '<td><select class="cell-inp" data-chg="vat" data-id="' + l.id + '" aria-label="TVA">' + vatOpts(l.vat) + "</select></td>" +
@@ -1058,23 +1154,27 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
         flags(l).forEach((f) => { rows += '<tr class="flag"><td colspan="12"><div class="flag-in ' + f.tone + '"><span>' + esc(f.text) + "</span>" + (f.fix ? '<button type="button" class="btn" data-act="' + f.act + '" data-id="' + l.id + '">' + esc(f.fix) + "</button>" : "") + "</div></td></tr>"; });
       });
     });
-    const alts = altList(c), sinIss = M.iss.filter((x) => x.tab === "estimations"), ratio = Math.min(100, Math.round(c.T.ttc / CLAIMED * 100));
+    const prestL = c.L.filter((l) => !l.kind), mbvL = c.L.filter((l) => l.kind === "mbv");
+    const subtabs = '<div class="subtabs" role="tablist" aria-label="Type de chiffrage">' + [["prest", "Prestations", prestL], ["mbv", "Mobilier et biens volés", mbvL]].map((x) => '<button type="button" class="subtab" role="tab" data-act="est-view" data-v="' + x[0] + '" aria-pressed="' + (S.estView === x[0]) + '" aria-selected="' + (S.estView === x[0]) + '"><b>' + x[1] + ' <span class="count">' + x[2].length + "</span></b><span>" + eur(sum(x[2], "priceWithObs")) + "</span></button>").join("") +
+      '<span class="subtab-acts"><button type="button" class="btn" data-act="import"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M5 7l3 3 3-3M3 12v2h10v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Importer devis, facture ou Excel</button>' + (S.estView === "mbv" ? '<button type="button" class="btn primary" data-act="add-mbv">+ Ajouter un bien</button>' : "") + "</span></div>";
+    const altsBlock = (list) => (list.length ? '<section class="card alts" aria-label="Solutions plus sobres"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Solutions plus sobres</h3><span class="small muted">Même réparation, empreinte plus faible. Vous choisissez ; le chiffrage suit le prix retenu.</span></div>' +
+      list.map((a) => '<div class="alt"><div style="min-width:0"><b style="font-size:13.5px">' + esc(a.title) + '</b><div class="small muted">' + esc(a.why) + '</div></div><div class="delta">' + (a.de >= 0 ? "+" : "−") + eur(Math.abs(a.de)) + '<br><span class="g">−' + kg(a.dc) + ' CO2e</span></div><button type="button" class="btn" data-act="apply-alt" data-i="' + a.i + '">Appliquer</button></div>').join("") + "</section>" : "");
+    const alts = altList(c).map((a, i) => Object.assign(a, { i })), sinIss = M.iss.filter((x) => x.tab === "estimations"), ratio = Math.min(100, Math.round(c.T.ttc / CLAIMED * 100));
     const byRoom = S.rooms.map((r) => ({ r, co2: sumf(linesOf(r.id, c), "co2t") })).filter((x) => x.co2 > 0), maxC = Math.max(1, ...byRoom.map((x) => x.co2));
     return '<div class="page-head"><div><h1>Estimations</h1><p class="muted">Tapez une prestation : prix, nature et détail Sinapps arrivent du bordereau, la quantité vient du plan de la pièce.</p></div>' +
       '<div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="lbl">Régime fiscal du règlement</span><div class="seg two" role="radiogroup" aria-label="Régime fiscal du règlement" style="min-width:120px"><button type="button" role="radio" aria-pressed="' + !S.ttc + '" aria-checked="' + !S.ttc + '" data-act="regime" data-v="ht">HT</button><button type="button" role="radio" aria-pressed="' + S.ttc + '" aria-checked="' + S.ttc + '" data-act="regime" data-v="ttc">TTC</button></div><span class="chip" aria-pressed="true">Estimation 1 · référence</span><span class="tag ' + (S.status >= 2 ? "ok" : "src") + '">' + esc(STATUS[S.status]) + "</span></div></div>" +
-      '<div class="est"><div class="est-main">' +
+      '<div class="est"><div class="est-main">' + subtabs + (S.estView === "mbv" ? viewMobilier(c) + altsBlock(alts.filter((x) => x.mbv)) : (
       '<div class="targets"><span class="lbl">Chiffrer dans</span>' + chips + "</div>" +
       '<div class="cmd"><label class="cmd-box" for="cmd"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M13.5 13.5L18 18" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg><input id="cmd" autocomplete="off" role="combobox" aria-expanded="' + (S.q ? "true" : "false") + '" aria-controls="cmd-res" placeholder="Tapez une prestation, une pièce ou un modèle : « peinture murs séjour »" value="' + esc(S.q) + '"><span class="kbd">Ctrl K</span></label><div id="cmd-res-wrap">' + resHtml(cmdResults()) + "</div></div>" +
       hb +
-      '<div class="drop"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h9l6 6v16H8z M17 3v6h6 M12 16h8 M12 20h6" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-2)"/></svg><div style="flex:1;min-width:0"><b>Importer un devis ou une facture</b><div class="small muted">Lecture sans IA ; chaque ligne reçoit une nature et un détail proposés, que vous vérifiez avant l\'intégration.</div></div><button type="button" class="btn" data-act="import">Importer</button></div>' +
+      '<div class="drop"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h9l6 6v16H8z M17 3v6h6 M12 16h8 M12 20h6" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-2)"/></svg><div style="flex:1;min-width:0"><b>Déposez ici un devis, une facture ou un chiffrage Excel</b><div class="small muted">PDF, XLSX, XLS, ODS, CSV ou texte · lecture sans IA ; nature et détail proposés, vérifiés avant l\'intégration.</div></div><button type="button" class="btn" data-act="import">Choisir un fichier</button></div>' +
       '<section class="card lines-card" aria-label="Lignes du chiffrage"><div class="tw"><table class="lines"><thead><tr><th>Prestation</th><th>Quantité</th><th>P.U. HT</th><th>TVA</th><th>Vét. %</th><th>Vét. €</th><th>Mode</th><th class="r">TTC</th><th class="r">Montant ' + regime + '</th><th class="r">Vét. déduite ' + regime + '</th><th class="r">kg CO2e</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="12"><div class="empty">Aucune ligne. Tapez une prestation ou appliquez un modèle.</div></td></tr>') + "</tbody></table></div></section>" +
       '<p class="small faint">Vétusté calculée sur le montant ' + regime + ' (régime fiscal du règlement). Un montant de vétusté saisi remplace le pourcentage. IP : indemnité pécuniaire · REN : réparation en nature.</p>' +
-      (alts.length ? '<section class="card alts" aria-label="Solutions plus sobres"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Solutions plus sobres</h3><span class="small muted">Même réparation, empreinte plus faible. Vous choisissez ; le chiffrage suit le prix retenu.</span></div>' +
-        alts.map((a, i) => '<div class="alt"><div style="min-width:0"><b style="font-size:13.5px">' + esc(a.title) + '</b><div class="small muted">' + esc(a.why) + '</div></div><div class="delta">' + (a.de >= 0 ? "+" : "−") + eur(Math.abs(a.de)) + '<br><span class="g">−' + kg(a.dc) + ' CO2e</span></div><button type="button" class="btn" data-act="apply-alt" data-i="' + i + '">Appliquer</button></div>').join("") + "</section>" : "") +
+      altsBlock(alts.filter((x) => !x.mbv)))) +
       "</div>" +
       '<aside class="recap" aria-label="Récapitulatif"><div class="card"><span class="lbl">Montant vétusté déduite ' + regime + '</span><span class="big">' + eur(c.T.vd) + "</span>" +
       '<div class="kv"><span class="muted">Montant ' + regime + "</span><b>" + eur(c.T.base) + '</b></div><div class="kv"><span class="muted">Vétusté</span><b>− ' + eur(c.T.obs) + "</b></div>" +
-      '<div class="kv"><span class="muted">Montant TTC</span><b>' + eur(c.T.ttc) + "</b></div>" +
+      (S.ttc ? "" : '<div class="kv"><span class="muted">Montant TTC</span><b>' + eur(c.T.ttc) + "</b></div>") +
       '<div class="kv small"><span class="muted">Part du réclamé (' + eur0(CLAIMED) + ")</span><b>" + Math.round(c.T.ttc / CLAIMED * 100) + ' %</b></div><div class="meter"><i style="width:' + ratio + '%"></i></div></div>' +
       '<div class="card"><span class="lbl">Empreinte carbone</span><span class="big" style="color:var(--carbon)">' + kg(c.T.co2) + ' <span style="font-size:16px">CO2e</span></span>' +
       byRoom.map((x) => '<div class="kv small"><span class="muted">' + esc(x.r.name) + "</span><b>" + kg(x.co2) + '</b></div><div class="meter c"><i style="width:' + Math.round(x.co2 / maxC * 100) + '%"></i></div>').join("") +
@@ -1273,10 +1373,17 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     "fix-vet": (el) => mut(() => { const l = line(+el.dataset.id); l.vet = l.scale; l.obsIn = null; }),
     "apply-alt": (el) => {
       const a = altList(calc())[+el.dataset.i]; if (!a) return;
+      if (a.to === "recond") { if (mut(() => { const l = line(a.id); Object.assign(l, { ht: r2(l.ht * 0.7), co2: r2(l.co2 * 0.35), eqBrand: "Reconditionné", eqReference: "équivalent garanti 12 mois", source: "Alternative sobre" }); S.co2Saved = r2(S.co2Saved + a.dc); })) toast("Équivalent reconditionné retenu : " + Math.round(a.dc) + " kg CO2e évités"); return; }
       if (mut(() => { const l = line(a.id), e = catById(a.to); Object.assign(l, { cat: e.id, name: e.name, n: e.n, d: e.d, unit: e.unit, link: e.link, pu: e.pu, co2: e.co2, source: "Alternative sobre", bordereau: undefined }); S.co2Saved = r2(S.co2Saved + a.dc); }))
         toast("Appliqué : " + Math.round(a.dc) + " kg CO2e évités. Pensez à recalculer la ventilation dans Indemnisation.");
     },
-    import: openImport,
+    import: () => openImport(),
+    "est-view": (el) => { S.estView = el.dataset.v; S.mbvForm = null; S.hb = null; render(); },
+    "add-mbv": () => openMbv(null),
+    "edit-mbv": (el) => openMbv(line(+el.dataset.id)),
+    "mbv-cancel": () => { S.mbvForm = null; render(); },
+    "fix-scale": (el) => mut(() => { const l = line(+el.dataset.id); l.vet = scaleObs(l.d, yearsBetween(l.purchaseDate, EVENT_DATE)); l.obsIn = null; }),
+    "mbv-ok": (el) => mut(() => { line(+el.dataset.id).toCheck = false; }),
     regime: (el) => {
       const ttc = el.dataset.v === "ttc"; if (ttc === S.ttc) return;
       const had = Object.keys(S.comps).some((k) => k.indexOf(RO + "_") === 0);
@@ -1341,6 +1448,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     if (k === "only-mine") { S.onlyMine = el.checked; render(); return; }
   });
   document.addEventListener("submit", (e) => {
+    if (e.target.id === "mbv-form") { e.preventDefault(); submitMbv(); return; }
     if (e.target.id === "ben-form") {
       e.preventDefault();
       const type = document.getElementById("bf-type").value, name = document.getElementById("bf-name").value.trim(), cov = document.getElementById("bf-cov").value, err = document.getElementById("bf-err");
@@ -1361,6 +1469,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       toast("Ligne hors bordereau ajoutée : " + n + " › " + d);
   });
   document.addEventListener("input", (e) => {
+    if (e.target.id && e.target.id.indexOf("mf-") === 0) { mfUpdate(e.target.id.slice(3)); return; }
     if (e.target.id !== "cmd") return;
     S.q = e.target.value; S.cmdIdx = 0;
     document.getElementById("cmd-res-wrap").innerHTML = resHtml(cmdResults());
@@ -1474,59 +1583,382 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     requestAnimationFrame(step);
   }
 
-  // ================= import de devis (lecture sans IA) =================
-  const SAMPLE = "RÉNO SERVICES SARL · Devis D-2026-0188 du 14/11/2026\nDésignation                                    Qté   U     P.U. HT    Total HT\nDépose et évacuation faïence murale            2,4   m²     18,50       44,40\nFaïence murale 20x20, fourniture et pose       2,4   m²     72,00      172,80\nRemplacement prise étanche                     2     U      52,00      104,00\nRecherche de fuite par caméra thermique        1     FFT   340,00      340,00\nTotal HT                                                              661,20\nTVA 10 %                                                               66,12\nTotal TTC                                                             727,32";
-  function parseQuote(text) {
-    const items = [], re = /^(.+?)\s{2,}(\d+(?:[.,]\d+)?)\s+(m²|m2|ml|m|U|u|FFT|fft|forfait|j)\s+(\d[\d\s]*[.,]\d{2})\s+(\d[\d\s]*[.,]\d{2})\s*$/;
-    let total = null;
-    text.split(/\r?\n/).forEach((ln) => {
-      const t = ln.trim(); if (!t) return;
-      const tm = t.match(/^total\s*ht\D*?(\d[\d\s]*[.,]\d{2})\s*$/i); if (tm) { total = num(tm[1]); return; }
-      const m = t.match(re); if (!m) return;
-      const g = guess(m[1]), u = m[3] === "m2" ? "m²" : /^fft$/i.test(m[3]) ? "FFT" : m[3];
-      items.push({ on: true, name: m[1].trim(), qty: num(m[2]), unit: u, pu: num(m[4]), total: num(m[5]), n: g ? g.n : "", d: g ? g.d : "", kw: g ? g.kw : "" });
-    });
-    return { items, total };
+  // ================= mobilier et biens volés =================
+  const MBV_ICON = {
+    "Mobilier": '<path d="M4 11V8a2 2 0 012-2h12a2 2 0 012 2v3M3 11h18v5H3zM5 16v2M19 16v2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>',
+    "Électroménager": '<rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 6h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    "Hi-fi - Vidéo - Informatique": '<rect x="3" y="4" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 20h6M12 16v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+    "Vêtements et linge": '<path d="M8 4l-4 3 2 4 2-1v10h8V10l2 1 2-4-4-3c-1 2-2.5 3-4 3S9 6 8 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+    "Objets de valeur": '<path d="M6 4h12l3 5-9 11L3 9z M3 9h18M9 4l3 16M15 4l-3 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+    "Matériel professionnel": '<rect x="3" y="7" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M9 7V5h6v2M3 12h18" fill="none" stroke="currentColor" stroke-width="1.7"/>'
+  };
+  const mbvIcon = (cat, size) => '<svg width="' + (size || 22) + '" height="' + (size || 22) + '" viewBox="0 0 24 24" aria-hidden="true">' + (MBV_ICON[cat] || MBV_ICON["Mobilier"]) + "</svg>";
+  /** Années entières révolues entre deux dates AAAA-MM-JJ (yearsBetween) */
+  function yearsBetween(from, to) {
+    if (!from || !to) return null; const a = new Date(from), b = new Date(to);
+    if (isNaN(a) || isNaN(b) || b < a) return null;
+    let y = b.getFullYear() - a.getFullYear(); if (b.getMonth() < a.getMonth() || (b.getMonth() === a.getMonth() && b.getDate() < a.getDate())) y--; return y;
   }
-  function openImport() { if (isReadOnly(S.status)) { toast("Estimation en lecture seule"); return; } S.imp = { text: SAMPLE, res: null }; drawImport(); const d = document.getElementById("dlg"); if (!d.open) d.showModal(); }
+  /** Barème : taux annuel après une franchise en années, plafonné (scaleObsolescence) */
+  function scaleObs(cat, age) { const r = MBV_CATS[cat]; if (!r || r.rate == null || age == null) return null; return r1(Math.min(r.max == null ? 100 : r.max, Math.max(0, age - r.fr) * r.rate)); }
+  const ruleText = (cat) => { const r = MBV_CATS[cat]; return !r || r.rate == null ? "Pas de barème pour cette catégorie : vétusté à saisir" : "Barème " + cat.toLowerCase() + " : " + fr(r.rate, 0) + " % par an" + (r.fr ? " après " + r.fr + " an" + (r.fr > 1 ? "s" : "") : "") + ", plafonné à " + r.max + " %"; };
+  function gauge(pct) {
+    const C = 2 * Math.PI * 22, p = Math.max(0, Math.min(100, pct || 0));
+    return '<svg class="gauge" width="58" height="58" viewBox="0 0 58 58" role="img" aria-label="Vétusté ' + fr(p, 0) + ' %"><circle cx="29" cy="29" r="22" fill="none" stroke="var(--sunken)" stroke-width="6"/><circle cx="29" cy="29" r="22" fill="none" stroke="var(--tape)" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + (C * p / 100).toFixed(1) + " " + C.toFixed(1) + '" transform="rotate(-90 29 29)"/><text x="29" y="33" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="JetBrains Mono, monospace">' + fr(p, 0) + "%</text></svg>";
+  }
+  function mbvForm() {
+    const f = S.mbvForm, opts = (o, v, lab) => o.map((x) => '<option value="' + esc(x) + '"' + (x === v ? " selected" : "") + ">" + esc(lab ? lab(x) : x) + "</option>").join("");
+    return '<form class="card hb mbv-form" id="mbv-form" aria-label="Bien mobilier">' +
+      '<div class="full" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="mbv-ic">' + mbvIcon(f.cat) + '</span><h3>' + (f.id ? "Modifier le bien" : "Ajouter un bien mobilier") + '</h3><span class="small muted">règlement ' + (S.ttc ? "TTC" : "HT") + " · indemnité pécuniaire</span></div>" +
+      '<div class="field wide"><label for="mf-cat">Catégorie *</label><select class="inp" id="mf-cat"><option value="">Choisir…</option>' + opts(Object.keys(MBV_CATS), f.cat) + "</select></div>" +
+      '<div class="field wide"><label for="mf-name">Mobilier ou bien *</label><input class="inp" id="mf-name" value="' + esc(f.name) + '" placeholder="Lave-linge 8 kg"></div>' +
+      '<div class="field wide"><label for="mf-status">État du bien *</label><select class="inp" id="mf-status"><option value="">Choisir…</option>' + opts(GOOD_STATUS, f.status) + "</select></div>" +
+      '<div class="field wide"><label for="mf-proof">Justificatif *</label><select class="inp" id="mf-proof"><option value="">Choisir…</option>' + opts(PROOFS, f.proof) + "</select></div>" +
+      '<div class="field"><label for="mf-brand">Marque</label><input class="inp" id="mf-brand" value="' + esc(f.brand) + '"></div>' +
+      '<div class="field"><label for="mf-ref">Référence</label><input class="inp" id="mf-ref" value="' + esc(f.ref) + '"></div>' +
+      '<div class="field"><label for="mf-date">Date d\'achat</label><input class="inp" type="date" id="mf-date" value="' + esc(f.date) + '"></div>' +
+      '<div class="field"><label for="mf-room">Pièce</label><select class="inp" id="mf-room">' + S.rooms.map((r) => '<option value="' + r.id + '"' + (r.id === f.room ? " selected" : "") + ">" + esc(r.name) + "</option>").join("") + "</select></div>" +
+      '<div class="field"><label for="mf-claimed">Montant réclamé €</label><input class="inp num" id="mf-claimed" inputmode="decimal" value="' + esc(f.claimed) + '"></div>' +
+      '<div class="field"><label for="mf-vat">TVA</label><select class="inp" id="mf-vat">' + vatOpts(f.vat) + "</select></div>" +
+      '<div class="field"><label for="mf-ht">Valeur à neuf HT € *</label><input class="inp num" id="mf-ht" inputmode="decimal" value="' + esc(f.ht) + '"></div>' +
+      '<div class="field"><label for="mf-ttc">Valeur à neuf TTC €</label><input class="inp num" id="mf-ttc" inputmode="decimal" value="' + esc(f.ttc) + '" title="Saisir le TTC recalcule le HT"></div>' +
+      '<div class="field"><label for="mf-pct">Vétusté %</label><input class="inp num" id="mf-pct" inputmode="decimal" value="' + esc(f.pct) + '"></div>' +
+      '<div class="field"><label for="mf-amt">Vétusté €</label><input class="inp num" id="mf-amt" inputmode="decimal" value="' + esc(f.amt) + '" title="Un montant saisi remplace le pourcentage"></div>' +
+      '<div class="field"><label for="mf-eqb">Marque équivalente</label><input class="inp" id="mf-eqb" value="' + esc(f.eqb) + '"></div>' +
+      '<div class="field"><label for="mf-eqr">Référence équivalente</label><input class="inp" id="mf-eqr" value="' + esc(f.eqr) + '"></div>' +
+      '<p class="full small muted" id="mf-bar"></p><div class="full mbv-pv" id="mf-pv"></div>' +
+      '<div class="full" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn" data-act="mbv-cancel">Annuler</button><button type="submit" class="btn primary">' + (f.id ? "Enregistrer" : "Ajouter le bien") + '</button></div><p class="full small" id="mf-err" style="color:var(--bad)" hidden></p></form>';
+  }
+  const mfVal = (id) => { const el = document.getElementById("mf-" + id); return el ? el.value : ""; };
+  const mfNum = (id) => { const t = mfVal(id).trim(); return t === "" ? null : num(t); };
+  /** Saisie du bien : barème à la date d'achat, TTC → HT, vétusté % ou € (formulaire Edit MBV) */
+  function mfUpdate(changed) {
+    const set = (id, v) => { const el = document.getElementById("mf-" + id); if (el) el.value = v; };
+    const cat = mfVal("cat"), age = yearsBetween(mfVal("date"), EVENT_DATE), vat = numv(parseFloat(mfVal("vat")));
+    const bar = document.getElementById("mf-bar"); if (bar) bar.textContent = cat ? ruleText(cat) + (age != null ? " · âge au jour du sinistre : " + age + " an" + (age > 1 ? "s" : "") : "") : "";
+    if ((changed === "date" || changed === "cat") && cat && age != null) { const s = scaleObs(cat, age); if (s != null) { set("pct", frp(s)); set("amt", ""); } }
+    if (changed === "ttc" && mfNum("ttc") != null) set("ht", fr(numv(mfNum("ttc")) / (1 + vat / 100)).replace(/\s| /g, ""));
+    else if ((changed === "ht" || changed === "vat") && mfNum("ht") != null) set("ttc", fr(r2(numv(mfNum("ht")) * (1 + vat / 100))).replace(/\s| /g, ""));
+    if (changed === "amt" && mfNum("amt") != null) set("pct", "");
+    if (changed === "pct") set("amt", "");
+    const a = amt({ kind: "mbv", ht: numv(mfNum("ht")), vat, vet: numv(mfNum("pct")), obsIn: mfNum("amt"), co2: 0 });
+    const pv = document.getElementById("mf-pv");
+    if (pv) pv.innerHTML = [["Valeur à neuf HT", a.priceNoVAT], ["Valeur à neuf TTC", a.priceWithVAT], ["Vétusté" + (blank(mfNum("amt")) ? " (" + fr(a.obsPct, 1).replace(",0", "") + " %)" : ""), a.obsAmount], ["Vétusté déduite " + (S.ttc ? "TTC" : "HT"), a.priceWithObs]].map((x, i) => '<div class="' + (i === 3 ? "hl" : "") + '"><span>' + x[0] + "</span><b>" + eur(x[1]) + "</b></div>").join("") + (a.obsAmount > a.base ? '<div class="bad"><span>La vétusté dépasse la valeur du bien</span></div>' : "");
+  }
+  function openMbv(l) {
+    const tr = room(S.estRoom) || S.rooms[0];
+    S.mbvForm = l ? { id: l.id, cat: l.d, name: l.name, status: l.goodStatus, proof: l.proof, brand: l.brand, ref: l.reference, date: l.purchaseDate, room: l.room, claimed: frx(l.claimedAmount).replace(/\s| /g, ""), vat: l.vat, ht: frx(l.ht).replace(/\s| /g, ""), ttc: frx(r2(l.ht * (1 + l.vat / 100))).replace(/\s| /g, ""), pct: blank(l.obsIn) ? frp(l.vet) : "", amt: blank(l.obsIn) ? "" : frx(l.obsIn).replace(/\s| /g, ""), eqb: l.eqBrand, eqr: l.eqReference }
+      : { cat: "", name: "", status: "", proof: "", brand: "", ref: "", date: "", room: tr ? tr.id : null, claimed: "", vat: 20, ht: "", ttc: "", pct: "", amt: "", eqb: "", eqr: "" };
+    S.estView = "mbv"; render(); mfUpdate(null); const i = document.getElementById(l ? "mf-ht" : "mf-cat"); if (i) i.focus();
+  }
+  function submitMbv() {
+    const err = document.getElementById("mf-err"), f = S.mbvForm;
+    const cat = mfVal("cat"), name = mfVal("name").trim(), status = mfVal("status"), proof = mfVal("proof"), ht = mfNum("ht"), vat = parseFloat(mfVal("vat")), pct = mfNum("pct"), amtIn = mfNum("amt");
+    let msg = !cat ? "Choisissez la catégorie." : !name ? "Écrivez le bien." : !status ? "Choisissez l'état du bien." : !proof ? "Choisissez le justificatif." : !(ht >= 0) ? "Indiquez la valeur à neuf HT." : pct != null && !(pct >= 0 && pct <= 100) ? "Vétusté entre 0 et 100 %." : "";
+    const a = amt({ kind: "mbv", ht: numv(ht), vat, vet: numv(pct), obsIn: amtIn, co2: 0 });
+    if (!msg && a.obsAmount > a.base) msg = "La vétusté ne peut pas dépasser la valeur du bien";
+    if (msg) { err.hidden = false; err.textContent = msg; return; }
+    const vals = { kind: "mbv", n: MBV, d: cat, name, unit: "U", goodStatus: status, proof, brand: mfVal("brand"), reference: mfVal("ref"), purchaseDate: mfVal("date"), room: mfVal("room"), claimedAmount: mfNum("claimed"), eqBrand: mfVal("eqb"), eqReference: mfVal("eqr"), ht: r2(ht), vat, vet: blank(amtIn) ? r1(numv(pct)) : 0, obsIn: amtIn, mode: "IP", beneficiaryName: "", co2: MBV_CATS[cat].co2, toCheck: false };
+    S.mbvForm = null;
+    if (mut(() => {
+      if (f.id) { const l = line(f.id), moved = l.d !== cat; Object.assign(l, vals); if (moved) l.lineIndex = nextLineIndex(S.lines.filter((x) => x.id !== l.id), MBV, cat); }
+      else S.lines.push(Object.assign({ id: S.nextId++, lineIndex: nextLineIndex(S.lines, MBV, cat), source: "Saisie" }, vals));
+    })) toast((f.id ? "Bien modifié : " : "Bien ajouté : ") + name);
+  }
+  function viewMobilier(c) {
+    const items = c.L.filter((l) => l.kind === "mbv").sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
+    const stTone = (s) => (s === "Bien volé" ? "bad" : s === "Réparable" ? "ok" : "warn");
+    const cards = items.map((l) => {
+      const age = yearsBetween(l.purchaseDate, EVENT_DATE), fl = flags(l), rm = room(l.room);
+      return '<article class="card mbv-card' + (S.flash.indexOf(l.id) >= 0 ? " flash" : "") + '"><div class="mbv-top"><span class="mbv-ic">' + mbvIcon(l.d) + '</span><div style="min-width:0;flex:1"><div class="small muted">' + esc(l.d) + ' <span class="mono faint">· ' + l.lineIndex + '</span></div><div class="mbv-name">' + esc(l.name) + "</div></div>" +
+        '<button type="button" class="x" data-act="del-line" data-id="' + l.id + '" aria-label="Supprimer le bien">×</button></div>' +
+        '<div class="mbv-meta"><span class="tag ' + stTone(l.goodStatus) + '">' + esc(l.goodStatus) + '</span><span class="tag src">' + esc(l.proof) + "</span>" + (rm ? '<span class="tag plan">' + esc(rm.name) + "</span>" : "") + "</div>" +
+        '<div class="mbv-val">' + gauge(l.obsPct || (l.base ? l.obsAmount / l.base * 100 : 0)) + '<div style="flex:1;min-width:0"><div class="kv small"><span class="muted">Valeur à neuf ' + (S.ttc ? "TTC" : "HT") + '</span><b>' + eur(l.base) + '</b></div><div class="kv small"><span class="muted">Vétusté</span><b>− ' + eur(l.obsAmount) + '</b></div><div class="kv"><span>Vétusté déduite</span><b class="mbv-vd">' + eur(l.priceWithObs) + "</b></div></div></div>" +
+        '<div class="small muted">' + [l.brand, l.reference].filter(Boolean).map(esc).join(" · ") + (l.purchaseDate ? (l.brand || l.reference ? " · " : "") + "acheté en " + l.purchaseDate.slice(5, 7) + "/" + l.purchaseDate.slice(0, 4) + (age != null ? " (" + age + " an" + (age > 1 ? "s" : "") + ")" : "") : "") + (l.eqBrand ? " · équivalent : " + esc([l.eqBrand, l.eqReference].filter(Boolean).join(" ")) : "") + "</div>" +
+        (l.claimedAmount ? '<div class="kv small"><span class="muted">Réclamé</span><b>' + eur(l.claimedAmount) + "</b></div>" : "") +
+        fl.map((f) => '<div class="flag-in ' + f.tone + '"><span>' + esc(f.text) + "</span>" + (f.fix ? '<button type="button" class="btn" data-act="' + f.act + '" data-id="' + l.id + '">' + esc(f.fix) + "</button>" : "") + "</div>").join("") +
+        '<div class="mbv-foot"><span class="tag nat">TypeBien ' + esc(MBV_CATS[l.d] ? MBV_CATS[l.d].type : "?") + '</span><span class="tag co2">' + kg(l.co2) + ' CO2e</span><button type="button" class="btn ghost" style="margin-left:auto" data-act="edit-mbv" data-id="' + l.id + '">Modifier</button></div></article>';
+    }).join("");
+    return (S.mbvForm ? mbvForm() : "") +
+      (items.length ? '<div class="mbv-grid">' + cards + "</div>" : '<div class="empty">Aucun bien mobilier. Ajoutez-en un, ou importez un chiffrage Excel qui en contient.</div>') +
+      '<p class="small faint">Valeur à neuf saisie HT ; vétusté selon le barème de la catégorie à la date du sinistre (02/10/2026), modifiable, ou montant saisi. Correspondance des catégories avec les TypeBien Sinapps proposée, à valider. Barèmes et facteurs carbone fictifs.</p>';
+  }
+
+  // ================= import : devis, facture, chiffrage Excel (lecture sans IA) =================
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  const XLSXJS = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  const loadScript = (src) => new Promise((ok, ko) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => ko(new Error("load")); document.head.appendChild(el); });
+  async function pdfLib() { if (!window.pdfjsLib) { await loadScript(PDFJS + "pdf.min.js"); await loadScript(PDFJS + "pdf.worker.min.js"); window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; } return window.pdfjsLib; }
+  async function xlsxLib() { if (!window.XLSX) await loadScript(XLSXJS); return window.XLSX; }
+  const fileText = (f) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = ko; r.readAsText(f); });
+  const fileBytes = (f) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(new Uint8Array(r.result)); r.onerror = ko; r.readAsArrayBuffer(f); });
+  const isPdf = (f) => /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name);
+  const isSheet = (f) => /\.(xlsx|xlsm|xls|ods)$/i.test(f.name) || /spreadsheet|excel/i.test(f.type);
+  const isCsv = (f) => /\.csv$/i.test(f.name) || /csv/i.test(f.type);
+
+  // lecture des lignes chiffrées d'un texte (mêmes règles que l'import du prototype et de l'application Angular)
+  const QX = (function () {
+    const VAT_RATES = [0, 2.1, 5.5, 8.5, 10, 20];
+    const UNITS = [[/^(m²|m2|m\^2|mq)$/i, "m²"], [/^(m3|m³)$/i, "m3"], [/^(ml|m|mètres?|metres?|ml\.)$/i, "ml"], [/^(h|hr|hrs|heures?)$/i, "H"], [/^(f|ff|fft|forf|forfait|forfaits|ft)$/i, "FFT"], [/^(u|un|unité|unités|unite|pce|pces|pièce|pièces|piece|ens|ensemble|lot|j|jour|jours)\.?$/i, "U"]];
+    const SKIP = /^(sous[- ]?total|total|totaux|t\.?v\.?a\b|net\s+[àa]\s+payer|acompte|montant|base\s+h\.?t|remise|escompte|page\b|siret|siren|iban|bic|t[ée]l\b|t[ée]l[ée]phone|fax|capital|r\.?c\.?s|ape\b|naf\b|n°\s*tva|date\b|devis\b|facture\b|validit[ée]|conditions|r[èe]glement|[ée]ch[ée]ance|bon\s+pour|signature|report\b|d[ée]signation|description|libell[ée]|r[ée]f[ée]rence\b|quantit[ée]|qt[ée]\b|code\s+client|client\b|adresse)/i;
+    const near = (a, b) => Math.abs(a - b) <= Math.max(0.02, Math.abs(b) * 0.005);
+    const rr = (x) => Math.round(x * 100 + 1e-9) / 100;
+    function toNumber(s) {
+      if (typeof s === "number") return isFinite(s) ? s : null;
+      let t = String(s).replace(/[\s  €]/g, "");
+      if (t.includes(",") && t.includes(".")) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, "");
+      else if (t.includes(",")) t = t.replace(",", ".");
+      else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
+      const v = parseFloat(t); return isFinite(v) ? v : null;
+    }
+    const NUM_GROUPED = /-?\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?|-?\d+(?:[.,]\d+)?/g, NUM_PLAIN = /-?\d+(?:[.,]\d+)?/g;
+    const isNumTok = (t) => /^-?\d+(?:[.,]\d+)*$/.test(t);
+    const unitOf = (t) => { const u = UNITS.find(([re]) => re.test(t)); return u ? u[1] : null; };
+    const isFiller = (t) => /^(€|eur|euros?|%|x|×|\*|=|:|ht|h\.t\.?|ttc|t\.t\.c\.?|-)$/i.test(t);
+    function findTriple(nums) { for (let k = nums.length - 1; k >= 2; k--) for (let j = k - 1; j >= 1; j--) for (let i = j - 1; i >= 0; i--) if (nums[i] > 0 && nums[j] >= 0 && near(nums[i] * nums[j], nums[k])) return { i, j, k }; return null; }
+    function parseLine(raw) {
+      let s = raw.replace(/ | /g, " ").replace(/^[\s\-•*·]+/, "").trim(); if (!s) return null;
+      s = s.replace(/(\d)(m²|m2|m3|m³|ml|€|%)(?=\s|$)/gi, "$1 $2");
+      const cells = s.split(/\t+| {2,}/).map((c) => c.trim()).filter(Boolean), toks = cells.join(" \t ").split(/ +/).filter(Boolean);
+      let cut = toks.length;
+      while (cut > 0) { const t = toks[cut - 1]; if (t === "\t" || isNumTok(t) || isFiller(t) || (unitOf(t) && cut - 1 > 0) || /^\d+(?:[.,]\d+)?%$/.test(t)) cut--; else break; }
+      while (cut < toks.length && (toks[cut] === "\t" || isFiller(toks[cut]))) cut++;
+      const name = toks.slice(0, cut).filter((t) => t !== "\t").join(" ").replace(/[\s:;,.\-]+$/, "").trim(), tailToks = toks.slice(cut);
+      if (!tailToks.some(isNumTok) && !tailToks.some((t) => /\d%$/.test(t))) return { text: s };
+      let unit = null, vat = null; const hasCurrency = tailToks.some((t) => /^(€|eur|euros?)$/i.test(t)), kept = [];
+      tailToks.forEach((t) => { const pm = t.match(/^(\d+(?:[.,]\d+)?)%$/); if (pm) { vat = toNumber(pm[1]); return; } if (t === "%" && kept.length && isNumTok(kept[kept.length - 1])) { vat = toNumber(kept.pop()); return; } const u = !isNumTok(t) && unitOf(t); if (u) { if (!unit) unit = u; kept.push("\t"); return; } if (isFiller(t)) { kept.push("\t"); return; } kept.push(t); });
+      const tail = kept.join(" "), hasDecimals = /\d[.,]\d{2}(?!\d)/.test(tail);
+      const read = (re) => tail.split("\t").flatMap((cell) => (cell.match(re) || []).map(toNumber)).filter((x) => x !== null);
+      let nums, tri;
+      if (cells.length > 1) { nums = read(NUM_GROUPED); tri = findTriple(nums); }
+      else { const g = read(NUM_GROUPED), tg = findTriple(g), pl = read(NUM_PLAIN), tp = findTriple(pl), useG = (g.length === 2 && near(g[0], g[1])) || (tg && tp ? g[tg.k] > pl[tp.k] : !tp); if (useG) { nums = g; tri = tg; } else { nums = pl; tri = tp; } }
+      let qty, unitPrice, total, check = false;
+      if (tri) { qty = nums[tri.i]; unitPrice = nums[tri.j]; total = nums[tri.k]; if (vat === null) { const rest = nums.filter((_, x) => x !== tri.i && x !== tri.j && x !== tri.k).find((x) => VAT_RATES.includes(x) && x > 0); if (rest !== undefined) vat = rest; } }
+      else if (nums.length === 1) { if (!hasDecimals && !hasCurrency && !unit) return { text: s }; qty = 1; unitPrice = nums[0]; total = nums[0]; }
+      else if (nums.length === 2) { if (!hasDecimals && !hasCurrency) return { text: s }; if (near(nums[0], nums[1])) { qty = 1; unitPrice = nums[1]; total = nums[1]; } else { qty = nums[0]; unitPrice = nums[1]; total = rr(qty * unitPrice); check = true; } }
+      else { if (!hasDecimals && !hasCurrency) return { text: s }; total = nums[nums.length - 1]; qty = 1; unitPrice = total; check = true; }
+      if (!(unitPrice > 0) && !(total > 0)) return { text: s };
+      return { name, qty, unit, unitPrice, vat, total: rr(total), check };
+    }
+    function lastAmount(line) { const m = line.replace(/ | /g, " ").match(NUM_GROUPED); if (!m) return null; const dec = m.filter((x) => /[.,]\d{2}$/.test(x)); return toNumber((dec.length ? dec : m).pop()); }
+    function parseQuoteText(text) {
+      const lines = String(text || "").replace(/;/g, "\t").split(/\r?\n/).map((l) => l.replace(/\s+$/, ""));
+      const out = { kind: null, supplier: null, number: null, totals: { ht: null, ttc: null }, lines: [] }; let pending = null;
+      for (const raw of lines) {
+        const s = raw.trim(); if (!s) { pending = null; continue; }
+        if (!out.supplier && /[A-Za-zÀ-ÿ]{3}/.test(s) && !SKIP.test(s)) out.supplier = s.split(/\t| {2,}/)[0].trim().slice(0, 60);
+        if (!out.kind) { const k = s.match(/\b(facture|devis)\b/i); if (k) out.kind = k[1].toLowerCase(); }
+        if (!out.number) { const n = s.match(/\b(?:facture|devis)\s*(?:n[°ºo]\.?|num[ée]ro|#)?\s*[:#]?\s*([A-Z0-9][\w\-\/]*\d[\w\-\/]*)/i); if (n) out.number = n[1]; }
+        if (/total\s*(g[ée]n[ée]ral\s*)?t\.?\s*t\.?\s*c|net\s+[àa]\s+payer|montant\s*t\.?t\.?c/i.test(s)) { out.totals.ttc = lastAmount(s); pending = null; continue; }
+        if (/(total|montant|base)\s*(g[ée]n[ée]ral\s*)?h\.?\s*t/i.test(s) && !/sous/i.test(s)) { out.totals.ht = lastAmount(s); pending = null; continue; }
+        if (/^(total\s*)?(montant\s*)?t\.?v\.?a/i.test(s)) { pending = null; continue; }
+        if (SKIP.test(s)) { pending = null; continue; }
+        const p = parseLine(raw); if (!p) continue;
+        if (p.text !== undefined) { if (/[A-Za-zÀ-ÿ]{3}/.test(p.text)) pending = p.text.replace(/\t/g, " "); continue; }
+        if (p.name.replace(/[^A-Za-zÀ-ÿ]/g, "").length < 3) { if (!pending) continue; p.name = (pending + " " + p.name).trim(); }
+        pending = null; out.lines.push(p);
+      }
+      return out;
+    }
+    function itemsToText(items) {
+      const rows = [];
+      for (const it of items) { if (!it.str || !it.str.trim()) continue; const row = rows.find((r) => Math.abs(r.y - it.y) <= Math.max(2, (it.h || 8) * 0.35)); if (row) row.items.push(it); else rows.push({ y: it.y, items: [it] }); }
+      rows.sort((a, b) => b.y - a.y);
+      return rows.map((r) => { r.items.sort((a, b) => a.x - b.x); let line = "", end = null; for (const it of r.items) { if (end !== null) { const gap = it.x - end; line += gap > Math.max(7, (it.h || 8) * 0.9) ? "\t" : gap > 0.8 ? " " : ""; } line += it.str.trim(); end = it.x + (it.w || 0); } return line; }).join("\n");
+    }
+    return { parseQuoteText, itemsToText, toNumber, unitOf, SKIP };
+  })();
+
+  // colonnes d'un chiffrage Excel
+  const COLS = [
+    { k: "room", label: "Pièce", re: /^(piece|pieces|local|localisation|lieu)$/ },
+    { k: "nature", label: "Nature", re: /^nature/ },
+    { k: "detail", label: "Détail", re: /(detail|sous.?nature|categorie)/ },
+    { k: "name", label: "Désignation", re: /(designation|libelle|description|prestation|ouvrage|article|intitule|^bien|travaux)/ },
+    { k: "qty", label: "Quantité", re: /^(qte|qt|quantite|nombre|nb)\b/ },
+    { k: "unit", label: "Unité", re: /^(u|un|unite|unites|um|u\.)$/ },
+    { k: "pu", label: "Prix unitaire HT", re: /(p\.?\s?u\b|prix unit|unitaire)/ },
+    { k: "total", label: "Total HT", re: /(total|montant)/ },
+    { k: "vat", label: "TVA %", re: /^(tva|taux tva|t\.v\.a)/ },
+    { k: "vet", label: "Vétusté %", re: /vetuste/ }
+  ];
+  function detectHeader(rows) {
+    let best = null;
+    rows.slice(0, 20).forEach((r, i) => {
+      const cells = r.map((c) => norm(String(c)).trim()), map = {};
+      COLS.forEach((col) => { const j = cells.findIndex((c, x) => c && col.re.test(c) && !Object.values(map).includes(x)); if (j >= 0) map[col.k] = j; });
+      const score = Object.keys(map).length + (map.name != null ? 2 : 0);
+      if (map.name != null && (map.pu != null || map.total != null) && (!best || score > best.score)) best = { row: i, map, score };
+    });
+    return best;
+  }
+  function matchNature(nat, det, name) {
+    const nN = norm(nat || ""), nD = norm(det || "");
+    if (/mobil|bien/.test(nN) || Object.keys(MBV_CATS).some((c) => norm(c) === nD)) { const cat = Object.keys(MBV_CATS).find((c) => norm(c) === nD) || (guess(name) || {}).d; return { n: MBV, d: MBV_CATS[cat] ? cat : "", kw: "" }; }
+    const n = Object.keys(NATURES).find((x) => norm(x) === nN || (nN && norm(x).indexOf(nN) === 0));
+    const d = n && NATURES[n].find((x) => norm(x) === nD || (nD && norm(x).indexOf(nD) === 0));
+    if (n && d) return { n, d, kw: "", fromDoc: true };
+    const g = guess((det || "") + " " + (name || ""));
+    return g ? { n: g.n, d: g.d, kw: g.kw } : { n: n || "", d: "", kw: "" };
+  }
+  function rowsToItems(rows, hdr) {
+    const m = hdr.map, cell = (r, k) => (m[k] == null ? "" : r[m[k]]), items = [];
+    rows.slice(hdr.row + 1).forEach((r) => {
+      const name = String(cell(r, "name") || "").trim(); if (!name || QX.SKIP.test(norm(name)) || /^(total|sous.?total|tva)/i.test(norm(name))) return;
+      let qty = QX.toNumber(cell(r, "qty")), pu = QX.toNumber(cell(r, "pu")), total = QX.toNumber(cell(r, "total"));
+      if (qty == null) qty = 1;
+      if (pu == null && total != null) pu = r2(total / (qty || 1));
+      if (pu == null) return;
+      if (total == null) total = r2(qty * pu);
+      const vatRaw = QX.toNumber(cell(r, "vat")), vat = vatRaw == null ? null : vatRaw < 1 && vatRaw > 0 ? r2(vatRaw * 100) : vatRaw;
+      const vetRaw = QX.toNumber(cell(r, "vet")), vet = vetRaw == null ? null : vetRaw <= 1 && vetRaw > 0 ? r2(vetRaw * 100) : vetRaw;
+      const nat = matchNature(cell(r, "nature"), cell(r, "detail"), name), rn = norm(String(cell(r, "room") || "")), rm = rn ? S.rooms.find((x) => norm(x.name) === rn || norm(x.name).indexOf(rn) === 0) : null;
+      items.push({ on: true, name, qty, unit: QX.unitOf(String(cell(r, "unit") || "")) || (nat.n === MBV ? "U" : String(cell(r, "unit") || "U") || "U"), pu, total, vat, vet, n: nat.n, d: nat.d, kw: nat.kw, fromDoc: !!nat.fromDoc, room: rm ? rm.id : S.estRoom });
+    });
+    return items;
+  }
+  function textToItems(text) {
+    const q = QX.parseQuoteText(text);
+    const items = q.lines.map((l) => { const g = guess(l.name); return { on: true, name: l.name, qty: l.qty || 1, unit: l.unit || "U", pu: l.unitPrice, total: l.total, vat: l.vat, vet: null, n: g ? g.n : "", d: g ? g.d : "", kw: g ? g.kw : "", room: S.estRoom, check: l.check }; });
+    return { items, totalHT: q.totals.ht, label: [q.kind ? q.kind.charAt(0).toUpperCase() + q.kind.slice(1) : "Document", q.number, q.supplier].filter(Boolean).join(" · ") };
+  }
+  function sampleSheet() {
+    return [["Chiffrage Réno Services · dossier 27FP260071606A01"], [],
+      ["Pièce", "Nature", "Détail", "Désignation", "Qté", "Unité", "PU HT", "TVA", "Vétusté %", "Total HT"],
+      ["Séjour", "Embellissement", "Peinture / P. peints", "Impression et peinture plafond", 21.32, "m²", 23.4, 10, 20, 498.89],
+      ["Séjour", "Embellissement", "Revêtements de sol", "Ragréage avant pose", 21.32, "m²", 14.2, 10, 0, 302.74],
+      ["Cuisine", "Immobilier", "Électricité", "Remplacement prise étanche", 2, "U", 52, 10, 0, 104],
+      ["Cuisine", "Mobilier et biens volés", "Électroménager", "Réfrigérateur combiné 300 L", 1, "U", 540, 20, 30, 540],
+      ["Séjour", "Mobilier et biens volés", "Mobilier", "Tapis laine 200 x 300", 1, "U", 389, 20, 40, 389],
+      [], ["", "", "", "Total HT", "", "", "", "", "", 1834.63]];
+  }
+  async function openImport(file) {
+    if (isReadOnly(S.status)) { toast("Estimation en lecture seule"); return; }
+    S.imp = { step: "source", busy: null, err: null };
+    drawImport(); const d = document.getElementById("dlg"); if (!d.open) d.showModal();
+    if (file) await readFile(file);
+  }
+  async function readFile(file) {
+    const im = S.imp; im.err = null; im.fileName = file.name;
+    try {
+      if (isPdf(file)) {
+        im.busy = "Lecture du PDF…"; drawImport();
+        const lib = await pdfLib(), pdf = await lib.getDocument({ data: await fileBytes(file) }).promise, pages = [];
+        for (let i = 1; i <= pdf.numPages; i++) { const tc = await (await pdf.getPage(i)).getTextContent(); pages.push(QX.itemsToText(tc.items.map((it) => ({ str: it.str, x: it.transform[4], y: it.transform[5], w: it.width, h: it.height || Math.abs(it.transform[3]) })))); }
+        const text = pages.join("\n").trim();
+        if (!text) { im.busy = null; im.err = "Ce PDF ne contient pas de texte (document scanné). Collez le texte ou importez l'export Excel du devis."; drawImport(); return; }
+        fromText(text, file.name);
+      } else if (isSheet(file) || isCsv(file)) {
+        im.busy = "Lecture du classeur…"; drawImport();
+        const X = await xlsxLib(); fromWorkbook(X.read(await fileBytes(file), { type: "array" }), file.name);
+      } else fromText(await fileText(file), file.name);
+    } catch (e) { im.busy = null; im.err = e && e.message === "load" ? "La bibliothèque de lecture n'a pas pu être chargée (connexion requise). Collez le texte du document à la place." : "Ce fichier n'a pas pu être lu. Vérifiez qu'il s'agit d'un PDF, d'un classeur Excel ou d'un fichier texte."; drawImport(); }
+  }
+  function fromText(text, label) { const r = textToItems(text); Object.assign(S.imp, { busy: null, kind: "text", items: r.items, totalHT: r.totalHT, label: label ? label + (r.label ? " · " + r.label : "") : r.label || "Texte collé", step: "review", source: label || r.label || "Document importé" }); drawImport(); }
+  function fromWorkbook(wb, label) {
+    const X = window.XLSX, im = S.imp;
+    im.wb = wb; im.sheets = wb.SheetNames; im.sheet = im.sheets.find((n) => { const rows = X.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: "" }); return detectHeader(rows); }) || im.sheets[0];
+    loadSheet(label);
+  }
+  function loadSheet(label) {
+    const X = window.XLSX, im = S.imp, rows = X.utils.sheet_to_json(im.wb.Sheets[im.sheet], { header: 1, raw: true, defval: "" });
+    im.rows = rows; im.hdr = detectHeader(rows); im.busy = null; im.kind = "excel"; im.label = (label || im.fileName || "Classeur") + " · feuille « " + im.sheet + " »"; im.source = label || im.fileName || "Chiffrage Excel";
+    if (im.hdr) { im.items = rowsToItems(rows, im.hdr); const tr = rows.slice(im.hdr.row + 1).reverse().find((r) => r.some((c) => /^total(\s*ht)?\s*$/i.test(String(c).trim())) && r.some((c) => typeof c === "number" || (c !== "" && QX.toNumber(c) != null))); im.totalHT = tr ? QX.toNumber(tr.filter((c) => c !== "" && QX.toNumber(c) != null).pop()) : null; im.step = "map"; }
+    else { fromText(rows.map((r) => r.join("\t")).join("\n"), im.label); return; }
+    drawImport();
+  }
+  const NAT_OPTS = () => Object.keys(NATURES).concat([MBV]);
+  const DET_OPTS = (n) => (n === MBV ? Object.keys(MBV_CATS) : NATURES[n] || []);
   function drawImport() {
-    const d = document.getElementById("dlg"), im = S.imp, tr = room(S.estRoom);
-    let body = '<div class="dlg"><div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1"><h2>Importer un devis ou une facture</h2><p class="small muted">Collez le texte du document ou choisissez un fichier texte ou CSV. L\'application finale lit aussi les PDF. Rien n\'est envoyé : la lecture se fait dans le navigateur.</p></div><button type="button" class="x" data-dlg="close" aria-label="Fermer">×</button></div>';
-    if (!im.res) body += '<textarea id="imp-text" aria-label="Texte du devis">' + esc(im.text) + '</textarea><div class="dlg-foot"><input type="file" id="imp-file" accept=".txt,.csv,text/plain,text/csv" style="margin-right:auto;max-width:100%"><button type="button" class="btn" data-dlg="close">Annuler</button><button type="button" class="btn primary" data-dlg="read">Lire les lignes</button></div>';
-    else {
-      const s = r2(sumf(im.res.items, "total")), ok = im.res.total != null && Math.abs(s - im.res.total) < 0.02, nOn = im.res.items.filter((x) => x.on).length;
-      const opts = (o, v) => o.map((x) => "<option" + (x === v ? " selected" : "") + ">" + esc(x) + "</option>").join("");
-      body += (im.res.items.length ? '<div class="alert ' + (ok ? "ok" : "warn") + '"><span>' + im.res.items.length + " lignes lues · somme " + eur(s) + " HT" + (im.res.total != null ? (ok ? " = total du devis ✓" : " ≠ total du devis " + eur(im.res.total)) : " · total du devis non trouvé") + "</span></div>" +
-        '<div class="tw"><table class="imp"><thead><tr><th></th><th>Désignation</th><th class="r">Qté</th><th class="r">P.U. HT</th><th>Nature Sinapps</th><th>Détail</th></tr></thead><tbody>' +
-        im.res.items.map((x, i) => '<tr><td><input type="checkbox" data-imp="on" data-i="' + i + '"' + (x.on ? " checked" : "") + ' aria-label="Intégrer la ligne"></td><td>' + esc(x.name) + (x.kw ? '<div class="small faint">proposé d\'après « ' + esc(x.kw) + " »</div>" : '<div class="small" style="color:var(--bad)">nature à choisir</div>') + '</td><td class="r mono">' + fr(x.qty) + " " + esc(x.unit) + '</td><td class="r mono">' + eur(x.pu) + '</td><td><select data-imp="n" data-i="' + i + '" aria-label="Nature"><option value="">Choisir…</option>' + opts(Object.keys(NATURES), x.n) + '</select></td><td><select data-imp="d" data-i="' + i + '" aria-label="Détail"><option value="">Choisir…</option>' + (x.n ? opts(NATURES[x.n], x.d) : "") + "</select></td></tr>").join("") + "</tbody></table></div>"
-        : '<div class="alert warn"><span>Aucune ligne chiffrée reconnue. Vérifiez que chaque ligne porte une quantité, une unité, un prix unitaire et un total.</span></div>') +
-        '<p class="small muted" id="imp-err">Les lignes iront dans : <b>' + esc(tr ? tr.name : "sans pièce") + "</b> (pièce choisie dans Estimations).</p>" +
-        '<div class="dlg-foot"><button type="button" class="btn" data-dlg="back">Modifier le texte</button><button type="button" class="btn primary" data-dlg="integrate"' + (nOn ? "" : " disabled") + ">Intégrer " + nOn + " ligne" + (nOn > 1 ? "s" : "") + "</button></div>";
+    const d = document.getElementById("dlg"), im = S.imp;
+    const steps = [["source", "Document"], ["map", "Colonnes"], ["review", "Vérification"]].filter((x) => x[0] !== "map" || im.kind === "excel");
+    const at = steps.findIndex((x) => x[0] === im.step);
+    let body = '<div class="dlg"><div class="dlg-head"><div style="flex:1;min-width:0"><h2>Importer un chiffrage</h2><div class="imp-steps">' + steps.map((x, i) => '<span class="' + (i < at ? "done" : i === at ? "now" : "") + '"><b>' + (i + 1) + "</b>" + x[1] + "</span>").join("") + '</div></div><button type="button" class="x" data-dlg="close" aria-label="Fermer">×</button></div>';
+    if (im.step === "source") {
+      body += '<label class="dropzone" id="imp-drop" for="imp-file"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 5h12l8 8v22H12z M24 5v8h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M22 30V19M17.5 23.5L22 19l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '<b>Déposez un devis, une facture ou un chiffrage Excel</b><span class="muted small">ou cliquez pour choisir un fichier</span><span class="fmt"><i>PDF</i><i>XLSX</i><i>XLS</i><i>ODS</i><i>CSV</i><i>TXT</i></span>' +
+        '<input type="file" id="imp-file" accept=".pdf,.xlsx,.xlsm,.xls,.ods,.csv,.txt,application/pdf,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden></label>' +
+        (im.busy ? '<div class="alert info"><span>' + esc(im.busy) + "</span></div>" : "") + (im.err ? '<div class="alert bad"><span>' + esc(im.err) + "</span></div>" : "") +
+        '<details class="paste"><summary>Ou collez le texte du document</summary><textarea id="imp-text" aria-label="Texte du document" placeholder="Désignation    Qté   U   P.U. HT   Total HT"></textarea><div class="dlg-foot"><button type="button" class="btn" data-dlg="read">Lire le texte</button></div></details>' +
+        '<div class="dlg-foot" style="justify-content:space-between"><span class="small muted">Lecture dans le navigateur, sans IA : le document n\'est envoyé nulle part.</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" data-dlg="sample-text">Essayer un devis exemple</button><button type="button" class="btn" data-dlg="sample-xlsx">Essayer un chiffrage Excel exemple</button></span></div>';
+    } else if (im.step === "map") {
+      const hdrRow = im.rows[im.hdr.row], colName = (j) => "Colonne " + String.fromCharCode(65 + j) + (hdrRow[j] !== "" ? " · " + String(hdrRow[j]) : "");
+      body += '<div class="alert ok"><span>' + esc(im.label) + " : en-têtes reconnus en ligne " + (im.hdr.row + 1) + ", " + im.items.length + " lignes chiffrées.</span></div>" +
+        (im.sheets.length > 1 ? '<div class="field" style="max-width:320px"><label for="imp-sheet">Feuille</label><select class="inp" id="imp-sheet">' + im.sheets.map((s) => "<option" + (s === im.sheet ? " selected" : "") + ">" + esc(s) + "</option>").join("") + "</select></div>" : "") +
+        '<p class="small muted">Vérifiez à quelle colonne correspond chaque information. Les colonnes Nature, Détail, Pièce et Vétusté sont reprises si le classeur les contient.</p>' +
+        '<div class="map-grid">' + COLS.map((col) => '<div class="field"><label for="map-' + col.k + '">' + col.label + (col.k === "name" || col.k === "pu" ? " *" : "") + '</label><select class="inp" id="map-' + col.k + '" data-map="' + col.k + '"><option value="">Aucune</option>' + hdrRow.map((h, j) => '<option value="' + j + '"' + (im.hdr.map[col.k] === j ? " selected" : "") + ">" + esc(colName(j)) + "</option>").join("") + "</select></div>").join("") + "</div>" +
+        '<div class="dlg-foot"><button type="button" class="btn" data-dlg="restart">Autre document</button><button type="button" class="btn primary" data-dlg="to-review">Voir les ' + im.items.length + " lignes</button></div>";
+    } else {
+      const items = im.items, sumL = r2(sumf(items, "total")), ok = im.totalHT != null && Math.abs(sumL - im.totalHT) < 0.02, nOn = items.filter((x) => x.on).length, missing = items.filter((x) => x.on && (!x.n || !x.d)).length;
+      const opts = (o, v, f) => o.map((x) => '<option value="' + esc(x) + '"' + (x === v ? " selected" : "") + ">" + esc(f ? f(x) : x) + "</option>").join("");
+      body += '<div class="alert ' + (items.length ? (ok ? "ok" : "warn") : "warn") + '"><span>' + esc(im.label || "Document") + " · " + items.length + " lignes · somme " + eur(sumL) + " HT" + (im.totalHT != null ? (ok ? " = total du document ✓" : " ≠ total du document " + eur(im.totalHT)) : " · total du document non trouvé") + "</span></div>" +
+        (items.length ? '<div class="tw"><table class="imp"><thead><tr><th><input type="checkbox" data-imp="all"' + (nOn === items.length ? " checked" : "") + ' aria-label="Tout cocher"></th><th>Désignation</th><th>Pièce</th><th class="r">Qté</th><th class="r">P.U. HT</th><th class="r">TVA</th><th>Nature</th><th>Détail</th></tr></thead><tbody>' +
+          items.map((x, i) => '<tr class="' + (x.on ? "" : "off") + '"><td><input type="checkbox" data-imp="on" data-i="' + i + '"' + (x.on ? " checked" : "") + ' aria-label="Intégrer la ligne"></td><td><b style="font-weight:600">' + esc(x.name) + "</b>" + (x.n === MBV ? '<div><span class="tag tape">mobilier</span></div>' : "") + (x.fromDoc ? '<div class="small faint">nature reprise du classeur</div>' : x.kw ? '<div class="small faint">proposé d\'après « ' + esc(x.kw) + " »</div>" : '<div class="small" style="color:var(--bad)">nature à choisir</div>') + (x.check ? '<div class="small" style="color:var(--warn)">quantité × prix ≠ total : à vérifier</div>' : "") + "</td>" +
+            '<td><select data-imp="room" data-i="' + i + '" aria-label="Pièce">' + S.rooms.map((r) => '<option value="' + r.id + '"' + (r.id === x.room ? " selected" : "") + ">" + esc(r.name) + "</option>").join("") + "</select></td>" +
+            '<td class="r mono">' + fr(x.qty) + " " + esc(x.unit) + '</td><td class="r mono">' + eur(x.pu) + '</td><td class="r mono">' + (x.vat == null ? "—" : fr(x.vat, 1).replace(",0", "") + " %") + "</td>" +
+            '<td><select data-imp="n" data-i="' + i + '" aria-label="Nature"><option value="">Choisir…</option>' + opts(NAT_OPTS(), x.n, (v) => (v === MBV ? "Mobilier et biens volés" : v)) + '</select></td><td><select data-imp="d" data-i="' + i + '" aria-label="Détail"><option value="">Choisir…</option>' + (x.n ? opts(DET_OPTS(x.n), x.d) : "") + "</select></td></tr>").join("") + "</tbody></table></div>"
+          : '<div class="alert warn"><span>Aucune ligne chiffrée reconnue. Chaque ligne doit porter une désignation et un prix (unitaire ou total).</span></div>') +
+        '<p class="small muted" id="imp-err">' + (missing ? '<span style="color:var(--bad)">' + missing + " ligne(s) sans nature ou détail : Sinapps les exige.</span> " : "") + "Les biens mobiliers deviennent des lignes de mobilier (état et justificatif à compléter). TVA absente : 10 % pour les prestations, 20 % pour le mobilier.</p>" +
+        '<div class="dlg-foot"><button type="button" class="btn" data-dlg="' + (im.kind === "excel" ? "back-map" : "restart") + '">' + (im.kind === "excel" ? "Revoir les colonnes" : "Autre document") + '</button><button type="button" class="btn primary" data-dlg="integrate"' + (nOn && !missing ? "" : " disabled") + ">Intégrer " + nOn + " ligne" + (nOn > 1 ? "s" : "") + "</button></div>";
     }
     d.innerHTML = body + "</div>";
   }
+  function integrate() {
+    const im = S.imp, items = im.items.filter((x) => x.on);
+    document.getElementById("dlg").close();
+    let nP = 0, nM = 0;
+    if (mut(() => {
+      items.forEach((x) => {
+        if (x.n === MBV) {
+          const cat = MBV_CATS[x.d] ? x.d : "Mobilier", ht = r2(x.total || x.pu * x.qty);
+          S.lines.push({ id: S.nextId++, kind: "mbv", lineIndex: nextLineIndex(S.lines, MBV, cat), room: x.room, n: MBV, d: cat, name: x.name, goodStatus: "Non réparable", proof: "Justifiés en existence", brand: "", reference: "", purchaseDate: "", claimedAmount: ht, eqBrand: "", eqReference: "", ht, vat: x.vat == null ? 20 : x.vat, vet: x.vet || 0, obsIn: null, mode: "IP", beneficiaryName: "", co2: MBV_CATS[cat].co2, source: im.source, toCheck: true });
+          nM++;
+        } else {
+          const cat = CAT.find((c) => norm(x.name).indexOf(norm(c.name.split(",")[0])) === 0);
+          S.lines.push({ id: S.nextId++, lineIndex: nextLineIndex(S.lines, x.n, x.d), room: x.room, cat: null, name: x.name, n: x.n, d: x.d, unit: x.unit, link: null, qty: x.qty, pu: x.pu, vat: x.vat == null ? 10 : x.vat, vet: x.vet || 0, obsIn: null, mode: "IP", beneficiaryName: "", co2: cat ? cat.co2 : (x.n === "Immobilier" ? 2 : 4), source: im.source, bordereau: cat ? cat.pu : undefined });
+          nP++;
+        }
+      });
+    })) { if (nM && !nP) S.estView = "mbv"; render(); toast((nP ? nP + " prestation" + (nP > 1 ? "s" : "") : "") + (nP && nM ? " et " : "") + (nM ? nM + " bien" + (nM > 1 ? "s" : "") + " mobilier" + (nM > 1 ? "s" : "") : "") + " intégré" + (nP + nM > 1 ? "s" : "")); }
+  }
   const dlg = document.getElementById("dlg");
-  dlg.addEventListener("click", (e) => {
+  dlg.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-dlg]"); if (!b) return;
-    const a = b.dataset.dlg;
+    const a = b.dataset.dlg, im = S.imp;
     if (a === "close") { dlg.close(); return; }
-    if (a === "read") { S.imp.text = document.getElementById("imp-text").value; S.imp.res = parseQuote(S.imp.text); drawImport(); return; }
-    if (a === "back") { S.imp.res = null; drawImport(); return; }
-    if (a === "integrate") {
-      const items = S.imp.res.items.filter((x) => x.on);
-      if (items.some((x) => !x.n || !x.d)) { const p = document.getElementById("imp-err"); p.style.color = "var(--bad)"; p.textContent = "Choisissez la nature et le détail de chaque ligne cochée : Sinapps les exige."; return; }
-      dlg.close();
-      if (mut(() => { items.forEach((x) => { const cat = CAT.find((c) => norm(x.name).indexOf(norm(c.name.split(",")[0])) === 0); S.lines.push({ id: S.nextId++, lineIndex: nextLineIndex(S.lines, x.n, x.d), room: S.estRoom, cat: null, name: x.name, n: x.n, d: x.d, unit: x.unit, link: null, qty: x.qty, pu: x.pu, vat: 10, vet: 0, obsIn: null, mode: "IP", beneficiaryName: "", co2: cat ? cat.co2 : (x.n === "Immobilier" ? 2 : 4), source: "Devis D-2026-0188", bordereau: cat ? cat.pu : undefined }); }); }))
-        toast(items.length + " lignes du devis intégrées à " + nameOfRoom(S.estRoom));
+    if (a === "read") { const t = document.getElementById("imp-text").value.trim(); if (!t) { im.err = "Collez d'abord le texte du document."; drawImport(); return; } fromText(t, ""); return; }
+    if (a === "sample-text") { fromText(SAMPLE, "Devis exemple"); return; }
+    if (a === "sample-xlsx") {
+      im.busy = "Préparation du classeur exemple…"; drawImport();
+      try { const X = await xlsxLib(), wb = X.utils.book_new(); X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(sampleSheet()), "Chiffrage"); fromWorkbook(X.read(X.write(wb, { type: "array", bookType: "xlsx" }), { type: "array" }), "chiffrage-reno-services.xlsx"); }
+      catch (err) { im.busy = null; im.err = "La bibliothèque Excel n'a pas pu être chargée (connexion requise)."; drawImport(); }
+      return;
     }
+    if (a === "restart") { S.imp = { step: "source" }; drawImport(); return; }
+    if (a === "back-map") { im.step = "map"; drawImport(); return; }
+    if (a === "to-review") { im.items = rowsToItems(im.rows, im.hdr); im.step = "review"; drawImport(); return; }
+    if (a === "integrate") integrate();
   });
   dlg.addEventListener("change", (e) => {
-    const el = e.target;
-    if (el.id === "imp-file" && el.files[0]) { const rd = new FileReader(); rd.onload = () => { S.imp.text = String(rd.result || ""); S.imp.res = parseQuote(S.imp.text); drawImport(); }; rd.readAsText(el.files[0]); return; }
-    const k = el.dataset.imp; if (!k) return; const x = S.imp.res.items[+el.dataset.i];
-    if (k === "on") x.on = el.checked; if (k === "n") { x.n = el.value; x.d = ""; x.kw = ""; } if (k === "d") x.d = el.value;
+    const el = e.target, im = S.imp;
+    if (el.id === "imp-file" && el.files[0]) { readFile(el.files[0]); return; }
+    if (el.id === "imp-sheet") { im.sheet = el.value; loadSheet(im.fileName); return; }
+    if (el.dataset.map) { const v = el.value === "" ? null : +el.value; if (v == null) delete im.hdr.map[el.dataset.map]; else im.hdr.map[el.dataset.map] = v; im.items = rowsToItems(im.rows, im.hdr); drawImport(); return; }
+    const k = el.dataset.imp; if (!k) return;
+    if (k === "all") { im.items.forEach((x) => { x.on = el.checked; }); drawImport(); return; }
+    const x = im.items[+el.dataset.i];
+    if (k === "on") x.on = el.checked; if (k === "n") { x.n = el.value; x.d = ""; x.kw = ""; x.fromDoc = false; } if (k === "d") x.d = el.value; if (k === "room") x.room = el.value;
     drawImport();
   });
+  ["dragover", "dragenter"].forEach((t) => document.addEventListener(t, (e) => { if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes("Files")) return; e.preventDefault(); document.body.classList.add("dragging"); const z = document.getElementById("imp-drop"); if (z) z.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((t) => document.addEventListener(t, (e) => { if (t === "dragleave" && e.relatedTarget) return; document.body.classList.remove("dragging"); const z = document.getElementById("imp-drop"); if (z) z.classList.remove("over"); }));
+  document.addEventListener("drop", (e) => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return; e.preventDefault();
+    if (dlg.open && S.imp) { readFile(f); return; }
+    if (S.tab !== "estimations") location.hash = "estimations";
+    openImport(f);
+  });
+  const SAMPLE = "RÉNO SERVICES SARL · Devis D-2026-0188 du 14/11/2026\nDésignation                                    Qté   U     P.U. HT    Total HT\nDépose et évacuation faïence murale            2,4   m²     18,50       44,40\nFaïence murale 20x20, fourniture et pose       2,4   m²     72,00      172,80\nRemplacement prise étanche                     2     U      52,00      104,00\nRecherche de fuite par caméra thermique        1     FFT   340,00      340,00\nTotal HT                                                              661,20\nTVA 10 %                                                               66,12\nTotal TTC                                                             727,32";
 
   // ventilation de départ : les lignes de l'assuré vers Camille Exemple, la peinture en réparation en nature vers Réno Services ; la recherche de fuite reste à ventiler
   function initComps() {
