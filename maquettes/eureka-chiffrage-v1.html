@@ -211,7 +211,7 @@ main { padding-block: 22px 60px; }
 .lines-card { overflow: hidden; }
 .tw { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; }
-.lines { min-width: 880px; font-size: 13.5px; }
+.lines { min-width: 1120px; font-size: 13.5px; }
 .lines th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; padding: 10px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
 .lines td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .lines tr.room-h td { background: var(--surface-2); font-weight: 600; padding-block: 8px; }
@@ -249,9 +249,9 @@ table { border-collapse: collapse; width: 100%; }
 .drop { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1.5px dashed var(--line-2); border-radius: 14px; background: var(--surface); }
 
 /* Indemnisation */
-.ind { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 18px; align-items: start; }
+.ind { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start; }
 .ind-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.blk-h { display: flex; align-items: baseline; gap: 10px; }
+.blk-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .blk-h .n { font: 600 12px var(--mono); color: var(--ink-3); }
 .cov { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--sunken); border-radius: 10px; padding: 3px; gap: 3px; }
@@ -260,27 +260,51 @@ table { border-collapse: collapse; width: 100%; }
 .seg button[aria-pressed="true"].s1 { color: var(--ok); }
 .seg button[aria-pressed="true"].s2 { color: var(--warn); }
 .seg button[aria-pressed="true"].s3 { color: var(--bad); }
-.seg.two { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 150px; }
-.ben { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-.ben-top { display: flex; align-items: center; gap: 10px; }
+.seg.two { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 180px; }
+.seg button:disabled { cursor: not-allowed; }
+.ben-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.ben-btn[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ben-btn .amt { margin-left: auto; text-align: right; font: 600 13.5px var(--mono); white-space: nowrap; }
+.ben-btn .amt small { display: block; font: 500 11.5px var(--font); color: var(--ink-3); }
 .avatar { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font: 700 13px var(--display); background: var(--accent-soft); color: var(--accent-text); flex: none; }
 .avatar.co { background: var(--tape-soft); color: var(--warn); }
-.comp { font-size: 13.5px; min-width: 860px; }
-.comp th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); font-weight: 700; padding: 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); white-space: nowrap; }
-.comp td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-.comp td.amt { font: 600 13.5px var(--mono); text-align: right; white-space: nowrap; }
-.comp tr.off td { color: var(--ink-3); }
-.comp tr.off td.amt { text-decoration: line-through; }
-.comp tfoot td { font-weight: 700; background: var(--surface-2); border-bottom: 0; }
-.comp select { border: 1px solid var(--line-2); border-radius: 8px; padding: 5px 8px; background: var(--surface); max-width: 180px; }
+.ben-form { padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.ben-form .full { grid-column: 1 / -1; }
+.vent-ctl { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.vent { min-width: 1100px; font-size: 13px; }
+.vent th { text-align: right; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 700; padding: 9px 8px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.vent th:first-child { text-align: left; }
+.vent td:first-child, .vent th:first-child { min-width: 250px; }
+.vent-ctl .vck { white-space: nowrap; align-items: center; }
+.vent td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.vent tr.l1 td { background: var(--surface-2); font-weight: 600; }
+.vent tr.mine td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.vent td.amt { font: 600 13px var(--mono); text-align: right; white-space: nowrap; }
+.vent td.r { text-align: right; }
+.vent .cell-inp { width: 88px; border: 1px solid var(--line-2); border-radius: 7px; padding: 4px 6px; text-align: right; font: 500 12.5px var(--mono); background: var(--surface); }
+.vent .cell-inp:disabled { background: transparent; border-color: transparent; color: var(--ink-3); }
+.cell-inp.bad { border-color: var(--bad) !important; background: var(--bad-bg) !important; color: var(--bad); }
+.vck { display: flex; align-items: flex-start; gap: 8px; }
+.vck input { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+.tot { width: 100%; font-size: 13.5px; min-width: 480px; }
+.tot td, .tot th { padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.tot th { text-align: right; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); }
+.tot td.amt { text-align: right; font: 600 13.5px var(--mono); white-space: nowrap; }
+.tot tr.total td { font-weight: 700; border-bottom: 0; background: var(--surface-2); }
+.tot .cell-inp { width: 100px; border: 1px solid var(--line-2); border-radius: 7px; padding: 4px 6px; text-align: right; font: 500 13px var(--mono); background: var(--surface); }
 .flow { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .flow-bar { display: flex; height: 38px; border-radius: 10px; overflow: hidden; background: var(--sunken); }
-.flow-bar i { display: block; height: 100%; min-width: 2px; transition: width .35s; }
+.flow-bar i { display: block; height: 100%; transition: width .35s; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; }
 .legend span { display: inline-flex; align-items: center; gap: 7px; }
 .legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
 .pay { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .pay > div { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.stepper { display: flex; gap: 6px; flex-wrap: wrap; }
+.stepper span { padding: 5px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: var(--sunken); color: var(--ink-3); }
+.stepper span.done { background: var(--ok-bg); color: var(--ok); }
+.stepper span.now { background: var(--ink); color: var(--surface); }
+.ro-note { background: var(--accent-soft); color: var(--accent-text); border-radius: 12px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
 
 /* Synthèse */
 .kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -348,15 +372,22 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
 <script>
 (function () {
   "use strict";
-  // ================= données de démonstration (fictives) =================
+  // ================= référentiels et données de démonstration (fictives) =================
   const K = 100; // 1 m = 100 unités de dessin
-  const VAT = [0, 2, 2.1, 4, 5.5, 7, 8.5, 10, 19.6, 20]; // taux acceptés par Sinapps
+  const VAT = [0, 2, 2.1, 4, 5.5, 7, 8.5, 10, 19.6, 20]; // taux acceptés par Sinapps (RG_CHIFFRAGE_EXP_0068)
   const CLAIMED = 5200;
+  const RO = "ro1"; // objet de risque de l'assuré : l'appartement
   const NATURES = {
     "Embellissement": ["Peinture / P. peints", "Revêtements de sol", "Parquets", "Parquets flottants", "Faux plafond", "Carrelage et revêtement céramique"],
     "Immobilier": ["Plomberie", "Électricité", "Maçonnerie", "Menuiserie intérieure", "Recherche de fuite", "Assèchement"],
     "Autres préjudices": ["Relogement", "Pertes de loyer"]
   };
+  // ava_estimateinformationstatuses
+  const STATUS = { 1: "Brouillon", 2: "Chiffrages vérifiés", 3: "Garanties vérifiées", 4: "Chiffrages et garanties vérifiés", 5: "Indemnisations vérifiées", 6: "Chiffrages exportés vers Excel", 7: "Garanties exportées vers Excel", 8: "Chiffrages et garanties exportés vers Excel", 9: "Indemnisations exportées vers Excel", 10: "Chiffrages communiqués à l'assureur", 11: "Garanties communiquées à l'assureur", 12: "Chiffrages et garanties communiqués à l'assureur", 13: "Indemnisations communiquées à l'assureur", 14: "Chiffrages figés", 15: "Garanties figées", 16: "Chiffrages et garanties figés", 17: "Indemnisations figées" };
+  const isReadOnly = (s) => s >= 6;
+  const STANCES = { 1: { label: "Sans réserve", ok: true }, 2: { label: "Avec réserve", ok: true }, 3: { label: "Garantie non applicable", ok: false } };
+  const POSITIONS = ["Acceptation des dommages", "Acceptation des dommages avec réserves", "Acceptation de l'indemnité", "Acceptation de l'indemnité avec réserves", "En attente position client", "Refus", "Sans objet"];
+  const BEN_TYPES = { ASSURE: "Assuré", RENEUR: "Réparateur agréé", EDP: "Entreprise en délégation de paiement", CDG: "Centre de gestion", AUTRE: "Autre" };
   const LINK = { walls: "murs", ceiling: "plafond", floor: "sol", skirting: "plinthes", zone: "zone abîmée" };
   const CAT = [
     { id: "lessivage", name: "Lessivage et préparation des supports", unit: "m²", pu: 6.71, co2: 0.2, link: "walls", n: "Embellissement", d: "Peinture / P. peints" },
@@ -387,7 +418,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   const GUESS = [
     [["peint", "lessiv", "enduit", "papier peint", "tapiss"], "Embellissement", "Peinture / P. peints"],
     [["parquet"], "Embellissement", "Parquets"],
-    [["carrel", "faience", "faïence", "credence"], "Embellissement", "Carrelage et revêtement céramique"],
+    [["carrel", "faience", "credence"], "Embellissement", "Carrelage et revêtement céramique"],
     [["sol", "lino", "moquette", "plinthe", "pvc"], "Embellissement", "Revêtements de sol"],
     [["plafond"], "Embellissement", "Faux plafond"],
     [["fuite", "camera", "thermique"], "Immobilier", "Recherche de fuite"],
@@ -401,7 +432,8 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   const ROOM_TYPES = ["Chambre", "Salle de bains", "WC", "Bureau", "Dégagement", "Cellier"];
 
   function initial() {
-    return {
+    const L = (o) => Object.assign({ cat: null, link: null, qty: null, vat: 10, vet: 0, obsIn: null, mode: "IP", beneficiaryName: "", source: "Bordereau" }, o);
+    const st = {
       rooms: [
         { id: "r1", name: "Cuisine", type: "Cuisine", x: 0, y: 0, H: 2.5,
           walls: [{ len: 3.6, dir: 0 }, { len: 2.8, dir: 90 }, { len: 3.6, dir: 180 }, { len: 2.8, dir: 270 }],
@@ -417,58 +449,66 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
           zones: [] }
       ],
       lines: [
-        { id: 1, room: "r1", cat: "lessivage", name: "Lessivage et préparation des supports", n: "Embellissement", d: "Peinture / P. peints", unit: "m²", link: "walls", pu: 6.71, vat: 10, vet: 0, co2: 0.2, source: "Modèle" },
-        { id: 2, room: "r1", cat: "peint-murs", name: "Peinture acrylique murs, 2 couches", n: "Embellissement", d: "Peinture / P. peints", unit: "m²", link: "walls", pu: 24.9, vat: 10, vet: 20, co2: 1.9, source: "Devis D-2026-0142", bordereau: 20.01 },
-        { id: 3, room: "r1", cat: "peint-plafond", name: "Peinture acrylique plafond, 2 couches", n: "Embellissement", d: "Peinture / P. peints", unit: "m²", link: "ceiling", pu: 21.84, vat: 10, vet: 20, co2: 2.0, source: "Modèle" },
-        { id: 4, room: "r1", cat: "deshum", name: "Déshumidificateur, pose et location 7 jours", n: "Immobilier", d: "Assèchement", unit: "U", qty: 2, pu: 218.4, vat: 10, vet: 0, co2: 14, source: "Modèle" },
-        { id: 5, room: "r1", cat: "fuite", name: "Recherche de fuite non destructive", n: "Immobilier", d: "Recherche de fuite", unit: "FFT", qty: 1, pu: 332.8, vat: 10, vet: 0, co2: 3, source: "Bordereau" },
-        { id: 6, room: "r2", cat: "parquet-strat", name: "Parquet stratifié, fourniture et pose", n: "Embellissement", d: "Parquets flottants", unit: "m²", link: "floor", pu: 43.68, vat: 10, vet: 0, co2: 6.8, source: "Bordereau", age: 8, scale: 56 },
-        { id: 7, room: "r2", cat: "plinthes", name: "Plinthes médium à peindre", n: "Embellissement", d: "Revêtements de sol", unit: "ml", link: "skirting", pu: 11.65, vat: 10, vet: 25, co2: 0.9, source: "Bordereau" },
-        { id: 8, room: "r2", cat: null, name: "Traitement anti-moisissures des murs", n: "Immobilier", d: "Assèchement", unit: "m²", link: "walls", pu: 9.8, vat: 10, vet: 0, co2: 0.6, source: "Hors bordereau", proposed: true, kw: "moisissures" }
+        L({ id: 1, lineIndex: "A01B01C01", room: "r1", cat: "lessivage", name: "Lessivage et préparation des supports", n: "Embellissement", d: "Peinture / P. peints", unit: "m²", link: "walls", pu: 6.71, co2: 0.2, source: "Modèle" }),
+        L({ id: 2, lineIndex: "A01B01C02", room: "r1", cat: "peint-murs", name: "Peinture acrylique murs, 2 couches", n: "Embellissement", d: "Peinture / P. peints", unit: "m²", link: "walls", pu: 24.9, vet: 20, co2: 1.9, source: "Devis D-2026-0142", bordereau: 20.01, mode: "REN", beneficiaryName: "Réno Services" }),
+        L({ id: 3, lineIndex: "A01B01C03", room: "r1", cat: "peint-plafond", name: "Peinture acrylique plafond, 2 couches", n: "Embellissement", d: "Peinture / P. peints", unit: "m²", link: "ceiling", pu: 21.84, vet: 20, co2: 2.0, source: "Modèle" }),
+        L({ id: 4, lineIndex: "A02B01C01", room: "r1", cat: "deshum", name: "Déshumidificateur, pose et location 7 jours", n: "Immobilier", d: "Assèchement", unit: "U", qty: 2, pu: 218.4, co2: 14, source: "Modèle" }),
+        L({ id: 5, lineIndex: "A02B02C01", room: "r1", cat: "fuite", name: "Recherche de fuite non destructive", n: "Immobilier", d: "Recherche de fuite", unit: "FFT", qty: 1, pu: 332.8, co2: 3 }),
+        L({ id: 6, lineIndex: "A01B02C01", room: "r2", cat: "parquet-strat", name: "Parquet stratifié, fourniture et pose", n: "Embellissement", d: "Parquets flottants", unit: "m²", link: "floor", pu: 43.68, co2: 6.8, age: 8, scale: 56 }),
+        L({ id: 7, lineIndex: "A01B03C01", room: "r2", cat: "plinthes", name: "Plinthes médium à peindre", n: "Embellissement", d: "Revêtements de sol", unit: "ml", link: "skirting", pu: 11.65, vet: 25, co2: 0.9 }),
+        L({ id: 8, lineIndex: "A02B01C02", room: "r2", name: "Traitement anti-moisissures des murs", n: "Immobilier", d: "Assèchement", unit: "m²", link: "walls", pu: 9.8, co2: 0.6, source: "Hors bordereau", proposed: true, kw: "moisissures" })
       ],
       coverages: [
-        { id: "ca", name: "Dégâts des eaux", contract: "Multirisque habitation · contrat 4471203", base: "Valeur à neuf, vétusté récupérable sur facture", recoverable: true, ceiling: null, stance: 1, comment: "" },
-        { id: "cb", name: "Frais de recherche de fuite", contract: "Même contrat, garantie annexe", base: "Vétusté non récupérable", recoverable: false, ceiling: 300, stance: null, comment: "" }
+        { id: "ca", name: "Dégâts des eaux", label: "Multirisque habitation · contrat 4471203", stance: 1, comment: "" },
+        { id: "cb", name: "Recherche de fuite", label: "Même contrat · garantie annexe", stance: null, comment: "" }
       ],
       beneficiaries: [
-        { id: "b1", name: "Camille Exemple", role: "Assuré", initials: "CE", franchise: 150 },
-        { id: "b2", name: "Réno Services", role: "Entreprise, délégation de paiement", initials: "RS", franchise: 0 }
+        { id: "b1", type: "ASSURE", name: "Camille Exemple", stanceId: "ca", discount: null, penalization: null, deferredPenalization: null, deductible: 150, deferredDeductible: 0 },
+        { id: "b2", type: "EDP", name: "Réno Services", stanceId: "ca", discount: null, penalization: null, deferredPenalization: null, deductible: 0, deferredDeductible: 0 }
       ],
-      comp: {},
-      status: "Brouillon", sent: false, co2Saved: 0, nextId: 9, nextObj: 10
+      comps: {}, ttc: true, position: null, status: 1, co2Saved: 0, nextId: 9, nextObj: 10
     };
+    return st;
   }
-  const DATA_KEYS = ["rooms", "lines", "coverages", "beneficiaries", "comp", "status", "sent", "co2Saved", "nextId", "nextObj"];
-  let S = Object.assign(initial(), {
-    tab: "localisation", sel: "r1", selWall: 3, tool: "select", view: null, estRoom: "r1",
-    q: "", cmdIdx: 0, hb: null, pending: null, imp: null, verifyMsg: null
-  });
+  const DATA_KEYS = ["rooms", "lines", "coverages", "beneficiaries", "comps", "ttc", "position", "status", "co2Saved", "nextId", "nextObj"];
+  const UI0 = () => ({ tab: "localisation", sel: "r1", selWall: 3, tool: "select", view: null, estRoom: "r1", q: "", cmdIdx: 0, hb: null, pending: null, imp: null, verifyMsg: null, benId: "b1", option: 1, genericPct: 25, onlyMine: false, benForm: null });
+  let S = Object.assign(initial(), UI0());
   const undo = [];
 
-  // ================= outils =================
-  const r2 = (x) => Math.round((x + (x >= 0 ? 1e-9 : -1e-9)) * 100) / 100;
-  const num = (t) => { const v = parseFloat(String(t).replace(/[\s  ]/g, "").replace(",", ".")); return isFinite(v) ? v : NaN; };
+  // ================= arithmétique (arrondis Power Fx) =================
+  const numv = (x) => (typeof x === "number" && isFinite(x) ? x : 0);
+  const blank = (x) => x === null || x === undefined || x === "";
+  const round = (x, d) => { const f = Math.pow(10, d), v = numv(x) * f; return Math.sign(v) * Math.round(Math.abs(v) + 1e-9) / f; };
+  const r1 = (x) => round(x, 1), r2 = (x) => round(x, 2);
+  const roundDown2 = (x) => Math.floor(numv(x) * 100 + 1e-7) / 100;
+  const sumf = (xs, f) => xs.reduce((a, x) => a + numv(typeof f === "function" ? f(x) : x[f]), 0);
+  const sum = (xs, f) => r2(sumf(xs, f));
+  const num = (t) => { if (t === null || t === undefined) return NaN; const v = parseFloat(String(t).replace(/[\s  €%]/g, "").replace(",", ".")); return isFinite(v) ? v : NaN; };
   const fr = (n, d) => r2(n).toLocaleString("fr-FR", { minimumFractionDigits: d == null ? 2 : d, maximumFractionDigits: d == null ? 2 : d });
+  const frx = (n) => (blank(n) ? "" : fr(n));
+  const frp = (n) => (blank(n) ? "" : String(r1(n)).replace(".", ","));
   const eur = (n) => fr(n) + " €";
   const eur0 = (n) => Math.round(n).toLocaleString("fr-FR") + " €";
   const kg = (n) => Math.round(n).toLocaleString("fr-FR") + " kg";
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  const sum = (xs, f) => r2(xs.reduce((a, x) => a + (typeof f === "function" ? f(x) : x[f]), 0));
   const room = (id) => S.rooms.find((r) => r.id === id);
   const reduced = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function snapshot() { const o = {}; DATA_KEYS.forEach((k) => { o[k] = JSON.parse(JSON.stringify(S[k])); }); return o; }
+  // toute modification remet l'estimation en Brouillon (touch) ; exportée, communiquée ou figée = lecture seule
   function mut(fn, keepStatus) {
+    if (isReadOnly(S.status)) { toast("Estimation « " + STATUS[S.status] + " » : lecture seule. « Recommencer » remet la démonstration à zéro."); render(); return false; }
     undo.push(snapshot()); if (undo.length > 60) undo.shift();
     fn();
-    if (!keepStatus && S.status === "Vérifié") { S.status = "Brouillon"; S.sent = false; }
+    if (!keepStatus) S.status = 1;
     S.verifyMsg = null;
     render();
+    return true;
   }
   function doUndo() { const s = undo.pop(); if (!s) return; Object.assign(S, s); if (!room(S.sel)) S.sel = S.rooms[0] && S.rooms[0].id; if (!room(S.estRoom)) S.estRoom = S.sel; S.selWall = null; render(); toast("Dernière action annulée"); }
   let tt;
-  function toast(m) { const t = document.getElementById("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2800); }
+  function toast(m) { const t = document.getElementById("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 3200); }
 
   // ================= géométrie du plan =================
   const U = (d) => { const a = d * Math.PI / 180; return [Math.round(Math.cos(a) * 1e9) / 1e9, Math.round(Math.sin(a) * 1e9) / 1e9]; };
@@ -476,18 +516,15 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   function gapOf(r) { const p = verts(r), a = p[0], b = p[p.length - 1], g = [b[0] - a[0], b[1] - a[1]]; return Math.hypot(g[0], g[1]) < 0.015 ? null : g; }
   function sArea(r) { const p = verts(r).slice(0, -1); let s = 0; for (let i = 0; i < p.length; i++) { const a = p[i], b = p[(i + 1) % p.length]; s += a[0] * b[1] - b[0] * a[1]; } return s / 2; }
   function outward(r, i) { const u = U(r.walls[i].dir); return sArea(r) > 0 ? [u[1], -u[0]] : [-u[1], u[0]]; }
+  function inside(r, pt) { const p = verts(r).slice(0, -1); let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const a = p[i], b = p[j]; if ((a[1] > pt[1]) !== (b[1] > pt[1]) && pt[0] < (b[0] - a[0]) * (pt[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
   function centroid(r) {
     const p = verts(r).slice(0, -1); let a = 0, cx = 0, cy = 0;
     for (let i = 0; i < p.length; i++) { const q = p[i], w = p[(i + 1) % p.length], f = q[0] * w[1] - w[0] * q[1]; a += f; cx += (q[0] + w[0]) * f; cy += (q[1] + w[1]) * f; }
     if (Math.abs(a) < 1e-6) return [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
     let c = [cx / (3 * a), cy / (3 * a)];
-    if (!inside(r, c)) { // pièce en L : point intérieur plus sûr
-      let best = null; for (let i = 0; i < p.length; i++) { const m = [(p[i][0] + p[(i + 2) % p.length][0]) / 2, (p[i][1] + p[(i + 2) % p.length][1]) / 2]; if (inside(r, m)) { best = m; break; } }
-      if (best) c = best;
-    }
+    if (!inside(r, c)) { for (let i = 0; i < p.length; i++) { const m = [(p[i][0] + p[(i + 2) % p.length][0]) / 2, (p[i][1] + p[(i + 2) % p.length][1]) / 2]; if (inside(r, m)) { c = m; break; } } }
     return c;
   }
-  function inside(r, pt) { const p = verts(r).slice(0, -1); let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const a = p[i], b = p[j]; if ((a[1] > pt[1]) !== (b[1] > pt[1]) && pt[0] < (b[0] - a[0]) * (pt[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
   function distSeg(p, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy; let t = l2 ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2 : 0; t = Math.max(0, Math.min(1, t)); const q = [a[0] + t * dx, a[1] + t * dy]; return { d: Math.hypot(p[0] - q[0], p[1] - q[1]), t }; }
   function measures(r) {
     const floor = Math.abs(sArea(r)), per = r.walls.reduce((a, w) => a + w.len, 0);
@@ -511,7 +548,6 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       if (pick) pick.w.len = r2(pick.w.len - comp / pick.u[k]);
     });
   }
-  // tracé à main levée → murs droits
   function rdp(pts, eps) {
     if (pts.length < 3) return pts.slice();
     let dmax = 0, idx = 0; const a = pts[0], b = pts[pts.length - 1];
@@ -537,8 +573,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     for (let i = 1; i < simp.length - 1; i++) {
       const a = simp[i - 1], b = simp[i], vx = b[0] - a[0], vy = b[1] - a[1], len = Math.hypot(vx, vy);
       if (len < 0.3) continue;
-      const dir = ((Math.round(Math.atan2(vy, vx) * 180 / Math.PI / 45) * 45) + 360) % 360;
-      push(Math.round(len * 20) / 20, dir);
+      push(Math.round(len * 20) / 20, ((Math.round(Math.atan2(vy, vx) * 180 / Math.PI / 45) * 45) + 360) % 360);
     }
     let p = start.slice(); walls.forEach((w) => { const u = U(w.dir); p[0] += u[0] * w.len; p[1] += u[1] * w.len; });
     const g = [start[0] - p[0], start[1] - p[1]], gl = Math.hypot(g[0], g[1]);
@@ -558,16 +593,38 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     return { room: geo };
   }
 
-  // ================= chiffrage =================
-  function qtyOf(l) { if (!l.link) return l.qty || 0; const r = room(l.room); return r ? measures(r)[l.link] : 0; }
-  function amt(l) { const q = qtyOf(l), raw = q * l.pu, ttc = r2(raw * (1 + l.vat / 100)), vetA = r2(ttc * l.vet / 100); return { q, ht: r2(raw), ttc, vetA, vd: r2(ttc - vetA), co2t: q * l.co2 }; }
+  // ================= règles d'Eureka Chiffrage : lignes de dommages =================
+  const pad2 = (n) => String(n).padStart(2, "0");
+  /** Index de ligne AxxBxxCxx : nature / détail / prestation (nextLineIndex) */
+  function nextLineIndex(lines, l1, l2) {
+    const sorted = lines.slice().sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1));
+    const first = sorted.find((d) => d.n === l1);
+    if (!first) { if (!sorted.length) return "A01B01C01"; return "A" + pad2(+sorted[sorted.length - 1].lineIndex.slice(1, 3) + 1) + "B01C01"; }
+    const aIdx = first.lineIndex.slice(0, 3), same = sorted.filter((d) => d.n === l1 && d.d === l2);
+    if (!same.length) { const inA = sorted.filter((d) => d.lineIndex.slice(0, 3) === aIdx); return aIdx + "B" + pad2(+inA[inA.length - 1].lineIndex.slice(4, 6) + 1) + "C01"; }
+    const last = same[same.length - 1].lineIndex; return last.slice(0, 7) + pad2(+last.slice(-2) + 1);
+  }
+  function qtyOf(l) { if (!l.link) return numv(l.qty); const r = room(l.room); return r ? measures(r)[l.link] : 0; }
+  /** linePrices + damageAmounts : vétusté sur le TTC ou le HT selon le régime fiscal ; un montant saisi remplace le % */
+  function amt(l) {
+    const q = qtyOf(l), ht = l.pu * q;
+    const priceNoVAT = r2(ht), priceWithVAT = r2(ht * (1 + l.vat / 100));
+    const base = r2(l.pu * q * (S.ttc ? 1 + l.vat / 100 : 1));
+    const entered = !blank(l.obsIn), obsPct = entered ? 0 : numv(l.vet);
+    const obsAmount = entered ? numv(l.obsIn) : r2(base * obsPct / 100);
+    return { q, priceNoVAT, priceWithVAT, base, obsPct, obsAmount, priceWithObs: r2(base - obsAmount), co2t: q * l.co2 };
+  }
   function calc() {
     const L = S.lines.map((l) => Object.assign({}, l, amt(l)));
-    return { L, T: { ht: sum(L, "ht"), ttc: sum(L, "ttc"), vetA: sum(L, "vetA"), vd: sum(L, "vd"), co2: L.reduce((a, l) => a + l.co2t, 0) } };
+    return { L, T: { ht: sum(L, "priceNoVAT"), ttc: sum(L, "priceWithVAT"), base: sum(L, "base"), obs: sum(L, "obsAmount"), vd: sum(L, "priceWithObs"), co2: sumf(L, "co2t") } };
   }
   function guess(text) {
     const t = norm(text);
-    for (const g of GUESS) for (const k of g[0]) { const kk = norm(k); const at = t.indexOf(kk); if (at >= 0) { const m = t.slice(at).match(new RegExp("^" + kk + "[a-z]*")), st = t.slice(0, at).search(/[a-z]*$/), word = m ? t.slice(st, at) + m[0] : kk, orig = String(text).toLowerCase(); return { n: g[1], d: g[2], kw: orig.length === t.length ? orig.slice(st, st + word.length) : word }; } }
+    for (const g of GUESS) for (const k of g[0]) {
+      const kk = norm(k), at = t.indexOf(kk); if (at < 0) continue;
+      const m = t.slice(at).match(new RegExp("^" + kk + "[a-z]*")), st = t.slice(0, at).search(/[a-z]*$/), word = m ? t.slice(st, at) + m[0] : kk, orig = String(text).toLowerCase();
+      return { n: g[1], d: g[2], kw: orig.length === t.length ? orig.slice(st, st + word.length) : word };
+    }
     return null;
   }
   function flags(l) {
@@ -575,48 +632,166 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     if (!l.n || !l.d) f.push({ tone: "bad", text: "Nature et détail Sinapps obligatoires", fix: "Choisir", act: "edit-nature" });
     if (l.proposed) f.push({ tone: "info", text: "Nature et détail proposés d'après « " + l.kw + " » : à confirmer par l'expert", fix: "Confirmer", act: "confirm" });
     if (l.bordereau && l.pu > l.bordereau * 1.15) f.push({ tone: "warn", text: "Prix " + Math.round((l.pu / l.bordereau - 1) * 100) + " % au-dessus du bordereau (" + eur(l.bordereau) + " HT)", fix: "Prendre le prix du bordereau", act: "fix-price" });
-    if (l.age && l.vet === 0 && l.scale) f.push({ tone: "warn", text: "Vétusté à 0 % pour un revêtement de " + l.age + " ans : le barème donne " + l.scale + " %", fix: "Appliquer " + l.scale + " %", act: "fix-vet" });
+    if (l.age && l.obsPct === 0 && blank(l.obsIn) && l.scale) f.push({ tone: "warn", text: "Vétusté à 0 % pour un revêtement de " + l.age + " ans : le barème donne " + l.scale + " %", fix: "Appliquer " + l.scale + " %", act: "fix-vet" });
+    if (l.obsAmount > l.base) f.push({ tone: "bad", text: "La vétusté dépasse le montant de la ligne" });
     if (l.q <= 0) f.push({ tone: "warn", text: l.link === "zone" ? "Quantité nulle : hachurez la zone abîmée sur le mur, dans Localisation" : "Quantité nulle" });
     return f;
   }
-  function covOf(l) { return l.d === "Recherche de fuite" ? "cb" : "ca"; }
-  function indemn(c) {
-    const gm = new Map();
-    c.L.forEach((l) => {
-      if (!l.n || !l.d) return;
-      const k = l.n + " › " + l.d; let g = gm.get(k);
-      if (!g) { const cfg = S.comp[k] || {}; g = { key: k, n: l.n, d: l.d, cov: covOf(l), mode: cfg.mode || "IP", ben: cfg.ben || "b1", ttc: 0, vetA: 0, vd: 0, count: 0 }; gm.set(k, g); }
-      g.ttc = r2(g.ttc + l.ttc); g.vetA = r2(g.vetA + l.vetA); g.vd = r2(g.vd + l.vd); g.count++;
+
+  // ================= règles d'Eureka Chiffrage : indemnisation (écran Compensations) =================
+  /** buildGroups : clé objet de risque_nature_détail_mode_bénéficiaire, ventilations enregistrées reprises */
+  function buildGroups(L, comps) {
+    const map = new Map();
+    L.filter((d) => !blank(d.name)).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1)).forEach((d) => {
+      const key = [RO, d.n, d.d, d.mode, d.beneficiaryName || ""].join("_").trim();
+      let g = map.get(key);
+      if (!g) { g = { key, riskObjectId: RO, l1: d.n, l2: d.d, mode: d.mode, beneficiaryName: d.beneficiaryName || "", isTaxed: !!S.ttc, priceNoVATTotal: 0, priceWithTaxTotal: 0, obsTotal: 0, priceWithObsTotal: 0, count: 0 }; map.set(key, g); }
+      g.priceNoVATTotal += numv(d.priceNoVAT); g.priceWithTaxTotal += numv(d.priceWithVAT); g.obsTotal += numv(d.obsAmount); g.priceWithObsTotal += numv(d.priceWithObs); g.count++;
     });
-    const gs = Array.from(gm.values()), covs = {};
-    S.coverages.forEach((cv) => {
-      const mine = gs.filter((g) => g.cov === cv.id);
-      mine.forEach((g) => { g.excluded = cv.stance === 3; g.imm = g.excluded ? 0 : g.vd; g.def = g.excluded ? 0 : (cv.recoverable ? g.vetA : 0); });
-      const tot = sum(mine, (g) => g.imm + g.def); let capped = false;
-      if (cv.ceiling != null && tot > cv.ceiling) { const f = cv.ceiling / tot; mine.forEach((g) => { g.imm = r2(g.imm * f); g.def = r2(g.def * f); g.capped = true; }); capped = true; }
-      covs[cv.id] = { used: mine.length > 0, ttc: sum(mine, "ttc"), total: sum(mine, (g) => g.imm + g.def), capped, count: mine.reduce((a, g) => a + g.count, 0) };
+    return Array.from(map.values()).map((g) => {
+      const c = comps[g.key] || {};
+      return Object.assign(g, { priceNoVATTotal: r2(g.priceNoVATTotal), priceWithTaxTotal: r2(g.priceWithTaxTotal), obsTotal: r2(g.obsTotal), priceWithObsTotal: r2(g.priceWithObsTotal),
+        beneficiaryId: c.beneficiaryId || null, ceiling: blank(c.ceiling) ? null : c.ceiling, level1Ceiling: blank(c.level1Ceiling) ? null : c.level1Ceiling, cPct: blank(c.cPct) ? null : c.cPct, cAmt: blank(c.cAmt) ? null : c.cAmt, immediate: numv(c.immediate), deferred: numv(c.deferred) });
     });
-    let fr0 = 0;
-    const bens = S.beneficiaries.map((b) => {
-      const mine = gs.filter((g) => g.ben === b.id); let imm = sum(mine, "imm"); const def = sum(mine, "def");
-      const fApplied = Math.min(b.franchise || 0, imm); imm = r2(imm - fApplied); fr0 += fApplied;
-      return { b, imm, def, franchise: r2(fApplied), groups: mine.length };
-    });
-    const imm = sum(bens, "imm"), def = sum(bens, "def");
-    return { gs, covs, bens, imm, def, franchise: r2(fr0), lost: r2(c.T.ttc - imm - def - fr0) };
   }
-  function issues(c, I) {
+  const gBase = (g) => (g.isTaxed ? g.priceWithTaxTotal : g.priceNoVATTotal);
+  const cBase = (g, option) => (option === 1 ? gBase(g) : g.priceWithObsTotal);
+  const isREN = (g) => g.mode === "REN";
+  const noCeiling = (c) => blank(c) || c === 0;
+  function capToCeiling(g, ceiling) { if (!blank(ceiling) && g.immediate + g.deferred > ceiling) { if (g.immediate > ceiling) { g.immediate = ceiling; g.deferred = 0; } else g.deferred = r2(ceiling - g.immediate); } }
+  function assignGroup(g, benId, genericPct, option) {
+    const cAmt = r2(cBase(g, option) * numv(genericPct) / 100), recoverable = Math.min(gBase(g) - g.priceWithObsTotal, cAmt);
+    g.beneficiaryId = benId; g.cPct = blank(genericPct) ? null : genericPct; g.cAmt = cAmt;
+    const imm = isREN(g) ? g.priceWithObsTotal + recoverable : g.priceWithObsTotal;
+    g.immediate = r2(noCeiling(g.ceiling) ? imm : Math.min(g.ceiling, imm)); g.deferred = r2(isREN(g) ? 0 : recoverable);
+    capToCeiling(g, g.ceiling);
+  }
+  function unassignGroup(g) { g.beneficiaryId = null; g.immediate = 0; g.deferred = 0; }
+  function setContractPct(g, pct, option) {
+    const p = r1(pct), cAmt = r2(cBase(g, option) * p / 100), recoverable = Math.min(gBase(g) - g.priceWithObsTotal, cAmt);
+    g.cPct = p; g.cAmt = cAmt; g.deferred = r2(isREN(g) ? 0 : recoverable); g.immediate = r2(isREN(g) ? g.priceWithObsTotal + recoverable : g.priceWithObsTotal);
+    capToCeiling(g, g.ceiling);
+  }
+  function setContractAmount(g, amount, option) {
+    const base = cBase(g, option); g.cAmt = amount;
+    if (g.priceWithTaxTotal > 0 && base > 0) g.cPct = r1(100 * amount / base);
+    g.deferred = r2(isREN(g) ? 0 : Math.min(g.obsTotal, amount));
+    if (isREN(g)) g.immediate = r2(g.priceWithObsTotal + Math.min(g.obsTotal, amount));
+    capToCeiling(g, g.ceiling);
+  }
+  function setCeiling(g, ceiling, genericPct, option) {
+    const cAmt = r2(cBase(g, option) * numv(genericPct) / 100), recoverable = Math.min(g.obsTotal, cAmt);
+    g.ceiling = blank(ceiling) ? null : ceiling; g.deferred = r2(isREN(g) ? 0 : recoverable);
+    const imm = isREN(g) ? g.priceWithObsTotal + recoverable : g.priceWithObsTotal;
+    g.immediate = r2(noCeiling(g.ceiling) ? imm : Math.min(g.ceiling, imm));
+    capToCeiling(g, g.ceiling);
+  }
+  /** Plafond d'une nature : réparti au prorata entre les lignes du bénéficiaire, arrondi à l'inférieur */
+  function setLevel1Ceiling(groups, l1, benId, value, option) {
+    const lines = groups.filter((g) => g.l1 === l1 && g.beneficiaryId === benId);
+    const lineMax = (g) => Math.min(gBase(g), blank(g.ceiling) ? gBase(g) : g.ceiling, g.priceWithObsTotal + r2(cBase(g, option) * numv(g.cPct) / 100));
+    const total = sumf(lines, lineMax);
+    lines.forEach((g) => {
+      g.level1Ceiling = blank(value) ? null : value;
+      if (!(total > 0)) return;
+      const cAmt = r2(cBase(g, option) * numv(g.cPct) / 100), recoverable = Math.min(g.obsTotal, cAmt), imm = isREN(g) ? g.priceWithObsTotal + recoverable : g.priceWithObsTotal;
+      g.deferred = r2(isREN(g) ? 0 : recoverable);
+      if (blank(value)) { g.immediate = r2(noCeiling(g.ceiling) ? imm : Math.min(g.ceiling, imm)); capToCeiling(g, g.ceiling); return; }
+      const share = roundDown2(value * (lineMax(g) / total));
+      g.immediate = r2(noCeiling(g.ceiling) ? Math.min(imm, share) : Math.min(g.ceiling, imm, share));
+      capToCeiling(g, share);
+    });
+  }
+  function applyGenericPct(groups, benId, genericPct, option) {
+    groups.filter((x) => x.beneficiaryId === benId).forEach((g) => {
+      const pct = blank(genericPct) ? g.cPct : genericPct, cAmt = r2(cBase(g, option) * numv(pct) / 100), recoverable = Math.min(gBase(g) - g.priceWithObsTotal, cAmt);
+      g.cPct = pct; g.cAmt = cAmt; g.deferred = r2(isREN(g) ? 0 : recoverable);
+      const imm = isREN(g) ? g.priceWithObsTotal + recoverable : g.immediate;
+      g.immediate = r2(noCeiling(g.ceiling) ? imm : Math.min(g.ceiling, imm));
+      capToCeiling(g, g.ceiling);
+    });
+  }
+  const ceilingOverrun = (g) => (blank(g.ceiling) ? 0 : Math.max(0, r2(gBase(g) - g.ceiling)));
+  const obsOverdraft = (g) => Math.max(0, r2(g.obsTotal - numv(g.cAmt)));
+  /** Totaux d'un bénéficiaire : remise, pénalités, franchise, plancher à zéro */
+  function beneficiaryTotals(groups, ben) {
+    const mine = groups.filter((g) => g.beneficiaryId === ben.id), k = 1 - numv(ben.discount) / 100;
+    const subImmediate = sumf(mine, "immediate"), subDeferred = sumf(mine, "deferred");
+    return { damages: r2(sumf(mine, gBase)), obs: r2(sumf(mine, "obsTotal")), contractObs: r2(sumf(mine, "cAmt")), overdraft: r2(sumf(mine, obsOverdraft)), ceilingOverrun: r2(sumf(mine, ceilingOverrun)),
+      subImmediate: r2(subImmediate), subDeferred: r2(subDeferred), discountedImmediate: r2(subImmediate * k), discountedDeferred: r2(subDeferred * k),
+      totalImmediate: r2(Math.max(subImmediate * k - numv(ben.penalization) - numv(ben.deductible), 0)), totalDeferred: r2(Math.max(subDeferred * k - numv(ben.deferredPenalization) - numv(ben.deferredDeductible), 0)) };
+  }
+  /** Contrôles de l'écran Indemnisations : premier message bloquant */
+  function compensationError(groups, bens) {
+    if (bens.some((b) => blank(b.deductible) || blank(b.deferredDeductible))) return "Les montants de franchise sont obligatoires, veuillez saisir 0 si non applicable";
+    const assigned = groups.filter((g) => g.beneficiaryId);
+    const over = assigned.some((g) => (!blank(g.level1Ceiling) && r2(sumf(assigned.filter((x) => x.l1 === g.l1 && x.beneficiaryId === g.beneficiaryId), (x) => x.immediate + x.deferred)) > r2(g.level1Ceiling)) || (!blank(g.ceiling) && r2(g.immediate + g.deferred) > r2(g.ceiling)));
+    if (over) return "Le montant de certaines indemnités dépasse le plafond associé";
+    if (bens.length && assigned.some((g) => r2(g.immediate + g.deferred) > r2(gBase(g) - g.obsTotal + numv(g.cAmt)))) return "Les indemnités ne doivent pas dépasser les dommages. Veuillez ajuster les montants.";
+    return "";
+  }
+  function groupsOf(c) {
+    const gs = buildGroups(c.L, S.comps), ids = new Set(S.beneficiaries.map((b) => b.id));
+    gs.forEach((g) => { if (g.beneficiaryId && !ids.has(g.beneficiaryId)) unassignGroup(g); });
+    return gs;
+  }
+  function storeGroups(gs) {
+    S.comps = {};
+    gs.forEach((g) => { if (g.beneficiaryId || !blank(g.ceiling) || !blank(g.level1Ceiling)) S.comps[g.key] = { beneficiaryId: g.beneficiaryId, ceiling: g.ceiling, level1Ceiling: g.level1Ceiling, cPct: g.cPct, cAmt: g.cAmt, immediate: g.immediate, deferred: g.deferred }; });
+  }
+  function mutateGroups(fn) { return mut(() => { const gs = groupsOf(calc()); fn(gs); storeGroups(gs); }); }
+  /** Montants qu'une nouvelle ventilation donnerait : signale une ligne ventilée avant une modification des dommages */
+  function stale(g) {
+    if (!g.beneficiaryId) return false;
+    const t = Object.assign({}, g); setContractPct(t, numv(g.cPct), S.option);
+    return Math.abs(t.immediate - g.immediate) > 0.009 || Math.abs(t.deferred - g.deferred) > 0.009;
+  }
+  const compensable = () => S.coverages.filter((c) => c.stance === 1 || c.stance === 2);
+  /** btnCheckCurrentEstimate : statut atteint et erreurs */
+  function verifyEstimate(c, gs) {
+    const stances = S.coverages.filter((x) => !blank(x.stance)), hasDamages = c.L.length > 0, hasCoverages = S.coverages.length > 0;
+    const assigned = gs.filter((g) => g.beneficiaryId), errors = []; let status = null;
+    if (!S.beneficiaries.length || !assigned.length) {
+      if ((hasDamages && !stances.length) || (hasDamages && !hasCoverages)) status = 2;
+      else if (!hasDamages && stances.length && hasCoverages) status = 3;
+      else if (hasDamages && stances.length && hasCoverages) status = 4;
+    } else {
+      const applicable = compensable().length > 0; // les garanties du dossier couvrent l'unique objet de risque
+      const allCompensated = !applicable || gs.every((g) => g.beneficiaryId);
+      if (!allCompensated) errors.push("Tous les dommages couverts par une garantie applicable doivent être ventilés dans l'indemnisation");
+      if (blank(S.position)) errors.push("Une position de l'assuré sur l'indemnisation doit être sélectionnée");
+      if (allCompensated && !blank(S.position)) status = 5;
+    }
+    return { status, errors };
+  }
+  /** Contrôles Sinapps (commande chiffrerDommages) */
+  function sinappsIssues(c) {
     const out = [];
     c.L.forEach((l) => {
-      if (!l.n || !l.d) out.push({ text: "« " + l.name + " » : nature et détail Sinapps obligatoires", tab: "estimations" });
-      else if (l.proposed) out.push({ text: "« " + l.name + " » : nature et détail proposés, à confirmer", tab: "estimations" });
-      if (VAT.indexOf(l.vat) < 0) out.push({ text: "« " + l.name + " » : TVA à " + fr(l.vat, 1) + " % refusée par Sinapps", tab: "estimations" });
-      if (l.vetA > l.ttc) out.push({ text: "« " + l.name + " » : la vétusté dépasse le montant", tab: "estimations" });
+      const lb = "« " + l.name + " »";
+      if (!l.n || !l.d) out.push({ text: lb + " : la nature et le détail sont obligatoires", rule: "DommageDetailParNature", tab: "estimations" });
+      else if (l.proposed) out.push({ text: lb + " : nature et détail proposés, à confirmer", rule: "DommageDetailParNature", tab: "estimations" });
+      if (VAT.indexOf(l.vat) < 0) out.push({ text: lb + " : TVA à " + fr(l.vat, 1) + " % refusée par Sinapps", rule: "RG_CHIFFRAGE_EXP_0068", tab: "estimations" });
+      if (l.obsPct > 100) out.push({ text: lb + " : le taux de vétusté dépasse 100 %", rule: "RG_CHIFFRAGE_EXP_0048", tab: "estimations" });
+      if (r2(l.obsAmount) > r2(S.ttc ? l.priceWithVAT : l.priceNoVAT)) out.push({ text: lb + " : la vétusté dépasse le montant de la ligne", rule: "RG_CHIFFRAGE_EXP_0004", tab: "estimations" });
     });
-    S.coverages.forEach((cv) => { if (I.covs[cv.id].used && !cv.stance) out.push({ text: "Garantie « " + cv.name + " » : position à prendre", tab: "indemnisation" }); if ((cv.stance === 2 || cv.stance === 3) && !cv.comment.trim()) out.push({ text: "Garantie « " + cv.name + " » : motif à indiquer", tab: "indemnisation" }); });
-    I.gs.forEach((g) => { const b = S.beneficiaries.find((x) => x.id === g.ben); if (g.mode === "REN" && b && b.role === "Assuré") out.push({ text: g.d + " : réparation en nature, le bénéficiaire doit être l'entreprise qui répare", tab: "indemnisation" }); });
-    S.rooms.forEach((r) => { const g = gapOf(r); if (g) out.push({ text: r.name + " : les cotes ne ferment pas la pièce (écart de " + fr(Math.hypot(g[0], g[1])) + " m)", tab: "localisation" }); });
     return out;
+  }
+  function stanceIssues() { return S.coverages.filter((cv) => (cv.stance === 2 || cv.stance === 3) && !cv.comment.trim()).map((cv) => ({ text: "Garantie « " + cv.name + " » : un commentaire est obligatoire pour une garantie avec réserve ou non applicable", tab: "indemnisation" })); }
+  function planIssues() { return S.rooms.filter((r) => gapOf(r)).map((r) => { const g = gapOf(r); return { text: r.name + " : les cotes ne ferment pas la pièce (écart de " + fr(Math.hypot(g[0], g[1])) + " m)", tab: "localisation", soft: true }; }); }
+  /** Tout ce qui empêche d'atteindre « Indemnisations vérifiées » */
+  function blocking(c, gs) {
+    const v = verifyEstimate(c, gs), cErr = S.beneficiaries.length && gs.some((g) => g.beneficiaryId) ? compensationError(gs, S.beneficiaries) : "";
+    return sinappsIssues(c).concat(stanceIssues(), v.errors.map((t) => ({ text: t, tab: "indemnisation" })), cErr ? [{ text: cErr, tab: "indemnisation" }] : []);
+  }
+  function model() {
+    const c = calc(), gs = groupsOf(c);
+    const tots = S.beneficiaries.map((b) => ({ b, t: beneficiaryTotals(gs, b) }));
+    const imm = sum(tots, (x) => x.t.totalImmediate), def = sum(tots, (x) => x.t.totalDeferred);
+    const withheld = sum(tots, (x) => x.t.subImmediate + x.t.subDeferred - x.t.totalImmediate - x.t.totalDeferred);
+    const unassigned = sum(gs.filter((g) => !g.beneficiaryId), gBase);
+    const iss = blocking(c, gs), soft = planIssues();
+    return { c, gs, tots, imm, def, withheld, unassigned, iss, soft };
   }
 
   // ================= rendu : barre du dossier =================
@@ -627,29 +802,28 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     { id: "synthese", label: "Synthèse", icon: '<path d="M3 13V8M8 13V3M13 13V6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' }
   ];
   const shown = { vd: null, co2: null };
-  function renderBar(c, I, iss) {
-    const tabOk = {
-      localisation: !iss.some((x) => x.tab === "localisation"),
+  function renderBar(M) {
+    const iss = M.iss, tabOk = {
+      localisation: !M.soft.length,
       estimations: !iss.some((x) => x.tab === "estimations"),
       indemnisation: !iss.some((x) => x.tab === "indemnisation"),
-      synthese: S.status === "Vérifié"
+      synthese: S.status >= 2
     };
-    const n = iss.length, total = Math.max(1, c.L.length + S.coverages.length), pct = n ? Math.max(0.08, 1 - n / total) : 1;
-    const C = 2 * Math.PI * 15;
+    const n = iss.length, total = Math.max(1, M.c.L.length + 4), pct = n ? Math.max(0.08, 1 - n / total) : 1, C = 2 * Math.PI * 15;
     document.getElementById("bar").innerHTML =
       '<div class="wrap gutter bar-in">' +
       '<div class="brand"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" fill="#2349E6"/><path d="M8 9h14M8 15h9M8 21h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="22" cy="15" r="2.4" fill="#F4B400"/></svg>Eureka Chiffrage</div>' +
       '<div class="case"><b>27FP260071606A01</b><span>Dégât des eaux du 02/10/2026 · Camille Exemple · Lyon 3e</span></div>' +
       '<nav class="tabs" aria-label="Étapes du chiffrage">' + TABS.map((t) => '<a href="#' + t.id + '"' + (S.tab === t.id ? ' aria-current="page"' : "") + '><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' + t.icon + "</svg>" + t.label + '<span class="st' + (tabOk[t.id] ? " ok" : "") + '" aria-label="' + (tabOk[t.id] ? "terminé" : "à compléter") + '"></span></a>').join("") + "</nav>" +
       '<div class="dock">' +
-      '<div class="fig"><span>Vétusté déduite TTC</span><b id="fig-vd">' + eur(shown.vd == null ? c.T.vd : shown.vd) + "</b></div>" +
-      '<div class="fig co2"><span>Empreinte</span><b id="fig-co2">' + kg(shown.co2 == null ? c.T.co2 : shown.co2) + " CO2e</b></div>" +
-      '<a class="ring" href="#synthese" title="Points bloquants avant envoi"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="15" fill="none" stroke="#26344D" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="' + (n ? "#F4B400" : "#3CC57C") + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (C * pct).toFixed(1) + " " + C.toFixed(1) + '" transform="rotate(-90 19 19)"/>' + (n ? '<text x="19" y="23.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Inter, sans-serif">' + n + "</text>" : '<path d="M13 19.5l4 4 8-8" fill="none" stroke="#3CC57C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>') + "</svg><span><small>Sinapps</small><strong>" + (n ? n + " point" + (n > 1 ? "s" : "") + " à régler" : "Prêt à l'envoi") + "</strong></span></a>" +
+      '<div class="fig"><span>Vétusté déduite ' + (S.ttc ? "TTC" : "HT") + '</span><b id="fig-vd">' + eur(shown.vd == null ? M.c.T.vd : shown.vd) + "</b></div>" +
+      '<div class="fig co2"><span>Empreinte</span><b id="fig-co2">' + kg(shown.co2 == null ? M.c.T.co2 : shown.co2) + " CO2e</b></div>" +
+      '<a class="ring" href="#synthese" title="Points bloquants avant « Indemnisations vérifiées »"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="15" fill="none" stroke="#26344D" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="' + (n ? "#F4B400" : "#3CC57C") + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (C * pct).toFixed(1) + " " + C.toFixed(1) + '" transform="rotate(-90 19 19)"/>' + (n ? '<text x="19" y="23.5" text-anchor="middle" font-size="12" font-weight="700" fill="#fff" font-family="Inter, sans-serif">' + n + "</text>" : '<path d="M13 19.5l4 4 8-8" fill="none" stroke="#3CC57C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>') + "</svg><span><small>" + esc(STATUS[S.status]) + "</small><strong>" + (n ? n + " point" + (n > 1 ? "s" : "") + " à régler" : "Prêt à vérifier") + "</strong></span></a>" +
       '<button type="button" class="bar-btn" data-act="undo"' + (undo.length ? "" : " disabled") + ' title="Annuler (Ctrl+Z)">↶ Annuler</button>' +
       '<button type="button" class="bar-btn" data-act="reset">Recommencer</button>' +
       "</div></div>";
-    animateFig("vd", c.T.vd, (v) => eur(v), "fig-vd", "");
-    animateFig("co2", c.T.co2, (v) => kg(v), "fig-co2", " CO2e");
+    animateFig("vd", M.c.T.vd, eur, "fig-vd", "");
+    animateFig("co2", M.c.T.co2, kg, "fig-co2", " CO2e");
   }
   const anim = {};
   function animateFig(key, target, fmt, id, suffix) {
@@ -664,18 +838,18 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   // ================= rendu : plan =================
   function planSvg(o) {
     o = o || {};
-    const v = o.view || S.view, mini = !!o.mini;
+    const v = o.view || S.view, mini = !!o.mini, sfx = o.sfx || (mini ? "m" : "");
     let s = '<svg ' + (mini ? "" : 'id="plan-svg" ') + 'viewBox="' + v.x + " " + v.y + " " + v.w + " " + v.h + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Plan du logement">' +
       "<defs>" +
-      '<pattern id="g1' + (mini ? "m" : "") + '" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern>' +
-      '<pattern id="g2' + (mini ? "m" : "") + '" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#g1' + (mini ? "m" : "") + ')"/><path d="M100 0H0V100" fill="none" stroke="var(--grid-major)" stroke-width="1.5"/></pattern>' +
-      '<pattern id="hatch" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="var(--bad-bg)"/><line x1="0" y1="0" x2="0" y2="12" class="hatch-l"/></pattern>' +
+      '<pattern id="g1' + sfx + '" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="var(--grid)" stroke-width="1"/></pattern>' +
+      '<pattern id="g2' + sfx + '" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#g1' + sfx + ')"/><path d="M100 0H0V100" fill="none" stroke="var(--grid-major)" stroke-width="1.5"/></pattern>' +
+      '<pattern id="hatch' + sfx + '" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="var(--bad-bg)"/><line x1="0" y1="0" x2="0" y2="12" class="hatch-l"/></pattern>' +
       "</defs>";
     if (!mini) s += '<rect x="' + (v.x - 5000) + '" y="' + (v.y - 5000) + '" width="' + (v.w + 10000) + '" height="' + (v.h + 10000) + '" fill="url(#g2)"/>';
     const heat = o.heat;
     S.rooms.forEach((r) => {
       const p = verts(r).slice(0, -1).map((q) => (q[0] * K).toFixed(1) + "," + (q[1] * K).toFixed(1)).join(" ");
-      if (heat) { const a = heat[r.id] || 0; s += '<polygon points="' + p + '" fill="var(--accent)" fill-opacity="' + (0.06 + a * 0.6).toFixed(2) + '" class="p-heat"/>'; }
+      if (heat) s += '<polygon points="' + p + '" fill="var(--accent)" fill-opacity="' + (0.06 + (heat[r.id] || 0) * 0.6).toFixed(2) + '" class="p-heat"/>';
       else s += '<polygon points="' + p + '" class="p-room' + (r.id === S.sel ? " sel" : "") + '" data-room="' + r.id + '"/>';
     });
     if (!heat) S.rooms.forEach((r) => {
@@ -683,7 +857,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
         const w = r.walls[z.wall]; if (!w) return; const P = verts(r), a = P[z.wall], u = U(w.dir), n = outward(r, z.wall);
         const p1 = [a[0] + u[0] * z.x, a[1] + u[1] * z.x], p2 = [a[0] + u[0] * (z.x + z.w), a[1] + u[1] * (z.x + z.w)], d = -0.2;
         const pts = [p1, p2, [p2[0] + n[0] * d, p2[1] + n[1] * d], [p1[0] + n[0] * d, p1[1] + n[1] * d]].map((q) => (q[0] * K).toFixed(1) + "," + (q[1] * K).toFixed(1)).join(" ");
-        s += '<polygon points="' + pts + '" class="p-zone"/>';
+        s += '<polygon points="' + pts + '" class="p-zone" style="fill:url(#hatch' + sfx + ')"/>';
       });
     });
     S.rooms.forEach((r) => {
@@ -700,10 +874,10 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
           ops.forEach((op) => {
             const q1 = [a[0] + u[0] * op.pos, a[1] + u[1] * op.pos], q2 = [a[0] + u[0] * (op.pos + op.w), a[1] + u[1] * (op.pos + op.w)];
             if (op.type === "door") {
-              if (op.twin && r.id > (S.rooms.find((x) => x.openings.some((y) => y.id === op.twin)) || {}).id) return; // une seule porte dessinée pour deux pièces
-              const tip = [q1[0] + inn[0] * op.w, q1[1] + inn[1] * op.w];
+              const other = S.rooms.find((x) => x.openings.some((y) => y.id === op.twin));
+              if (op.twin && other && r.id > other.id) return; // une seule porte dessinée pour deux pièces
+              const tip = [q1[0] + inn[0] * op.w, q1[1] + inn[1] * op.w], sweep = (u[0] * inn[1] - u[1] * inn[0]) > 0 ? 0 : 1;
               s += '<line x1="' + q1[0] * K + '" y1="' + q1[1] * K + '" x2="' + tip[0] * K + '" y2="' + tip[1] * K + '" class="p-sym"/>';
-              const sweep = (u[0] * inn[1] - u[1] * inn[0]) > 0 ? 0 : 1;
               s += '<path d="M' + q2[0] * K + " " + q2[1] * K + " A" + op.w * K + " " + op.w * K + " 0 0 " + sweep + " " + tip[0] * K + " " + tip[1] * K + '" class="p-sym" stroke-dasharray="4 3"/>';
             } else {
               [-0.035, 0.035].forEach((off) => { s += '<line x1="' + (q1[0] + n[0] * off) * K + '" y1="' + (q1[1] + n[1] * off) * K + '" x2="' + (q2[0] + n[0] * off) * K + '" y2="' + (q2[1] + n[1] * off) * K + '" class="p-sym"/>'; });
@@ -718,7 +892,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     });
     S.rooms.forEach((r) => {
       const c = centroid(r), m = measures(r);
-      if (heat) { s += '<text x="' + c[0] * K + '" y="' + (c[1] * K - 8) + '" class="p-heat-n">' + esc(r.name) + '</text><text x="' + c[0] * K + '" y="' + (c[1] * K + 30) + '" class="p-heat-t">' + esc(o.heatLabel[r.id] || "—") + "</text>"; }
+      if (heat) s += '<text x="' + c[0] * K + '" y="' + (c[1] * K - 8) + '" class="p-heat-n">' + esc(r.name) + '</text><text x="' + c[0] * K + '" y="' + (c[1] * K + 30) + '" class="p-heat-t">' + esc(o.heatLabel[r.id] || "—") + "</text>";
       else s += '<text x="' + c[0] * K + '" y="' + (c[1] * K - 4) + '" class="p-name">' + esc(r.name) + '</text><text x="' + c[0] * K + '" y="' + (c[1] * K + 20) + '" class="p-area">' + fr(m.floor) + " m²</text>";
     });
     const r = !heat && room(S.sel);
@@ -726,20 +900,19 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       const P = verts(r);
       r.walls.forEach((w, i) => {
         const a = P[i], b = P[i + 1], n = outward(r, i), off = 0.42;
-        const A = [a[0] + n[0] * off, a[1] + n[1] * off], B = [b[0] + n[0] * off, b[1] + n[1] * off], M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+        const A = [a[0] + n[0] * off, a[1] + n[1] * off], B = [b[0] + n[0] * off, b[1] + n[1] * off], Mid = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
         s += '<line x1="' + a[0] * K + '" y1="' + a[1] * K + '" x2="' + (A[0] + n[0] * 0.06) * K + '" y2="' + (A[1] + n[1] * 0.06) * K + '" class="p-dim" stroke-dasharray="3 3"/>';
         s += '<line x1="' + b[0] * K + '" y1="' + b[1] * K + '" x2="' + (B[0] + n[0] * 0.06) * K + '" y2="' + (B[1] + n[1] * 0.06) * K + '" class="p-dim" stroke-dasharray="3 3"/>';
         s += '<line x1="' + A[0] * K + '" y1="' + A[1] * K + '" x2="' + B[0] * K + '" y2="' + B[1] * K + '" class="p-dim"/>';
         [A, B].forEach((T) => { s += '<line x1="' + (T[0] * K - 7) + '" y1="' + (T[1] * K + 7) + '" x2="' + (T[0] * K + 7) + '" y2="' + (T[1] * K - 7) + '" class="p-dim" style="stroke-width:2"/>'; });
         const label = fr(w.len), wpx = label.length * 11 + 16;
-        s += '<g class="p-cote' + (S.selWall === i ? " sel" : "") + '" data-act="cote" data-wall="' + i + '"><rect x="' + (M[0] * K - wpx / 2) + '" y="' + (M[1] * K - 13) + '" width="' + wpx + '" height="26" rx="6"/><text x="' + M[0] * K + '" y="' + (M[1] * K + 6) + '">' + label + "</text></g>";
+        s += '<g class="p-cote' + (S.selWall === i ? " sel" : "") + '" data-act="cote" data-wall="' + i + '"><rect x="' + (Mid[0] * K - wpx / 2) + '" y="' + (Mid[1] * K - 13) + '" width="' + wpx + '" height="26" rx="6"/><text x="' + Mid[0] * K + '" y="' + (Mid[1] * K + 6) + '">' + label + "</text></g>";
       });
     }
     if (!mini) s += '<polyline id="stroke" class="p-stroke" points=""/>';
     if (S.pending && !mini) { const p = verts(S.pending).slice(0, -1).map((q) => q[0] * K + "," + q[1] * K).join(" "); s += '<polygon points="' + p + '" class="p-ghost"/>'; }
     return s + "</svg>";
   }
-
   function elevSvg(r, i) {
     const w = r.walls[i], L = w.len * K, H = r.H * K;
     let s = '<svg id="elev-svg" viewBox="-48 -24 ' + (L + 78) + " " + (H + 62) + '" role="img" aria-label="Élévation du mur ' + (i + 1) + '">' +
@@ -755,33 +928,30 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   // ================= onglet Localisation =================
   function linesOf(roomId, c) { return c.L.filter((l) => l.room === roomId); }
   function suggestModel(r) { const t = norm(r.type || r.name); return /cuisine|bain|eau|wc/.test(t) ? MODELS[0] : MODELS[1]; }
-  function viewLocalisation(c) {
-    const r = room(S.sel);
+  function arrow(d) { return { 0: "→", 45: "↘", 90: "↓", 135: "↙", 180: "←", 225: "↖", 270: "↑", 315: "↗" }[d] || ""; }
+  function viewLocalisation(M) {
+    const c = M.c, r = room(S.sel);
     const tool = (id, label, icon) => '<button type="button" class="tool" data-act="tool" data-tool="' + id + '" aria-pressed="' + (S.tool === id) + '"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' + icon + "</svg>" + label + "</button>";
     let side = "";
     if (r) {
-      const m = measures(r), g = gapOf(r), rl = linesOf(r.id, c), w = S.selWall != null ? r.walls[S.selWall] : null;
-      const sm = suggestModel(r);
+      const m = measures(r), g = gapOf(r), rl = linesOf(r.id, c), w = S.selWall != null ? r.walls[S.selWall] : null, sm = suggestModel(r);
       side = '<div class="card">' +
         '<div style="display:flex;gap:10px;align-items:flex-end"><div class="field" style="flex:1"><label for="room-name">Pièce</label><input class="inp" id="room-name" data-chg="room-name" value="' + esc(r.name) + '"></div>' +
         '<div class="field" style="width:110px"><label for="room-h">Hauteur (m)</label><input class="inp mono" id="room-h" data-chg="room-h" inputmode="decimal" value="' + fr(r.H) + '"></div></div>' +
-        '<div class="metrics">' +
-        [["Sol", m.floor, "m²"], ["Plafond", m.ceiling, "m²"], ["Murs", m.walls, "m²"], ["Périmètre", m.perimeter, "m"], ["Plinthes", m.skirting, "m"], ["Zones abîmées", m.zone, "m²"]].map((x) => '<div class="metric"><span>' + x[0] + "</span><b>" + fr(x[1]) + " " + x[2] + "</b></div>").join("") + "</div>" +
+        '<div class="metrics">' + [["Sol", m.floor, "m²"], ["Plafond", m.ceiling, "m²"], ["Murs", m.walls, "m²"], ["Périmètre", m.perimeter, "m"], ["Plinthes", m.skirting, "m"], ["Zones abîmées", m.zone, "m²"]].map((x) => '<div class="metric"><span>' + x[0] + "</span><b>" + fr(x[1]) + " " + x[2] + "</b></div>").join("") + "</div>" +
         '<p class="small faint">Murs : ouvertures déduites (' + fr(m.open) + ' m²). Plinthes : largeurs de porte déduites.</p>' +
         (g ? '<div class="alert bad"><span>Les cotes ne ferment pas la pièce : écart de <b class="mono">' + fr(Math.hypot(g[0], g[1])) + ' m</b>.</span><button type="button" class="btn" data-act="fix-gap">Ajuster le mur opposé</button></div>' : '<div class="alert ok"><span>Pièce fermée : les cotes sont cohérentes.</span></div>') +
         '<div class="lbl">Cotes des murs <span class="faint" style="font-weight:500">· écrivez au stylet dans le champ</span></div>' +
-        '<div class="walls">' + r.walls.map((x, i) => '<div class="wall-row' + (S.selWall === i ? " sel" : "") + '"><button type="button" data-act="sel-wall" data-wall="' + i + '">Mur ' + (i + 1) + " " + arrow(x.dir) + '</button><input id="wall-' + i + '" data-chg="wall-len" data-wall="' + i + '" inputmode="decimal" value="' + fr(x.len) + '" aria-label="Longueur du mur ' + (i + 1) + ' en mètres"></div>').join("") + "</div>" +
-        "</div>";
+        '<div class="walls">' + r.walls.map((x, i) => '<div class="wall-row' + (S.selWall === i ? " sel" : "") + '"><button type="button" data-act="sel-wall" data-wall="' + i + '">Mur ' + (i + 1) + " " + arrow(x.dir) + '</button><input id="wall-' + i + '" data-chg="wall-len" data-wall="' + i + '" inputmode="decimal" value="' + fr(x.len) + '" aria-label="Longueur du mur ' + (i + 1) + ' en mètres"></div>').join("") + "</div></div>";
       side += '<div class="card"><div style="display:flex;align-items:baseline;gap:8px"><h3>Ouvertures</h3><span class="small faint">largeur × hauteur (m)</span></div>' +
-        (r.openings.length ? r.openings.map((o) => '<div class="open-row"><span>' + (o.label || (o.type === "door" ? "Porte" : "Fenêtre")) + ' <span class="faint small">· mur ' + (o.wall + 1) + (o.twin ? " · commune" : "") + '</span></span><input class="inp" data-chg="open-w" data-id="' + o.id + '" value="' + fr(o.w) + '" aria-label="Largeur"><input class="inp" data-chg="open-h" data-id="' + o.id + '" value="' + fr(o.h) + '" aria-label="Hauteur"><button type="button" class="x" data-act="del-open" data-id="' + o.id + '" aria-label="Retirer">×</button></div>').join("") : '<p class="small muted">Aucune ouverture. Choisissez Porte ou Fenêtre puis touchez un mur.</p>') +
-        "</div>";
-      side += '<div class="card"><div style="display:flex;align-items:baseline;gap:8px"><h3>' + (w ? "Mur " + (S.selWall + 1) + " · zone abîmée" : "Zone abîmée") + "</h3></div>" +
+        (r.openings.length ? r.openings.map((o) => '<div class="open-row"><span>' + (o.label || (o.type === "door" ? "Porte" : "Fenêtre")) + ' <span class="faint small">· mur ' + (o.wall + 1) + (o.twin ? " · commune" : "") + '</span></span><input class="inp" data-chg="open-w" data-id="' + o.id + '" value="' + fr(o.w) + '" aria-label="Largeur"><input class="inp" data-chg="open-h" data-id="' + o.id + '" value="' + fr(o.h) + '" aria-label="Hauteur"><button type="button" class="x" data-act="del-open" data-id="' + o.id + '" aria-label="Retirer">×</button></div>').join("") : '<p class="small muted">Aucune ouverture. Choisissez Porte ou Fenêtre puis touchez un mur.</p>') + "</div>";
+      side += '<div class="card"><h3>' + (w ? "Mur " + (S.selWall + 1) + " · zone abîmée" : "Zone abîmée") + "</h3>" +
         (w ? '<p class="small muted">Glissez sur le mur pour hachurer la partie abîmée : sa surface alimente les prestations liées à la zone.</p>' + elevSvg(r, S.selWall) +
-          (r.zones.filter((z) => z.wall === S.selWall).map((z) => '<div class="open-row" style="grid-template-columns:minmax(0,1fr) auto 28px"><span>Zone ' + fr(z.w) + " × " + fr(z.h) + ' m</span><b class="mono">' + fr(z.w * z.h) + ' m²</b><button type="button" class="x" data-act="del-zone" data-id="' + z.id + '" aria-label="Retirer la zone">×</button></div>').join(""))
+          r.zones.filter((z) => z.wall === S.selWall).map((z) => '<div class="open-row" style="grid-template-columns:minmax(0,1fr) auto 28px"><span>Zone ' + fr(z.w) + " × " + fr(z.h) + ' m</span><b class="mono">' + fr(z.w * z.h) + ' m²</b><button type="button" class="x" data-act="del-zone" data-id="' + z.id + '" aria-label="Retirer la zone">×</button></div>').join("")
           : '<p class="small muted">Touchez un mur sur le plan ou une cote pour voir son élévation.</p>') + "</div>";
-      side += '<div class="card"><div style="display:flex;align-items:baseline;gap:8px"><h3>Chiffrage de la pièce</h3><span class="small faint">' + rl.length + " ligne" + (rl.length > 1 ? "s" : "") + " · " + eur(sum(rl, "vd")) + "</span></div>" +
+      side += '<div class="card"><div style="display:flex;align-items:baseline;gap:8px"><h3>Chiffrage de la pièce</h3><span class="small faint">' + rl.length + " ligne" + (rl.length > 1 ? "s" : "") + " · " + eur(sum(rl, "priceWithObs")) + "</span></div>" +
         (rl.length ? "" : '<p class="small muted">Rien n\'est encore chiffré ici. Un modèle crée les lignes avec les quantités du plan.</p>') +
-        '<div class="model"><div style="flex:1;min-width:0"><b>' + esc(sm.name) + '</b><div class="small muted">' + sm.items.length + " prestations · quantités tirées du plan</div></div><button type=\"button\" class=\"btn primary\" data-act=\"apply-model\" data-model=\"" + sm.id + '">Appliquer</button></div>' +
+        '<div class="model"><div style="flex:1;min-width:0"><b>' + esc(sm.name) + '</b><div class="small muted">' + sm.items.length + ' prestations · quantités tirées du plan</div></div><button type="button" class="btn primary" data-act="apply-model" data-model="' + sm.id + '">Appliquer</button></div>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" data-act="go-est" data-room="' + r.id + '">Chiffrer dans Estimations</button><button type="button" class="btn ghost" data-act="del-room">Supprimer la pièce</button></div></div>';
     } else side = '<div class="card"><p class="muted">Touchez une pièce pour voir ses mesures, ou tracez-en une nouvelle.</p></div>';
     let naming = "";
@@ -804,20 +974,17 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       '<div class="zoom"><button type="button" data-act="zoom" data-k="0.8" aria-label="Zoomer">+</button><button type="button" data-act="zoom" data-k="1.25" aria-label="Dézoomer">−</button><button type="button" data-act="fit" aria-label="Recentrer le plan" style="font-size:12px">⤢</button></div>' +
       '</div></section><aside class="side" aria-label="Pièce sélectionnée">' + side + "</aside></div>";
   }
-  function arrow(d) { return { 0: "→", 45: "↘", 90: "↓", 135: "↙", 180: "←", 225: "↖", 270: "↑", 315: "↗" }[d] || ""; }
 
   // ================= onglet Estimations =================
   function cmdResults() {
     const q = S.q.trim(); if (!q) return [];
-    let toks = norm(q).split(/[^a-z0-9²]+/).filter((t) => t.length > 1);
-    let target = null;
+    let toks = norm(q).split(/[^a-z0-9²]+/).filter((t) => t.length > 1), target = null;
     toks = toks.filter((t) => { const r = S.rooms.find((x) => t.length >= 3 && norm(x.name).indexOf(t) === 0); if (r) { target = r; return false; } return ["de", "des", "du", "la", "le", "les", "et", "en", "pour", "un", "une"].indexOf(t) < 0; });
-    const tr = target || room(S.estRoom);
-    const out = [];
+    const tr = target || room(S.estRoom), out = [];
     if (!toks.length && target) return [{ kind: "target", room: target }];
     const score = (text) => toks.reduce((a, t) => a + (norm(text).split(/[^a-z0-9]+/).some((w) => w.indexOf(t) === 0) ? 1 : 0), 0);
-    MODELS.forEach((m) => { const s = score(m.name + " modele"); if (s && (s >= Math.min(2, toks.length) || toks.some((t) => "modele".indexOf(t) === 0))) out.push({ kind: "model", m, room: tr, s }); });
-    CAT.map((c) => ({ c, s: score(c.name + " " + c.d) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 6).forEach((x) => out.push({ kind: "cat", c: x.c, room: tr, s: x.s }));
+    MODELS.forEach((m) => { const s = score(m.name + " modele"); if (s && (s >= Math.min(2, toks.length) || toks.some((t) => "modele".indexOf(t) === 0))) out.push({ kind: "model", m, room: tr }); });
+    CAT.map((c) => ({ c, s: score(c.name + " " + c.d) })).filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, 6).forEach((x) => out.push({ kind: "cat", c: x.c, room: tr }));
     if (q.length >= 3) out.push({ kind: "hb", text: q, room: tr });
     return out;
   }
@@ -830,24 +997,36 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       const on = i === S.cmdIdx ? " on" : "";
       if (x.kind === "cat") {
         const m = x.room ? measures(x.room) : null, q = x.c.link ? (m ? m[x.c.link] : 0) : 1;
-        h += '<button type="button" class="res' + on + '" data-act="res" data-i="' + i + '"><span><b>' + esc(x.c.name) + '</b><span class="meta"><span class="tag nat">' + esc(x.c.n) + " › " + esc(x.c.d) + "</span>" + (x.c.link ? '<span class="tag plan">' + (x.room ? esc(x.room.name) + " · " + LINK[x.c.link] + " " + fr(q) + " " + x.c.unit : "choisir une pièce") + "</span>" : "") + '<span class="tag co2">' + fr(x.c.co2, 1) + " kg CO2e/" + x.c.unit + '</span></span></span><span class="amt">' + eur(x.c.pu) + "<small>HT / " + x.c.unit + "</small>" + (x.room ? '<small>≈ ' + eur(q * x.c.pu * 1.1) + " TTC</small>" : "") + "</span></button>";
+        h += '<button type="button" class="res' + on + '" data-act="res" data-i="' + i + '"><span><b>' + esc(x.c.name) + '</b><span class="meta"><span class="tag nat">' + esc(x.c.n) + " › " + esc(x.c.d) + "</span>" + (x.c.link ? '<span class="tag plan">' + (x.room ? esc(x.room.name) + " · " + LINK[x.c.link] + " " + fr(q) + " " + x.c.unit : "choisir une pièce") + "</span>" : "") + '<span class="tag co2">' + fr(x.c.co2, 1) + " kg CO2e/" + x.c.unit + '</span></span></span><span class="amt">' + eur(x.c.pu) + "<small>HT / " + x.c.unit + "</small>" + (x.room ? "<small>≈ " + eur(q * x.c.pu * (S.ttc ? 1.1 : 1)) + (S.ttc ? " TTC" : " HT") + "</small>" : "") + "</span></button>";
       } else if (x.kind === "model") {
         h += '<button type="button" class="res' + on + '" data-act="res" data-i="' + i + '"><span><b>' + esc(x.m.name) + '</b><span class="meta">' + x.m.items.map((it) => esc(catById(it[0]).name.split(",")[0])).join(" · ") + '</span></span><span class="amt">' + (x.room ? "→ " + esc(x.room.name) : "") + "<small>" + x.m.items.length + " lignes</small></span></button>";
       } else if (x.kind === "hb") {
         const g = guess(x.text);
-        h += '<button type="button" class="res' + on + '" data-act="res" data-i="' + i + '"><span><b>Ajouter « ' + esc(x.text) + ' » hors bordereau</b><span class="meta">' + (g ? '<span class="tag nat">Proposé : ' + esc(g.n) + " › " + esc(g.d) + '</span><span>d\'après « ' + esc(g.kw) + " », à confirmer</span>" : "<span>Nature et détail à choisir : obligatoires pour Sinapps</span>") + '</span></span><span class="amt"><small>prix à saisir</small></span></button>';
+        h += '<button type="button" class="res' + on + '" data-act="res" data-i="' + i + '"><span><b>Ajouter « ' + esc(x.text) + ' » hors bordereau</b><span class="meta">' + (g ? '<span class="tag nat">Proposé : ' + esc(g.n) + " › " + esc(g.d) + "</span><span>d'après « " + esc(g.kw) + " », à confirmer</span>" : "<span>Nature et détail à choisir : obligatoires pour Sinapps</span>") + '</span></span><span class="amt"><small>prix à saisir</small></span></button>';
       } else if (x.kind === "target") {
         h += '<button type="button" class="res' + on + '" data-act="res" data-i="' + i + '"><span><b>Chiffrer dans : ' + esc(x.room.name) + '</b><span class="meta">Tapez ensuite une prestation</span></span><span></span></button>';
       }
     });
     return h ? '<div class="card cmd-res" id="cmd-res" role="listbox">' + h + "</div>" : "";
   }
-  function viewEstimations(c, I, iss) {
-    const tr = room(S.estRoom);
-    const chips = S.rooms.map((r) => { const rl = linesOf(r.id, c); return '<button type="button" class="chip" data-act="est-room" data-room="' + r.id + '" aria-pressed="' + (S.estRoom === r.id) + '">' + esc(r.name) + " <small>" + (rl.length ? eur0(sum(rl, "vd")) : "à chiffrer") + "</small></button>"; }).join("");
+  function altList(c) {
+    const out = [];
+    c.L.forEach((l) => {
+      const k = S.ttc ? 1 + l.vat / 100 : 1;
+      if (l.cat === "peint-murs") { const e = catById("peint-eco"); out.push({ id: l.id, to: "peint-eco", title: "Peinture écolabel au lieu d'acrylique · " + nameOfRoom(l.room), why: fr(l.q) + " m² de murs, même nature et même détail Sinapps", de: r2(l.q * (e.pu - l.pu) * k), dc: l.q * (l.co2 - e.co2) }); }
+      if (l.cat === "parquet-strat") { const e = catById("parquet-reemploi"); out.push({ id: l.id, to: "parquet-reemploi", title: "Parquet de réemploi au lieu de stratifié neuf · " + nameOfRoom(l.room), why: fr(l.q) + " m² de sol, détail Sinapps « Parquets »", de: r2(l.q * (e.pu - l.pu) * k), dc: l.q * (l.co2 - e.co2) }); }
+      if ((l.cat === "peint-murs" || l.cat === "peint-eco") && room(l.room)) { const m = measures(room(l.room)); if (m.zone > 0 && m.zone < m.walls * 0.5) { const e = catById("reprise-zone"); out.push({ id: l.id, to: "reprise-zone", title: "Reprendre seulement la zone abîmée · " + nameOfRoom(l.room), why: fr(m.zone) + " m² hachurés au lieu de " + fr(l.q) + " m² de murs repeints", de: r2((m.zone * e.pu - l.q * l.pu) * k), dc: l.q * l.co2 - m.zone * e.co2 }); } }
+    });
+    return out.filter((a) => a.dc > 0.5);
+  }
+  function nameOfRoom(id) { const r = room(id); return r ? r.name : "sans pièce"; }
+  function vatOpts(v) { return VAT.map((x) => '<option value="' + x + '"' + (x === v ? " selected" : "") + ">" + fr(x, 1).replace(",0", "") + " %</option>").join(""); }
+  function viewEstimations(M) {
+    const c = M.c, tr = room(S.estRoom), regime = S.ttc ? "TTC" : "HT";
+    const chips = S.rooms.map((r) => { const rl = linesOf(r.id, c); return '<button type="button" class="chip" data-act="est-room" data-room="' + r.id + '" aria-pressed="' + (S.estRoom === r.id) + '">' + esc(r.name) + " <small>" + (rl.length ? eur0(sum(rl, "priceWithObs")) : "à chiffrer") + "</small></button>"; }).join("");
     let hb = "";
     if (S.hb) {
-      const n = S.hb.n, opts = (o, v) => o.map((x) => '<option' + (x === v ? " selected" : "") + ">" + esc(x) + "</option>").join("");
+      const n = S.hb.n, opts = (o, v) => o.map((x) => "<option" + (x === v ? " selected" : "") + ">" + esc(x) + "</option>").join("");
       hb = '<form class="card hb" id="hb-form" aria-label="Prestation hors bordereau">' +
         '<div class="full" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h3>Prestation hors bordereau</h3>' + (S.hb.kw ? '<span class="tag nat">Nature et détail proposés d\'après « ' + esc(S.hb.kw) + " » : vérifiez</span>" : '<span class="tag warn">Nature et détail à choisir</span>') + "</div>" +
         '<div class="field wide"><label for="hb-name">Désignation</label><input class="inp" id="hb-name" value="' + esc(S.hb.name) + '"></div>' +
@@ -856,163 +1035,194 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
         '<div class="field"><label for="hb-pu">Prix unitaire HT</label><input class="inp num" id="hb-pu" inputmode="decimal" placeholder="0,00" value="' + esc(S.hb.pu) + '"></div>' +
         '<div class="field wide"><label for="hb-n">Nature Sinapps</label><select class="inp" id="hb-n" data-chg="hb-n"><option value="">Choisir…</option>' + opts(Object.keys(NATURES), n) + "</select></div>" +
         '<div class="field wide"><label for="hb-d">Détail de la nature</label><select class="inp" id="hb-d"><option value="">Choisir…</option>' + (n ? opts(NATURES[n], S.hb.d) : "") + "</select></div>" +
-        '<div class="field"><label for="hb-vat">TVA</label><select class="inp" id="hb-vat">' + VAT.map((v) => '<option value="' + v + '"' + (v === 10 ? " selected" : "") + ">" + fr(v, 1).replace(",0", "") + " %</option>").join("") + "</select></div>" +
+        '<div class="field"><label for="hb-vat">TVA</label><select class="inp" id="hb-vat">' + vatOpts(10) + "</select></div>" +
         '<div class="field"><label for="hb-co2">kg CO2e / unité</label><input class="inp num" id="hb-co2" inputmode="decimal" value="' + esc(S.hb.co2) + '"></div>' +
         '<div class="full" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="small muted">Pièce : <b>' + esc(tr ? tr.name : "—") + '</b>. La ligne ne part pas vers Sinapps sans nature ni détail.</span><span style="margin-left:auto;display:flex;gap:8px"><button type="button" class="btn" data-act="hb-cancel">Annuler</button><button type="submit" class="btn primary">Ajouter la ligne</button></span></div>' +
         '<p class="full small" id="hb-err" style="color:var(--bad)" hidden></p></form>';
     }
-    // tableau des lignes
     let rows = "";
     S.rooms.concat([{ id: null, name: "Sans pièce" }]).forEach((r) => {
-      const rl = c.L.filter((l) => (l.room || null) === r.id); if (!rl.length) return;
-      rows += '<tr class="room-h' + (r.id === S.estRoom ? " target" : "") + '"><td colspan="6">' + esc(r.name) + (r.id ? ' <span class="small faint" style="font-weight:500">· ' + fr(measures(r).floor) + " m² au sol</span>" : "") + '</td><td class="amt">' + eur(sum(rl, "vd")) + '</td><td class="amt" style="color:var(--carbon)">' + kg(rl.reduce((a, l) => a + l.co2t, 0)) + "</td><td></td></tr>";
+      const rl = c.L.filter((l) => (l.room || null) === r.id).sort((a, b) => (a.lineIndex < b.lineIndex ? -1 : 1)); if (!rl.length) return;
+      rows += '<tr class="room-h' + (r.id === S.estRoom ? " target" : "") + '"><td colspan="8">' + esc(r.name) + (r.id ? ' <span class="small faint" style="font-weight:500">· ' + fr(measures(r).floor) + " m² au sol</span>" : "") + '</td><td class="amt">' + eur(sum(rl, "base")) + '</td><td class="amt">' + eur(sum(rl, "priceWithObs")) + '</td><td class="amt" style="color:var(--carbon)">' + kg(sumf(rl, "co2t")) + "</td><td></td></tr>";
       rl.forEach((l) => {
-        rows += "<tr><td><div class=\"name\">" + esc(l.name) + '</div><div class="sub">' + (l.n && l.d ? '<span class="tag nat">' + esc(l.n) + " › " + esc(l.d) + "</span>" : '<span class="tag bad">Nature à choisir</span>') + '<span class="tag src">' + esc(l.source || "") + "</span></div></td>" +
-          '<td>' + (l.link ? '<span class="q">' + fr(l.q) + " " + l.unit + '</span><div class="sub"><span class="tag plan">plan · ' + LINK[l.link] + "</span></div>" : '<input class="cell-inp" data-chg="qty" data-id="' + l.id + '" value="' + fr(l.q) + '" aria-label="Quantité"> <span class="small faint">' + l.unit + "</span>") + "</td>" +
+        rows += '<tr><td><div class="name">' + esc(l.name) + '</div><div class="sub"><span class="tag src mono">' + l.lineIndex + "</span>" + (l.n && l.d ? '<span class="tag nat">' + esc(l.n) + " › " + esc(l.d) + "</span>" : '<span class="tag bad">Nature à choisir</span>') + '<span class="tag src">' + esc(l.source || "") + "</span></div></td>" +
+          "<td>" + (l.link ? '<span class="q">' + fr(l.q) + " " + l.unit + '</span><div class="sub"><span class="tag plan">plan · ' + LINK[l.link] + "</span></div>" : '<input class="cell-inp" data-chg="qty" data-id="' + l.id + '" value="' + fr(l.q) + '" aria-label="Quantité"> <span class="small faint">' + l.unit + "</span>") + "</td>" +
           '<td><input class="cell-inp" data-chg="pu" data-id="' + l.id + '" value="' + fr(l.pu) + '" aria-label="Prix unitaire HT"></td>' +
-          '<td><select class="cell-inp" data-chg="vat" data-id="' + l.id + '" aria-label="TVA">' + VAT.map((v) => '<option value="' + v + '"' + (v === l.vat ? " selected" : "") + ">" + fr(v, 1).replace(",0", "") + " %</option>").join("") + "</select></td>" +
-          '<td><input class="cell-inp" style="width:56px" data-chg="vet" data-id="' + l.id + '" value="' + fr(l.vet, 0) + '" aria-label="Vétusté en %"> <span class="small faint">%</span></td>' +
-          '<td class="amt">' + eur(l.ttc) + "</td>" +
-          '<td class="amt">' + eur(l.vd) + "</td>" +
+          '<td><select class="cell-inp" data-chg="vat" data-id="' + l.id + '" aria-label="TVA">' + vatOpts(l.vat) + "</select></td>" +
+          '<td><input class="cell-inp" style="width:56px" data-chg="vet" data-id="' + l.id + '" value="' + (blank(l.obsIn) ? fr(l.obsPct, 0) : "") + '" placeholder="—" aria-label="Vétusté en %"></td>' +
+          '<td><input class="cell-inp" style="width:84px" data-chg="obs-in" data-id="' + l.id + '" value="' + fr(l.obsAmount) + '" aria-label="Montant de vétusté"></td>' +
+          '<td><select class="cell-inp" style="width:70px" data-chg="mode" data-id="' + l.id + '" aria-label="Mode d\'indemnisation"><option value="IP"' + (l.mode === "IP" ? " selected" : "") + '>IP</option><option value="REN"' + (l.mode === "REN" ? " selected" : "") + ">REN</option></select>" + (l.beneficiaryName ? '<div class="small faint" style="margin-top:3px">' + esc(l.beneficiaryName) + "</div>" : "") + "</td>" +
+          '<td class="amt">' + eur(l.priceWithVAT) + '</td><td class="amt">' + eur(l.base) + '</td><td class="amt">' + eur(l.priceWithObs) + '</td>' +
           '<td class="amt" style="color:var(--carbon)">' + fr(l.co2t, 1) + "</td>" +
           '<td><button type="button" class="x" data-act="del-line" data-id="' + l.id + '" aria-label="Supprimer la ligne">×</button></td></tr>';
-        flags(l).forEach((f) => { rows += '<tr class="flag"><td colspan="9"><div class="flag-in ' + f.tone + '"><span>' + esc(f.text) + "</span>" + (f.fix ? '<button type="button" class="btn" data-act="' + f.act + '" data-id="' + l.id + '">' + esc(f.fix) + "</button>" : "") + "</div></td></tr>"; });
+        flags(l).forEach((f) => { rows += '<tr class="flag"><td colspan="12"><div class="flag-in ' + f.tone + '"><span>' + esc(f.text) + "</span>" + (f.fix ? '<button type="button" class="btn" data-act="' + f.act + '" data-id="' + l.id + '">' + esc(f.fix) + "</button>" : "") + "</div></td></tr>"; });
       });
     });
-    // alternatives plus sobres
-    const alts = altList(c);
-    const sinIss = iss.filter((x) => x.tab === "estimations");
-    const ratio = Math.min(100, Math.round(c.T.ttc / CLAIMED * 100));
-    const byRoom = S.rooms.map((r) => ({ r, co2: linesOf(r.id, c).reduce((a, l) => a + l.co2t, 0) })).filter((x) => x.co2 > 0);
-    const maxC = Math.max(1, ...byRoom.map((x) => x.co2));
+    const alts = altList(c), sinIss = M.iss.filter((x) => x.tab === "estimations"), ratio = Math.min(100, Math.round(c.T.ttc / CLAIMED * 100));
+    const byRoom = S.rooms.map((r) => ({ r, co2: sumf(linesOf(r.id, c), "co2t") })).filter((x) => x.co2 > 0), maxC = Math.max(1, ...byRoom.map((x) => x.co2));
     return '<div class="page-head"><div><h1>Estimations</h1><p class="muted">Tapez une prestation : prix, nature et détail Sinapps arrivent du bordereau, la quantité vient du plan de la pièce.</p></div>' +
-      '<div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span class="chip" aria-pressed="true">Estimation 1 · référence</span><span class="tag ' + (S.status === "Vérifié" ? "ok" : "src") + '">' + S.status + "</span></div></div>" +
+      '<div style="margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="lbl">Régime fiscal du règlement</span><div class="seg two" role="radiogroup" aria-label="Régime fiscal du règlement" style="min-width:120px"><button type="button" role="radio" aria-pressed="' + !S.ttc + '" aria-checked="' + !S.ttc + '" data-act="regime" data-v="ht">HT</button><button type="button" role="radio" aria-pressed="' + S.ttc + '" aria-checked="' + S.ttc + '" data-act="regime" data-v="ttc">TTC</button></div><span class="chip" aria-pressed="true">Estimation 1 · référence</span><span class="tag ' + (S.status >= 2 ? "ok" : "src") + '">' + esc(STATUS[S.status]) + "</span></div></div>" +
       '<div class="est"><div class="est-main">' +
       '<div class="targets"><span class="lbl">Chiffrer dans</span>' + chips + "</div>" +
       '<div class="cmd"><label class="cmd-box" for="cmd"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M13.5 13.5L18 18" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg><input id="cmd" autocomplete="off" role="combobox" aria-expanded="' + (S.q ? "true" : "false") + '" aria-controls="cmd-res" placeholder="Tapez une prestation, une pièce ou un modèle : « peinture murs séjour »" value="' + esc(S.q) + '"><span class="kbd">Ctrl K</span></label><div id="cmd-res-wrap">' + resHtml(cmdResults()) + "</div></div>" +
       hb +
       '<div class="drop"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h9l6 6v16H8z M17 3v6h6 M12 16h8 M12 20h6" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--ink-2)"/></svg><div style="flex:1;min-width:0"><b>Importer un devis ou une facture</b><div class="small muted">Lecture sans IA ; chaque ligne reçoit une nature et un détail proposés, que vous vérifiez avant l\'intégration.</div></div><button type="button" class="btn" data-act="import">Importer</button></div>' +
-      '<section class="card lines-card" aria-label="Lignes du chiffrage"><div class="tw"><table class="lines"><thead><tr><th>Prestation</th><th>Quantité</th><th>P.U. HT</th><th>TVA</th><th>Vétusté</th><th class="r">TTC</th><th class="r">Vétusté déduite</th><th class="r">kg CO2e</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="9"><div class="empty">Aucune ligne. Tapez une prestation ou appliquez un modèle.</div></td></tr>') + "</tbody></table></div></section>" +
-      (alts.length ? '<section class="card alts" aria-label="Solutions plus sobres"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Solutions plus sobres</h3><span class="small muted">Même réparation, empreinte plus faible. Vous choisissez ; l\'indemnité suit le prix retenu.</span></div>' +
-        alts.map((a, i) => '<div class="alt"><div style="min-width:0"><b style="font-size:13.5px">' + esc(a.title) + '</b><div class="small muted">' + esc(a.why) + '</div></div><div class="delta">' + (a.de >= 0 ? "+" : "−") + eur(Math.abs(a.de)) + '<br><span class="g">−' + kg(a.dc) + " CO2e</span></div><button type=\"button\" class=\"btn\" data-act=\"apply-alt\" data-i=\"" + i + '">Appliquer</button></div>').join("") + "</section>" : "") +
+      '<section class="card lines-card" aria-label="Lignes du chiffrage"><div class="tw"><table class="lines"><thead><tr><th>Prestation</th><th>Quantité</th><th>P.U. HT</th><th>TVA</th><th>Vét. %</th><th>Vét. €</th><th>Mode</th><th class="r">TTC</th><th class="r">Montant ' + regime + '</th><th class="r">Vét. déduite ' + regime + '</th><th class="r">kg CO2e</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="12"><div class="empty">Aucune ligne. Tapez une prestation ou appliquez un modèle.</div></td></tr>') + "</tbody></table></div></section>" +
+      '<p class="small faint">Vétusté calculée sur le montant ' + regime + ' (régime fiscal du règlement). Un montant de vétusté saisi remplace le pourcentage. IP : indemnité pécuniaire · REN : réparation en nature.</p>' +
+      (alts.length ? '<section class="card alts" aria-label="Solutions plus sobres"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Solutions plus sobres</h3><span class="small muted">Même réparation, empreinte plus faible. Vous choisissez ; le chiffrage suit le prix retenu.</span></div>' +
+        alts.map((a, i) => '<div class="alt"><div style="min-width:0"><b style="font-size:13.5px">' + esc(a.title) + '</b><div class="small muted">' + esc(a.why) + '</div></div><div class="delta">' + (a.de >= 0 ? "+" : "−") + eur(Math.abs(a.de)) + '<br><span class="g">−' + kg(a.dc) + ' CO2e</span></div><button type="button" class="btn" data-act="apply-alt" data-i="' + i + '">Appliquer</button></div>').join("") + "</section>" : "") +
       "</div>" +
-      '<aside class="recap" aria-label="Récapitulatif"><div class="card"><span class="lbl">Montant vétusté déduite TTC</span><span class="big">' + eur(c.T.vd) + "</span>" +
-      '<div class="kv"><span class="muted">Montant TTC</span><b>' + eur(c.T.ttc) + '</b></div><div class="kv"><span class="muted">Vétusté</span><b>− ' + eur(c.T.vetA) + "</b></div>" +
-      '<div class="kv small"><span class="muted">Part du réclamé (' + eur0(CLAIMED) + ")</span><b>" + ratio + ' %</b></div><div class="meter"><i style="width:' + ratio + '%"></i></div></div>' +
+      '<aside class="recap" aria-label="Récapitulatif"><div class="card"><span class="lbl">Montant vétusté déduite ' + regime + '</span><span class="big">' + eur(c.T.vd) + "</span>" +
+      '<div class="kv"><span class="muted">Montant ' + regime + "</span><b>" + eur(c.T.base) + '</b></div><div class="kv"><span class="muted">Vétusté</span><b>− ' + eur(c.T.obs) + "</b></div>" +
+      '<div class="kv"><span class="muted">Montant TTC</span><b>' + eur(c.T.ttc) + "</b></div>" +
+      '<div class="kv small"><span class="muted">Part du réclamé (' + eur0(CLAIMED) + ")</span><b>" + Math.round(c.T.ttc / CLAIMED * 100) + ' %</b></div><div class="meter"><i style="width:' + ratio + '%"></i></div></div>' +
       '<div class="card"><span class="lbl">Empreinte carbone</span><span class="big" style="color:var(--carbon)">' + kg(c.T.co2) + ' <span style="font-size:16px">CO2e</span></span>' +
       byRoom.map((x) => '<div class="kv small"><span class="muted">' + esc(x.r.name) + "</span><b>" + kg(x.co2) + '</b></div><div class="meter c"><i style="width:' + Math.round(x.co2 / maxC * 100) + '%"></i></div>').join("") +
       (S.co2Saved > 0 ? '<span class="tag co2">' + kg(S.co2Saved) + " CO2e évités par vos choix</span>" : "") + '<p class="small faint">Facteurs d\'émission fictifs, pour la démonstration.</p></div>' +
       '<div class="card"><span class="lbl">Avant l\'envoi à Sinapps</span>' + (sinIss.length ? '<ul class="issues">' + sinIss.map((x) => '<li><span class="dot"></span><span>' + esc(x.text) + "</span></li>").join("") + "</ul>" : '<div class="alert ok">Toutes les lignes sont prêtes pour Sinapps.</div>') + "</div></aside></div>";
   }
-  function altList(c) {
-    const out = [];
-    c.L.forEach((l) => {
-      if (l.cat === "peint-murs") { const e = catById("peint-eco"), q = l.q, de = r2(q * (e.pu - l.pu) * (1 + l.vat / 100)), dc = q * (l.co2 - e.co2); out.push({ id: l.id, to: "peint-eco", title: "Peinture écolabel au lieu d'acrylique · " + nameOfRoom(l.room), why: fr(q) + " m² de murs, même nature et même détail Sinapps", de, dc }); }
-      if (l.cat === "parquet-strat") { const e = catById("parquet-reemploi"), q = l.q, de = r2(q * (e.pu - l.pu) * (1 + l.vat / 100)), dc = q * (l.co2 - e.co2); out.push({ id: l.id, to: "parquet-reemploi", title: "Parquet de réemploi au lieu de stratifié neuf · " + nameOfRoom(l.room), why: fr(q) + " m² de sol, détail Sinapps « Parquets »", de, dc }); }
-      if ((l.cat === "peint-murs" || l.cat === "peint-eco") && room(l.room)) { const m = measures(room(l.room)); if (m.zone > 0 && m.zone < m.walls * 0.5) { const e = catById("reprise-zone"), de = r2((m.zone * e.pu - l.q * l.pu) * (1 + l.vat / 100)), dc = l.q * l.co2 - m.zone * e.co2; out.push({ id: l.id, to: "reprise-zone", title: "Reprendre seulement la zone abîmée · " + nameOfRoom(l.room), why: fr(m.zone) + " m² hachurés au lieu de " + fr(l.q) + " m² de murs repeints", de, dc }); } }
-    });
-    return out.filter((a) => a.dc > 0.5);
-  }
-  function nameOfRoom(id) { const r = room(id); return r ? r.name : "sans pièce"; }
 
   // ================= onglet Indemnisation =================
-  function viewIndemnisation(c, I, iss) {
-    const st = [[1, "Sans réserve", "s1"], [2, "Avec réserve", "s2"], [3, "Non applicable", "s3"]];
-    const covs = S.coverages.map((cv) => {
-      const ci = I.covs[cv.id];
-      return '<article class="card cov"><div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>' + esc(cv.name) + "</h3>" + (cv.stance ? "" : '<span class="tag warn">Position à prendre</span>') + '</div><div class="small muted">' + esc(cv.contract) + "</div></div>" +
-        '<div class="seg" role="radiogroup" aria-label="Position sur ' + esc(cv.name) + '">' + st.map((x) => '<button type="button" role="radio" class="' + x[2] + '" aria-pressed="' + (cv.stance === x[0]) + '" aria-checked="' + (cv.stance === x[0]) + '" data-act="stance" data-cov="' + cv.id + '" data-v="' + x[0] + '">' + x[1] + "</button>").join("") + "</div>" +
-        ((cv.stance === 2 || cv.stance === 3) ? '<textarea class="inp" rows="2" data-chg="cov-comment" data-cov="' + cv.id + '" placeholder="' + (cv.stance === 2 ? "Motif de la réserve" : "Motif de non-application") + '">' + esc(cv.comment) + "</textarea>" : "") +
-        '<div class="small muted">' + esc(cv.base) + (cv.ceiling != null ? " · plafond " + eur0(cv.ceiling) : " · sans plafond") + "</div>" +
-        '<div class="kv small"><span class="muted">' + ci.count + " ligne" + (ci.count > 1 ? "s" : "") + " couverte" + (ci.count > 1 ? "s" : "") + "</span><b>" + eur(ci.ttc) + " TTC</b></div>" +
-        (ci.capped ? '<span class="tag warn">Plafonné : ' + eur(cv.ceiling) + " indemnisés</span>" : "") + "</article>";
-    }).join("");
-    const bens = I.bens.map((x) => '<article class="card ben"><div class="ben-top"><span class="avatar' + (x.b.role === "Assuré" ? "" : " co") + '">' + x.b.initials + '</span><div style="min-width:0;flex:1"><b>' + esc(x.b.name) + '</b><div class="small muted">' + esc(x.b.role) + ' · régime TTC</div></div></div>' +
-      (x.b.role === "Assuré" ? '<div style="display:flex;align-items:center;gap:8px"><label class="lbl" for="fr-' + x.b.id + '" style="flex:1">Franchise</label><input class="inp mono" style="width:100px" id="fr-' + x.b.id + '" data-chg="franchise" data-id="' + x.b.id + '" value="' + fr(x.b.franchise) + '"><span class="small">€</span></div>' : "") +
-      '<div class="kv small"><span class="muted">Immédiat</span><b>' + eur(x.imm) + '</b></div><div class="kv small"><span class="muted">Différé, sur facture</span><b>' + eur(x.def) + "</b></div></article>").join("");
-    const rows = I.gs.map((g) => {
-      const cv = S.coverages.find((x) => x.id === g.cov);
-      return '<tr class="' + (g.excluded ? "off" : "") + '"><td><b>' + esc(g.d) + '</b><div class="small muted">' + esc(g.n) + " · " + g.count + " ligne" + (g.count > 1 ? "s" : "") + "</div></td>" +
-        "<td>" + esc(cv.name) + (g.excluded ? '<div><span class="tag bad">Non applicable</span></div>' : g.capped ? '<div><span class="tag warn">Plafonné</span></div>' : "") + "</td>" +
-        '<td><div class="seg two" role="radiogroup" aria-label="Mode pour ' + esc(g.d) + '"><button type="button" role="radio" aria-pressed="' + (g.mode === "IP") + '" aria-checked="' + (g.mode === "IP") + '" data-act="mode" data-k="' + esc(g.key) + '" data-v="IP" title="Indemnité pécuniaire">Indemnité</button><button type="button" role="radio" aria-pressed="' + (g.mode === "REN") + '" aria-checked="' + (g.mode === "REN") + '" data-act="mode" data-k="' + esc(g.key) + '" data-v="REN" title="Réparation en nature">Réparation</button></div></td>' +
-        '<td><select data-chg="ben" data-k="' + esc(g.key) + '" aria-label="Bénéficiaire">' + S.beneficiaries.map((b) => '<option value="' + b.id + '"' + (b.id === g.ben ? " selected" : "") + ">" + esc(b.name) + "</option>").join("") + "</select></td>" +
-        '<td class="amt">' + eur(g.ttc) + '</td><td class="amt">' + eur(g.vetA) + '</td><td class="amt">' + eur(g.imm) + '</td><td class="amt">' + eur(g.def) + "</td></tr>";
-    }).join("");
-    const T = c.T.ttc || 1, seg = (v, col) => '<i style="width:' + (v / T * 100).toFixed(2) + "%;background:" + col + '"></i>';
-    const indIss = iss.filter((x) => x.tab === "indemnisation");
-    return '<div class="page-head"><div><h1>Indemnisation</h1><p class="muted">Position sur les garanties, bénéficiaires et ventilation sur un seul écran : chaque choix recalcule l\'indemnité.</p></div></div>' +
-      (indIss.length ? '<div class="alert warn" style="margin-bottom:14px"><span>' + indIss.map((x) => esc(x.text)).join(" · ") + "</span></div>" : "") +
+  function viewIndemnisation(M) {
+    const c = M.c, gs = M.gs, ro = isReadOnly(S.status), dis = ro ? " disabled" : "";
+    if (!S.beneficiaries.some((b) => b.id === S.benId)) S.benId = S.beneficiaries[0] ? S.beneficiaries[0].id : null;
+    const ben = S.beneficiaries.find((b) => b.id === S.benId);
+    const covName = (id) => { const cv = S.coverages.find((x) => x.id === id); return cv ? cv.name : "—"; };
+    const covs = S.coverages.map((cv) => '<article class="card cov"><div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3>' + esc(cv.name) + "</h3>" + (cv.stance ? "" : '<span class="tag warn">Position à prendre</span>') + '</div><div class="small muted">' + esc(cv.label) + "</div></div>" +
+      '<div class="seg" role="radiogroup" aria-label="Position sur ' + esc(cv.name) + '">' + [1, 2, 3].map((v) => '<button type="button" role="radio" class="s' + v + '" aria-pressed="' + (cv.stance === v) + '" aria-checked="' + (cv.stance === v) + '" data-act="stance" data-cov="' + cv.id + '" data-v="' + v + '"' + dis + ">" + (v === 3 ? "Non applicable" : STANCES[v].label) + "</button>").join("") + "</div>" +
+      ((cv.stance === 2 || cv.stance === 3) ? '<textarea class="inp" rows="2" data-chg="cov-comment" data-cov="' + cv.id + '" placeholder="Commentaire obligatoire"' + dis + ">" + esc(cv.comment) + "</textarea>" : "") + "</article>").join("");
+    const bens = S.beneficiaries.map((b) => { const t = beneficiaryTotals(gs, b); return '<button type="button" class="ben-btn" data-act="sel-ben" data-id="' + b.id + '" aria-pressed="' + (b.id === S.benId) + '"><span class="avatar' + (b.type === "ASSURE" ? "" : " co") + '">' + esc(b.name.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase()) + '</span><span style="min-width:0"><b>' + esc(b.name) + '</b><div class="small muted">' + esc(BEN_TYPES[b.type]) + " · " + esc(covName(b.stanceId)) + '</div></span><span class="amt">' + eur(t.totalImmediate + t.totalDeferred) + "<small>" + gs.filter((g) => g.beneficiaryId === b.id).length + " ligne(s)</small></span></button>"; }).join("");
+    let benForm = "";
+    if (S.benForm) {
+      const comp = compensable();
+      benForm = '<form class="card ben-form" id="ben-form"><div class="field full"><label for="bf-type">Type</label><select class="inp" id="bf-type">' + Object.keys(BEN_TYPES).filter((k) => k !== "ASSURE").map((k) => '<option value="' + k + '">' + BEN_TYPES[k] + "</option>").join("") + "</select></div>" +
+        '<div class="field full"><label for="bf-name">Nom</label><input class="inp" id="bf-name" placeholder="Raison sociale ou nom"></div>' +
+        '<div class="field full"><label for="bf-cov">Garantie applicable</label><select class="inp" id="bf-cov">' + (comp.length ? comp.map((cv) => '<option value="' + cv.id + '">' + esc(cv.name) + " · " + STANCES[cv.stance].label + "</option>").join("") : '<option value="">Aucune garantie applicable</option>') + "</select></div>" +
+        '<div class="full" style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn" data-act="ben-cancel">Annuler</button><button type="submit" class="btn primary">Ajouter</button></div><p class="full small" id="bf-err" style="color:var(--bad)" hidden></p></form>';
+    }
+    let right = "";
+    const cErr = S.beneficiaries.length && gs.some((g) => g.beneficiaryId) ? compensationError(gs, S.beneficiaries) : "";
+    if (!compensable().length) right = '<div class="empty">Aucune garantie applicable : prenez d\'abord position sur les garanties.</div>';
+    else if (!ben) right = '<div class="empty">Ajoutez un bénéficiaire avant de ventiler l\'indemnité.</div>';
+    else {
+      const shownG = gs.filter((g) => !S.onlyMine || g.beneficiaryId === ben.id), l1s = Array.from(new Set(shownG.map((g) => g.l1)));
+      const inp = (k, g, val, o) => '<input class="cell-inp' + (o && o.bad ? " bad" : "") + '" inputmode="decimal" data-chg="comp" data-k="' + k + '" data-key="' + esc(g.key) + '" value="' + val + '" aria-label="' + k + '"' + (ro || (o && o.dis) ? " disabled" : "") + ">";
+      let rows = "";
+      l1s.forEach((l1, i) => {
+        const all = gs.filter((g) => g.l1 === l1), mine = all.filter((g) => g.beneficiaryId === ben.id), free = all.filter((g) => !g.beneficiaryId);
+        rows += '<tr class="l1"><td><label class="vck"><input type="checkbox" data-chg="comp-l1" data-l1="' + esc(l1) + '"' + (mine.length && !free.length ? " checked" : "") + (ro || (!free.length && !mine.length) ? " disabled" : "") + "> " + esc(l1 || "Sans nature") + "</label></td>" +
+          '<td class="amt">' + eur(sumf(mine, gBase)) + '</td><td class="amt">' + eur(sumf(mine, "obsTotal")) + '</td><td></td><td class="amt">' + eur(sumf(mine, "cAmt")) + "</td>" +
+          '<td class="r"><input class="cell-inp" inputmode="decimal" data-chg="comp-l1ceil" data-l1="' + esc(l1) + '" value="' + frx((mine[0] || {}).level1Ceiling) + '" placeholder="Plafond" aria-label="Plafond de la nature"' + (ro || !mine.length ? " disabled" : "") + "></td>" +
+          '<td class="amt">' + eur(sumf(mine, "immediate")) + '</td><td class="amt">' + eur(sumf(mine, "deferred")) + '</td><td class="amt">' + eur(sumf(mine, obsOverdraft)) + '</td><td class="amt">' + eur(sumf(mine, ceilingOverrun)) + "</td></tr>";
+        shownG.filter((g) => g.l1 === l1).forEach((g) => {
+          const isMine = g.beneficiaryId === ben.id, other = g.beneficiaryId && !isMine, ob = other ? S.beneficiaries.find((b) => b.id === g.beneficiaryId) : null;
+          const over = !blank(g.ceiling) && r2(g.immediate + g.deferred) > r2(g.ceiling), tooMuch = r2(g.immediate + g.deferred) > r2(gBase(g) - g.obsTotal + numv(g.cAmt));
+          const st = isMine && stale(g);
+          rows += '<tr class="' + (isMine ? "mine" : "") + '"><td><label class="vck"><input type="checkbox" data-chg="comp-check" data-key="' + esc(g.key) + '"' + (isMine ? " checked" : "") + (ro || other ? " disabled" : "") + "><span>" + esc(g.l2 || "Détail à choisir") + ' <span class="faint">(' + g.mode + ")</span>" + (g.beneficiaryName ? '<br><small class="muted">' + esc(g.beneficiaryName) + "</small>" : "") + (other ? '<br><small class="muted">Ventilé vers ' + esc(ob ? ob.name : "") + "</small>" : "") + (st ? '<br><button type="button" class="btn ghost" style="padding:0;font-size:12px" data-act="recalc" data-key="' + esc(g.key) + '">Dommages modifiés : recalculer</button>' : "") + "</span></label></td>" +
+            '<td class="amt">' + eur(gBase(g)) + '<br><small class="faint">' + (g.isTaxed ? "TTC" : "HT") + '</small></td><td class="amt">' + eur(g.obsTotal) + "</td>" +
+            '<td class="r">' + inp("cPct", g, isMine ? frp(g.cPct) : "", { dis: !isMine }) + '</td><td class="r">' + inp("cAmt", g, isMine ? frx(g.cAmt) : "", { dis: !isMine }) + "</td>" +
+            '<td class="r">' + inp("ceiling", g, frx(g.ceiling), { dis: other, bad: over }) + "</td>" +
+            '<td class="r">' + inp("immediate", g, isMine ? frx(g.immediate) : "", { dis: !isMine, bad: isMine && (over || tooMuch) }) + '</td><td class="r">' + inp("deferred", g, isMine ? frx(g.deferred) : "", { dis: !isMine, bad: isMine && (over || tooMuch) }) + "</td>" +
+            '<td class="amt">' + (isMine ? eur(obsOverdraft(g)) : "") + '</td><td class="amt">' + eur(ceilingOverrun(g)) + "</td></tr>";
+        });
+      });
+      const t = beneficiaryTotals(gs, ben), bin = (k, val) => '<input class="cell-inp" inputmode="decimal" data-chg="ben" data-k="' + k + '" value="' + frx(val) + '"' + dis + ' aria-label="' + k + '">';
+      right = '<section class="card" style="overflow:hidden"><div class="vent-ctl"><div><span class="lbl">Ventilation vers</span><div style="font:600 17px var(--display)">' + esc(ben.name) + "</div></div>" +
+        '<div class="field"><span class="lbl">Assiette de la vétusté contractuelle</span><div class="seg two" role="radiogroup" aria-label="Assiette de la vétusté contractuelle"><button type="button" role="radio" aria-pressed="' + (S.option === 1) + '" aria-checked="' + (S.option === 1) + '" data-act="option" data-v="1"' + dis + '>Valeur à neuf</button><button type="button" role="radio" aria-pressed="' + (S.option === 2) + '" aria-checked="' + (S.option === 2) + '" data-act="option" data-v="2"' + dis + ">Vétusté déduite</button></div></div>" +
+        '<div class="field"><label class="lbl" for="gen-pct">Vétusté contractuelle récupérable %</label><span style="display:flex;gap:6px"><input class="inp mono" style="width:80px" id="gen-pct" inputmode="decimal" data-chg="gen-pct" value="' + frp(S.genericPct) + '"' + dis + '><button type="button" class="btn" data-act="apply-gen"' + dis + ">Appliquer aux lignes ventilées</button></span></div>" +
+        '<label class="vck small" style="margin-left:auto"><input type="checkbox" id="only-mine" data-chg="only-mine"' + (S.onlyMine ? " checked" : "") + "> Lignes de ce bénéficiaire seulement</label></div>" +
+        '<div class="tw"><table class="vent"><thead><tr><th>Nature › détail (mode)</th><th>Dommages</th><th>Vétusté</th><th>Vét. récup. %</th><th>Vét. récup. €</th><th>Plafond</th><th>Immédiat</th><th>Différé</th><th>Vét. non récup.</th><th>Dépassement plafond</th></tr></thead><tbody>' + rows + "</tbody></table></div></section>" +
+        '<section class="card pad" style="display:flex;flex-direction:column;gap:10px"><h3>Total pour ' + esc(ben.name) + '</h3><div class="tw"><table class="tot"><thead><tr><th style="text-align:left"></th><th>Indemnité immédiate</th><th>Indemnité différée</th></tr></thead><tbody>' +
+        '<tr><td>Total des lignes ventilées</td><td class="amt">' + eur(t.subImmediate) + '</td><td class="amt">' + eur(t.subDeferred) + "</td></tr>" +
+        '<tr><td>Remise % <input class="cell-inp" style="width:70px;margin-left:6px" inputmode="decimal" data-chg="ben" data-k="discount" value="' + frp(ben.discount) + '"' + dis + ' aria-label="Remise en %"></td><td class="amt">' + eur(t.discountedImmediate) + '</td><td class="amt">' + eur(t.discountedDeferred) + "</td></tr>" +
+        '<tr><td>Pénalités</td><td class="amt">' + bin("penalization", ben.penalization) + '</td><td class="amt">' + bin("deferredPenalization", ben.deferredPenalization) + "</td></tr>" +
+        '<tr><td>Franchise <span style="color:var(--bad)">*</span></td><td class="amt">' + bin("deductible", ben.deductible) + '</td><td class="amt">' + bin("deferredDeductible", ben.deferredDeductible) + "</td></tr>" +
+        '<tr class="total"><td>TOTAL INDEMNISATION</td><td class="amt">' + eur(t.totalImmediate) + '</td><td class="amt">' + eur(t.totalDeferred) + "</td></tr></tbody></table></div>" +
+        '<p class="small muted">Vétusté non récupérable : ' + eur(t.overdraft) + " · dépassement de plafond : " + eur(t.ceilingOverrun) + "</p></section>";
+    }
+    const T = gs.reduce((a, g) => a + gBase(g), 0) || 1, seg = (v, col) => '<i style="width:' + (Math.max(0, v) / T * 100).toFixed(2) + "%;background:" + col + '"></i>';
+    const lost = r2(T - M.imm - M.def - M.withheld - M.unassigned);
+    const flow = '<section class="card flow" aria-label="Du dommage à l\'indemnité"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Du dommage à l\'indemnité</h3><span class="small muted">' + eur(T) + " de dommages " + (S.ttc ? "TTC" : "HT") + ", tous bénéficiaires</span></div>" +
+      '<div class="flow-bar" role="img" aria-label="Immédiat ' + eur(M.imm) + ", différé " + eur(M.def) + '">' + seg(M.imm, "var(--accent)") + seg(M.def, "var(--tape)") + seg(M.withheld, "var(--ink-3)") + seg(lost, "var(--bad)") + seg(M.unassigned, "var(--line-2)") + "</div>" +
+      '<div class="legend"><span><i style="background:var(--accent)"></i>Immédiat ' + eur(M.imm) + '</span><span><i style="background:var(--tape)"></i>Différé ' + eur(M.def) + '</span><span><i style="background:var(--ink-3)"></i>Franchises, pénalités, remises ' + eur(M.withheld) + '</span><span><i style="background:var(--bad)"></i>Vétusté non récupérable et plafonds ' + eur(Math.max(0, lost)) + '</span><span><i style="background:var(--line-2)"></i>Non ventilé ' + eur(M.unassigned) + "</span></div>" +
+      '<div class="pay">' + M.tots.map((x) => '<div><span class="lbl">' + esc(x.b.name) + '</span><b class="mono" style="font-size:18px">' + eur(x.t.totalImmediate + x.t.totalDeferred) + '</b><span class="small muted">' + eur(x.t.totalImmediate) + " immédiat · " + eur(x.t.totalDeferred) + " différé</span></div>").join("") + "</div></section>";
+    const indIss = M.iss.filter((x) => x.tab === "indemnisation");
+    return '<div class="page-head"><div><h1>Indemnisation</h1><p class="muted">Position sur les garanties, bénéficiaires et ventilation sur un seul écran, avec les règles de calcul d\'Eureka Chiffrage.</p></div></div>' +
+      (ro ? '<div class="ro-note">Estimation « ' + esc(STATUS[S.status]) + " » : lecture seule.</div>" : "") +
+      (cErr ? '<div class="alert bad" role="alert" style="margin-bottom:14px"><span>' + esc(cErr) + "</span></div>" : "") +
+      (indIss.filter((x) => x.text !== cErr).length ? '<div class="alert warn" style="margin-bottom:14px"><span>' + indIss.filter((x) => x.text !== cErr).map((x) => esc(x.text)).join(" · ") + "</span></div>" : "") +
       '<div class="ind"><div class="ind-col"><div class="blk-h"><span class="n">1</span><h2>Position sur les garanties</h2></div>' + covs +
-      '<div class="blk-h"><span class="n">2</span><h2>Bénéficiaires</h2></div>' + bens +
-      '<button type="button" class="btn" data-act="todo" data-msg="Ajout d\'un bénéficiaire : simulé dans ce prototype">+ Ajouter un bénéficiaire</button></div>' +
-      '<div class="ind-col"><div class="blk-h"><span class="n">3</span><h2>Indemnisation</h2><span class="small muted">par nature et détail Sinapps</span></div>' +
-      '<section class="card" style="overflow:hidden"><div class="tw"><table class="comp"><thead><tr><th>Nature › détail</th><th>Garantie</th><th>Mode</th><th>Bénéficiaire</th><th class="r">TTC</th><th class="r">Vétusté</th><th class="r">Immédiat</th><th class="r">Différé</th></tr></thead><tbody>' + rows + "</tbody>" +
-      '<tfoot><tr><td colspan="4">Total' + (I.franchise ? " (franchise de " + eur(I.franchise) + " déduite de l'immédiat de l'assuré)" : "") + '</td><td class="amt">' + eur(c.T.ttc) + '</td><td class="amt">' + eur(c.T.vetA) + '</td><td class="amt">' + eur(I.imm) + '</td><td class="amt">' + eur(I.def) + "</td></tr></tfoot></table></div></section>" +
-      '<section class="card flow" aria-label="Du dommage à l\'indemnité"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Du dommage à l\'indemnité</h3><span class="small muted">' + eur(c.T.ttc) + " de dommages TTC</span></div>" +
-      '<div class="flow-bar" role="img" aria-label="Immédiat ' + eur(I.imm) + ", différé " + eur(I.def) + ", franchise " + eur(I.franchise) + ", non indemnisé " + eur(I.lost) + '">' + seg(I.imm, "var(--accent)") + seg(I.def, "var(--tape)") + seg(I.franchise, "var(--ink-3)") + seg(Math.max(0, I.lost), "var(--bad)") + "</div>" +
-      '<div class="legend"><span><i style="background:var(--accent)"></i>Immédiat ' + eur(I.imm) + '</span><span><i style="background:var(--tape)"></i>Différé sur facture ' + eur(I.def) + '</span><span><i style="background:var(--ink-3)"></i>Franchise ' + eur(I.franchise) + '</span><span><i style="background:var(--bad)"></i>Non indemnisé ' + eur(Math.max(0, I.lost)) + "</span></div>" +
-      '<div class="pay">' + I.bens.map((x) => '<div><span class="lbl">' + esc(x.b.name) + '</span><b class="mono" style="font-size:18px">' + eur(x.imm + x.def) + '</b><span class="small muted">' + eur(x.imm) + " tout de suite · " + eur(x.def) + " sur facture</span></div>").join("") + "</div>" +
-      '<p class="small faint">Indemnité : versée à l\'assuré ou à l\'entreprise désignée. Réparation : l\'entreprise répare et reçoit le règlement. La correspondance avec les 5 modes Sinapps reste à valider.</p></section></div></div>';
+      '<div class="blk-h"><span class="n">2</span><h2>Bénéficiaires</h2></div>' + bens + benForm +
+      (S.benForm ? "" : '<button type="button" class="btn" data-act="ben-add"' + dis + ">+ Ajouter un bénéficiaire</button>") +
+      '<div class="blk-h"><span class="n">4</span><h2>Position de l\'assuré</h2></div><div class="card cov"><label class="lbl" for="position">Position de l\'assuré sur l\'indemnisation <span style="color:var(--bad)">*</span></label><select class="inp" id="position" data-chg="position"' + dis + '><option value="">À sélectionner</option>' + POSITIONS.map((p) => "<option" + (p === S.position ? " selected" : "") + ">" + esc(p) + "</option>").join("") + "</select></div></div>" +
+      '<div class="ind-col"><div class="blk-h"><span class="n">3</span><h2>Indemnisation</h2><span class="small muted">lignes regroupées par nature, détail, mode et bénéficiaire</span></div>' + right + flow + "</div></div>";
   }
 
   // ================= onglet Synthèse =================
-  function viewSynthese(c, I, iss) {
-    const byRoom = S.rooms.map((r) => ({ r, vd: sum(linesOf(r.id, c), "vd"), co2: linesOf(r.id, c).reduce((a, l) => a + l.co2t, 0) }));
-    const maxR = Math.max(1, ...byRoom.map((x) => x.vd)), heat = {}, heatLabel = {};
+  function viewSynthese(M) {
+    const c = M.c, regime = S.ttc ? "TTC" : "HT";
+    const byRoom = S.rooms.map((r) => ({ r, vd: sum(linesOf(r.id, c), "priceWithObs"), co2: sumf(linesOf(r.id, c), "co2t") }));
+    const maxR = Math.max(1, ...byRoom.map((x) => x.vd)), maxC = Math.max(1, ...byRoom.map((x) => x.co2)), heat = {}, heatLabel = {};
     byRoom.forEach((x) => { heat[x.r.id] = x.vd / maxR; heatLabel[x.r.id] = x.vd ? eur0(x.vd) : "—"; });
     const b = bbox(S.rooms), m = 0.5, view = { x: (b.x0 - m) * K, y: (b.y0 - m) * K, w: (b.x1 - b.x0 + 2 * m) * K, h: (b.y1 - b.y0 + 2 * m) * K };
-    const byNat = {}; c.L.forEach((l) => { const k = (l.n || "Sans nature") + " › " + (l.d || "à choisir"); byNat[k] = r2((byNat[k] || 0) + l.vd); });
+    const byNat = {}; c.L.forEach((l) => { const k = l.d || "Détail à choisir"; byNat[k] = r2((byNat[k] || 0) + l.priceWithObs); });
     const nat = Object.keys(byNat).map((k) => ({ k, v: byNat[k] })).sort((a, b2) => b2.v - a.v), maxN = Math.max(1, ...nat.map((x) => x.v));
-    const ratio = Math.round(c.T.ttc / CLAIMED * 100);
+    const steps = [["Vérifiée", 2, 5], ["Exportée vers Excel", 6, 9], ["Communiquée à l'assureur", 10, 13], ["Figée", 14, 17]];
+    const cur = steps.findIndex((x) => S.status >= x[1] && S.status <= x[2]);
+    const next = S.status >= 2 && S.status <= 13 ? S.status + 4 : null;
     const checks = [
-      { ok: !iss.some((x) => x.tab === "localisation"), text: "Plan : toutes les pièces sont fermées", tab: "localisation" },
-      { ok: !c.L.some((l) => !l.n || !l.d || l.proposed), text: "Chaque ligne a sa nature et son détail Sinapps confirmés", tab: "estimations" },
-      { ok: c.L.every((l) => VAT.indexOf(l.vat) >= 0), text: "Taux de TVA acceptés par Sinapps", tab: "estimations" },
-      { ok: !iss.some((x) => x.tab === "indemnisation"), text: "Position prise sur chaque garantie, bénéficiaires cohérents", tab: "indemnisation" }
+      { ok: !M.iss.some((x) => x.rule), text: "Lignes conformes Sinapps : nature et détail, TVA, vétusté", tab: "estimations" },
+      { ok: S.coverages.every((x) => x.stance) && !stanceIssues().length, text: "Position prise sur chaque garantie, commentaire si réserve ou non applicable", tab: "indemnisation" },
+      { ok: M.gs.length > 0 && M.gs.every((g) => g.beneficiaryId), text: "Tous les dommages couverts sont ventilés", tab: "indemnisation" },
+      { ok: !compensationError(M.gs, S.beneficiaries), text: "Indemnités dans les plafonds et les dommages, franchises saisies", tab: "indemnisation" },
+      { ok: !blank(S.position), text: "Position de l'assuré sélectionnée", tab: "indemnisation" },
+      { ok: !M.soft.length, text: "Plan : toutes les pièces sont fermées (contrôle du plan, non bloquant)", tab: "localisation" }
     ];
-    return '<div class="page-head"><div><h1>Synthèse</h1><p class="muted">Tout le chiffrage en un coup d\'œil, prêt à vérifier et à envoyer.</p></div>' +
-      '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="tag ' + (S.status === "Vérifié" ? "ok" : "src") + '">' + S.status + (S.sent ? " · envoyé" : "") + '</span><button type="button" class="btn" data-act="verify">Vérifier le chiffrage</button><button type="button" class="btn primary" data-act="send"' + (S.status === "Vérifié" && !S.sent ? "" : " disabled") + ">Envoyer à Sinapps</button></div></div>" +
+    return '<div class="page-head"><div><h1>Synthèse</h1><p class="muted">Tout le chiffrage en un coup d\'œil, puis vérification selon les règles d\'Eureka Chiffrage.</p></div>' +
+      '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="tag ' + (S.status >= 2 ? "ok" : "src") + '">' + esc(STATUS[S.status]) + '</span><button type="button" class="btn' + (S.status === 1 ? " primary" : "") + '" data-act="verify">Vérifier l\'estimation</button>' + (next ? '<button type="button" class="btn primary" data-act="advance">Passer à : ' + esc(STATUS[next]) + "</button>" : "") + "</div></div>" +
+      '<div class="stepper" style="margin-bottom:14px"><span class="' + (S.status === 1 ? "now" : "done") + '">Brouillon</span>' + steps.map((x, i) => '<span class="' + (i === cur ? "now" : i < cur ? "done" : "") + '">' + x[0] + "</span>").join("") + '<span class="small faint" style="background:none;padding:5px 0">« Communiquée à l\'assureur » : envoi vers Sinapps, simulé ici</span></div>' +
       (S.verifyMsg ? '<div class="alert ' + S.verifyMsg.tone + '" style="margin-bottom:14px"><span>' + S.verifyMsg.html + "</span></div>" : "") +
-      '<div class="kpis"><div class="card kpi dark"><span>Dommages TTC</span><b>' + eur(c.T.ttc) + "</b><small>" + c.L.length + " lignes · " + S.rooms.length + ' pièces</small></div>' +
-      '<div class="card kpi"><span>Indemnité immédiate</span><b>' + eur(I.imm) + "</b><small>franchise " + eur(I.franchise) + " déduite</small></div>" +
-      '<div class="card kpi"><span>Différé sur facture</span><b>' + eur(I.def) + "</b><small>vétusté récupérable</small></div>" +
-      '<div class="card kpi"><span>Part du réclamé</span><b>' + ratio + ' %</b><small>de ' + eur(CLAIMED) + " réclamés</small></div>" +
+      '<div class="kpis"><div class="card kpi dark"><span>Dommages ' + regime + "</span><b>" + eur(c.T.base) + "</b><small>" + c.L.length + " lignes · vétusté " + eur(c.T.obs) + '</small></div>' +
+      '<div class="card kpi"><span>Indemnité immédiate</span><b>' + eur(M.imm) + "</b><small>après remises, pénalités et franchises</small></div>" +
+      '<div class="card kpi"><span>Indemnité différée</span><b>' + eur(M.def) + "</b><small>vétusté contractuelle récupérable</small></div>" +
+      '<div class="card kpi"><span>Part du réclamé</span><b>' + Math.round(c.T.ttc / CLAIMED * 100) + ' %</b><small>TTC chiffré sur ' + eur(CLAIMED) + " réclamés</small></div>" +
       '<div class="card kpi"><span>Empreinte carbone</span><b style="color:var(--carbon)">' + kg(c.T.co2) + "</b><small>" + (S.co2Saved > 0 ? kg(S.co2Saved) + " évités par vos choix" : "CO2e, facteurs fictifs") + "</small></div></div>" +
-      '<div class="syn"><div class="syn-col"><section class="card pad" style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Où se concentre le chiffrage</h3><span class="small muted">montant vétusté déduite par pièce</span></div><div class="mini-plan">' + planSvg({ mini: true, view, heat, heatLabel }) + "</div>" +
+      '<div class="syn"><div class="syn-col"><section class="card pad" style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><h3>Où se concentre le chiffrage</h3><span class="small muted">vétusté déduite ' + regime + ' par pièce</span></div><div class="mini-plan">' + planSvg({ mini: true, view, heat, heatLabel, sfx: "m" }) + "</div>" +
       '<div class="bars">' + byRoom.map((x) => '<div class="bar-row"><span>' + esc(x.r.name) + '</span><span class="track"><i style="width:' + (x.vd / maxR * 100).toFixed(1) + '%"></i></span><b>' + eur(x.vd) + "</b></div>").join("") + "</div></section>" +
-      '<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Par nature et détail Sinapps</h3><div class="bars">' + nat.map((x) => '<div class="bar-row"><span>' + esc(x.k.split(" › ")[1]) + '</span><span class="track"><i style="width:' + (x.v / maxN * 100).toFixed(1) + '%"></i></span><b>' + eur(x.v) + "</b></div>").join("") + "</div></section>" +
-      '<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Empreinte carbone par pièce</h3><div class="bars">' + byRoom.map((x) => '<div class="bar-row"><span>' + esc(x.r.name) + '</span><span class="track c"><i style="width:' + (x.co2 / Math.max(1, ...byRoom.map((y) => y.co2)) * 100).toFixed(1) + '%"></i></span><b>' + kg(x.co2) + "</b></div>").join("") + "</div></section></div>" +
-      '<div class="syn-col"><section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Contrôles avant envoi</h3><ul class="checks">' + checks.map((k) => '<li><span class="ck ' + (k.ok ? "ok" : "ko") + '">' + (k.ok ? "✓" : "!") + "</span><span>" + esc(k.text) + (k.ok ? "" : ' · <a href="#' + k.tab + '">régler</a>') + "</span></li>").join("") + "</ul>" +
-      (iss.length ? '<ul class="issues">' + iss.map((x) => '<li><span class="dot"></span><span>' + esc(x.text) + "</span></li>").join("") + "</ul>" : "") + "</section>" +
+      '<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Par détail de nature Sinapps</h3><div class="bars">' + nat.map((x) => '<div class="bar-row"><span>' + esc(x.k) + '</span><span class="track"><i style="width:' + (x.v / maxN * 100).toFixed(1) + '%"></i></span><b>' + eur(x.v) + "</b></div>").join("") + "</div></section>" +
+      '<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Empreinte carbone par pièce</h3><div class="bars">' + byRoom.map((x) => '<div class="bar-row"><span>' + esc(x.r.name) + '</span><span class="track c"><i style="width:' + (x.co2 / maxC * 100).toFixed(1) + '%"></i></span><b>' + kg(x.co2) + "</b></div>").join("") + "</div></section></div>" +
+      '<div class="syn-col"><section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Contrôles de vérification</h3><ul class="checks">' + checks.map((k) => '<li><span class="ck ' + (k.ok ? "ok" : "ko") + '" style="display:grid">' + (k.ok ? "✓" : "!") + "</span><span>" + esc(k.text) + (k.ok ? "" : ' · <a href="#' + k.tab + '">régler</a>') + "</span></li>").join("") + "</ul>" +
+      (M.iss.length ? '<ul class="issues">' + M.iss.map((x) => '<li><span class="dot"></span><span>' + (x.rule ? '<span class="mono small faint">' + esc(x.rule) + "</span> " : "") + esc(x.text) + "</span></li>").join("") + "</ul>" : "") + "</section>" +
+      '<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><h3>Par bénéficiaire</h3>' + M.tots.map((x) => '<div class="kv"><span>' + esc(x.b.name) + ' <span class="small faint">· ' + esc(BEN_TYPES[x.b.type]) + '</span></span><b>' + eur(x.t.totalImmediate) + " + " + eur(x.t.totalDeferred) + "</b></div>").join("") + '<p class="small faint">Immédiat + différé, après remise, pénalités et franchise.</p></section>' +
       '<section class="card pad" style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px"><h3>Rapport de chiffrage</h3><span class="small faint">aperçu</span></div><div class="report">' +
       '<div class="rl"><b style="font:700 15px var(--display)">Rapport de chiffrage</b><span class="faint">27FP260071606A01 · Estimation 1</span></div><span class="muted">Dégât des eaux du 02/10/2026 · Camille Exemple · 12 rue des Tilleuls, Lyon 3e</span>' +
-      '<div style="height:150px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper)">' + planSvg({ mini: true, view, heat, heatLabel }).replace(/id="g(\d)m"/g, 'id="g$1r"').replace(/url\(#g(\d)m\)/g, "url(#g$1r)") + "</div>" +
-      S.rooms.map((r) => { const rl = linesOf(r.id, c); if (!rl.length) return ""; return '<div class="rl rh"><span>' + esc(r.name) + "</span><span>" + eur(sum(rl, "vd")) + "</span></div>" + rl.map((l) => '<div class="rl"><span class="muted">' + esc(l.name) + " · " + fr(l.q) + " " + l.unit + "</span><span>" + eur(l.vd) + "</span></div>").join(""); }).join("") +
-      '<div class="rl rh"><span>Total vétusté déduite TTC</span><span>' + eur(c.T.vd) + '</span></div><div class="rl"><span class="muted">Empreinte estimée</span><span>' + kg(c.T.co2) + " CO2e</span></div></div>" +
+      '<div style="height:150px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper)">' + planSvg({ mini: true, view, heat, heatLabel, sfx: "r" }) + "</div>" +
+      S.rooms.map((r) => { const rl = linesOf(r.id, c); if (!rl.length) return ""; return '<div class="rl rh"><span>' + esc(r.name) + "</span><span>" + eur(sum(rl, "priceWithObs")) + "</span></div>" + rl.map((l) => '<div class="rl"><span class="muted">' + esc(l.name) + " · " + fr(l.q) + " " + l.unit + "</span><span>" + eur(l.priceWithObs) + "</span></div>").join(""); }).join("") +
+      '<div class="rl rh"><span>Total vétusté déduite ' + regime + "</span><span>" + eur(c.T.vd) + '</span></div><div class="rl"><span class="muted">Empreinte estimée</span><span>' + kg(c.T.co2) + " CO2e</span></div></div>" +
       '<button type="button" class="btn" data-act="todo" data-msg="Génération du PDF : simulée dans ce prototype">Télécharger le rapport PDF</button></section></div></div>';
   }
 
   // ================= rendu global =================
   function render() {
     if (!S.view) fitView();
-    const c = calc(), I = indemn(c), iss = issues(c, I);
-    renderBar(c, I, iss);
+    const M = model();
+    renderBar(M);
     const app = document.getElementById("app");
     const act = document.activeElement, focusId = act && act.id && app.contains(act) ? act.id : null, selStart = act && act.selectionStart;
-    app.innerHTML = S.tab === "estimations" ? viewEstimations(c, I, iss) : S.tab === "indemnisation" ? viewIndemnisation(c, I, iss) : S.tab === "synthese" ? viewSynthese(c, I, iss) : viewLocalisation(c);
+    app.innerHTML = S.tab === "estimations" ? viewEstimations(M) : S.tab === "indemnisation" ? viewIndemnisation(M) : S.tab === "synthese" ? viewSynthese(M) : viewLocalisation(M);
     if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus(); try { if (selStart != null && el.setSelectionRange) el.setSelectionRange(selStart, selStart); } catch (e) { /* champ sans sélection */ } } }
   }
   function setTab() { const h = (location.hash || "").replace("#", ""); S.tab = TABS.some((t) => t.id === h) ? h : "localisation"; S.q = ""; S.hb = null; render(); window.scrollTo(0, 0); }
 
   // ================= actions =================
   function addLine(cat, roomId, qty, extra) {
-    S.lines.push(Object.assign({ id: S.nextId++, room: roomId, cat: cat.id, name: cat.name, n: cat.n, d: cat.d, unit: cat.unit, link: cat.link || null, qty: cat.link ? null : (qty || 1), pu: cat.pu, vat: 10, vet: 0, co2: cat.co2, source: "Bordereau" }, extra || {}));
+    S.lines.push(Object.assign({ id: S.nextId++, lineIndex: nextLineIndex(S.lines, cat.n, cat.d), room: roomId, cat: cat.id, name: cat.name, n: cat.n, d: cat.d, unit: cat.unit, link: cat.link || null, qty: cat.link ? null : (qty || 1), pu: cat.pu, vat: 10, vet: 0, obsIn: null, mode: "IP", beneficiaryName: "", co2: cat.co2, source: "Bordereau" }, extra || {}));
   }
   function applyModel(m, r) {
     if (!r) { toast("Choisissez d'abord une pièce"); return; }
     let n = 0;
-    mut(() => { m.items.forEach((it) => { if (S.lines.some((l) => l.room === r.id && l.cat === it[0])) return; addLine(catById(it[0]), r.id, it[1], { source: "Modèle" }); n++; }); });
-    toast(n ? n + " ligne" + (n > 1 ? "s" : "") + " ajoutée" + (n > 1 ? "s" : "") + " à " + r.name + ", quantités tirées du plan" : "Ce modèle est déjà appliqué à " + r.name);
+    if (mut(() => { m.items.forEach((it) => { if (S.lines.some((l) => l.room === r.id && l.cat === it[0])) return; addLine(catById(it[0]), r.id, it[1], { source: "Modèle" }); n++; }); }))
+      toast(n ? n + " ligne" + (n > 1 ? "s" : "") + " ajoutée" + (n > 1 ? "s" : "") + " à " + r.name + ", quantités tirées du plan" : "Ce modèle est déjà appliqué à " + r.name);
   }
   function activate(x) {
     if (!x) return;
@@ -1020,93 +1230,135 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     if (x.kind === "model") { S.q = ""; applyModel(x.m, x.room); focusCmd(); return; }
     if (x.kind === "cat") {
       if (x.c.link && !x.room) { toast("Choisissez une pièce pour tirer la quantité du plan"); return; }
-      S.q = ""; mut(() => addLine(x.c, x.room ? x.room.id : null)); toast("Ajouté à " + (x.room ? x.room.name : "sans pièce") + " : " + x.c.name); focusCmd(); return;
+      S.q = ""; if (mut(() => addLine(x.c, x.room ? x.room.id : null))) toast("Ajouté à " + (x.room ? x.room.name : "sans pièce") + " : " + x.c.name); focusCmd(); return;
     }
     if (x.kind === "hb") { const g = guess(x.text); S.hb = { name: x.text.charAt(0).toUpperCase() + x.text.slice(1), qty: "1", unit: "U", pu: "", co2: "0", n: g ? g.n : "", d: g ? g.d : "", kw: g ? g.kw : "" }; S.q = ""; render(); const p = document.getElementById("hb-pu"); if (p) p.focus(); }
   }
   function focusCmd() { const i = document.getElementById("cmd"); if (i) i.focus(); }
+  const line = (id) => S.lines.find((x) => x.id === id);
 
   const ACT = {
     undo: doUndo,
-    reset: () => { const keep = { tab: S.tab }; undo.length = 0; S = Object.assign(initial(), { tab: keep.tab, sel: "r1", selWall: 3, tool: "select", view: null, estRoom: "r1", q: "", cmdIdx: 0, hb: null, pending: null, imp: null, verifyMsg: null }); shown.vd = shown.co2 = null; render(); toast("Démonstration remise à zéro"); },
+    reset: () => { const tab = S.tab; undo.length = 0; S = Object.assign(initial(), UI0(), { tab }); initComps(); shown.vd = shown.co2 = null; render(); toast("Démonstration remise à zéro"); },
     todo: (el) => toast(el.dataset.msg || "Simulé dans ce prototype"),
     tool: (el) => { S.tool = el.dataset.tool; render(); },
-    zoom: (el) => { zoomAt(parseFloat(el.dataset.k), null); },
+    zoom: (el) => zoomAt(parseFloat(el.dataset.k), null),
     fit: () => { fitView(); render(); },
     cote: (el) => { S.selWall = +el.dataset.wall; render(); const i = document.getElementById("wall-" + S.selWall); if (i) { i.focus(); i.select(); } },
     "sel-wall": (el) => { S.selWall = +el.dataset.wall; render(); },
-    "fix-gap": () => { const r = room(S.sel); mut(() => fixGap(r, S.lastWall)); toast(gapOf(room(S.sel)) ? "Écart réduit : vérifiez les autres cotes" : "Pièce refermée : mur opposé ajusté"); },
-    "del-open": (el) => mut(() => { const id = el.dataset.id; S.rooms.forEach((r) => { const o = r.openings.find((x) => x.id === id); const tw = o && o.twin; r.openings = r.openings.filter((x) => x.id !== id); if (tw) S.rooms.forEach((q) => { q.openings = q.openings.filter((x) => x.id !== tw); }); }); }),
+    "fix-gap": () => { if (mut(() => fixGap(room(S.sel), S.lastWall))) toast(gapOf(room(S.sel)) ? "Écart réduit : vérifiez les autres cotes" : "Pièce refermée : mur opposé ajusté"); },
+    "del-open": (el) => mut(() => { const id = el.dataset.id; S.rooms.forEach((r) => { const o = r.openings.find((x) => x.id === id), tw = o && o.twin; r.openings = r.openings.filter((x) => x.id !== id); if (tw) S.rooms.forEach((q) => { q.openings = q.openings.filter((x) => x.id !== tw); }); }); }),
     "del-zone": (el) => mut(() => { S.rooms.forEach((r) => { r.zones = r.zones.filter((z) => z.id !== el.dataset.id); }); }),
     "apply-model": (el) => applyModel(MODELS.find((m) => m.id === el.dataset.model), room(S.sel)),
     "go-est": (el) => { S.estRoom = el.dataset.room; location.hash = "estimations"; },
-    "del-room": () => { const r = room(S.sel); if (!r) return; mut(() => { S.rooms = S.rooms.filter((x) => x.id !== r.id); S.lines = S.lines.filter((l) => l.room !== r.id); S.sel = S.rooms[0] ? S.rooms[0].id : null; S.selWall = null; }); toast(r.name + " supprimée avec ses lignes. Annuler la rétablit."); },
+    "del-room": () => { const r = room(S.sel); if (!r) return; if (mut(() => { S.rooms = S.rooms.filter((x) => x.id !== r.id); S.lines = S.lines.filter((l) => l.room !== r.id); S.sel = S.rooms[0] ? S.rooms[0].id : null; S.selWall = null; })) toast(r.name + " supprimée avec ses lignes. Annuler la rétablit."); },
     "demo-draw": demoDraw,
     "name-type": (el) => { S.pendingType = el.dataset.type; S.pendingName = el.dataset.type; render(); },
     "create-room": () => {
       const inp = document.getElementById("pending-name"), name = (inp && inp.value.trim()) || S.pendingType;
       if (!name) { toast("Choisissez ou écrivez le nom de la pièce"); return; }
       const g = S.pending; S.pending = null;
-      mut(() => { const id = "r" + (S.nextObj++); S.rooms.push(Object.assign({ id, name, type: S.pendingType || name }, g)); S.sel = id; S.selWall = null; S.estRoom = id; S.tool = "select"; });
-      S.pendingType = S.pendingName = null;
-      const r = room(S.sel); toast(name + " créée : " + fr(measures(r).floor) + " m² au sol. Appliquez un modèle pour la chiffrer.");
+      if (mut(() => { const id = "r" + (S.nextObj++); S.rooms.push(Object.assign({ id, name, type: S.pendingType || name }, g)); S.sel = id; S.selWall = null; S.estRoom = id; S.tool = "select"; })) {
+        S.pendingType = S.pendingName = null; toast(name + " créée : " + fr(measures(room(S.sel)).floor) + " m² au sol. Appliquez un modèle pour la chiffrer.");
+      }
     },
     "cancel-room": () => { S.pending = null; S.pendingType = S.pendingName = null; render(); },
     "est-room": (el) => { S.estRoom = el.dataset.room; render(); },
     res: (el) => activate(cmdResults()[+el.dataset.i]),
     "hb-cancel": () => { S.hb = null; render(); },
-    "del-line": (el) => { const l = S.lines.find((x) => x.id === +el.dataset.id); mut(() => { S.lines = S.lines.filter((x) => x.id !== +el.dataset.id); }); toast("Ligne supprimée : " + (l ? l.name : "") + ". Ctrl+Z pour annuler."); },
-    confirm: (el) => mut(() => { const l = S.lines.find((x) => x.id === +el.dataset.id); l.proposed = false; }),
-    "edit-nature": (el) => { const l = S.lines.find((x) => x.id === +el.dataset.id); S.hb = { name: l.name, qty: "1", unit: l.unit, pu: fr(l.pu), co2: fr(l.co2, 1), n: "", d: "", kw: "" }; render(); },
-    "fix-price": (el) => mut(() => { const l = S.lines.find((x) => x.id === +el.dataset.id); l.pu = l.bordereau; l.source = "Prix du bordereau"; }),
-    "fix-vet": (el) => mut(() => { const l = S.lines.find((x) => x.id === +el.dataset.id); l.vet = l.scale; }),
+    "del-line": (el) => { const l = line(+el.dataset.id); if (mut(() => { S.lines = S.lines.filter((x) => x.id !== +el.dataset.id); })) toast("Ligne supprimée : " + (l ? l.name : "") + ". Ctrl+Z pour annuler."); },
+    confirm: (el) => mut(() => { line(+el.dataset.id).proposed = false; }),
+    "edit-nature": (el) => { const l = line(+el.dataset.id); S.hb = { name: l.name, qty: "1", unit: l.unit, pu: fr(l.pu), co2: fr(l.co2, 1), n: "", d: "", kw: "" }; render(); },
+    "fix-price": (el) => mut(() => { const l = line(+el.dataset.id); l.pu = l.bordereau; l.source = "Prix du bordereau"; }),
+    "fix-vet": (el) => mut(() => { const l = line(+el.dataset.id); l.vet = l.scale; l.obsIn = null; }),
     "apply-alt": (el) => {
       const a = altList(calc())[+el.dataset.i]; if (!a) return;
-      mut(() => { const l = S.lines.find((x) => x.id === a.id), e = catById(a.to); Object.assign(l, { cat: e.id, name: e.name, n: e.n, d: e.d, unit: e.unit, link: e.link, pu: e.pu, co2: e.co2, source: "Alternative sobre", bordereau: undefined, age: e.link === "floor" ? l.age : undefined }); S.co2Saved = r2(S.co2Saved + a.dc); });
-      toast("Appliqué : " + Math.round(a.dc) + " kg CO2e évités");
+      if (mut(() => { const l = line(a.id), e = catById(a.to); Object.assign(l, { cat: e.id, name: e.name, n: e.n, d: e.d, unit: e.unit, link: e.link, pu: e.pu, co2: e.co2, source: "Alternative sobre", bordereau: undefined }); S.co2Saved = r2(S.co2Saved + a.dc); }))
+        toast("Appliqué : " + Math.round(a.dc) + " kg CO2e évités. Pensez à recalculer la ventilation dans Indemnisation.");
     },
     import: openImport,
-    stance: (el) => mut(() => { S.coverages.find((x) => x.id === el.dataset.cov).stance = +el.dataset.v; }),
-    mode: (el) => mut(() => { const k = el.dataset.k; S.comp[k] = Object.assign({}, S.comp[k], { mode: el.dataset.v }); if (el.dataset.v === "REN") S.comp[k].ben = "b2"; }),
-    verify: () => {
-      const c = calc(), I = indemn(c), iss = issues(c, I);
-      if (iss.length) { S.verifyMsg = { tone: "warn", html: "Vérification impossible : " + iss.length + " point" + (iss.length > 1 ? "s" : "") + " à régler, listé" + (iss.length > 1 ? "s" : "") + " dans les contrôles." }; render(); return; }
-      mut(() => { S.status = "Vérifié"; }, true); S.verifyMsg = { tone: "ok", html: "Chiffrage vérifié : conforme aux règles Sinapps. Vous pouvez l'envoyer." }; render();
+    regime: (el) => {
+      const ttc = el.dataset.v === "ttc"; if (ttc === S.ttc) return;
+      const had = Object.keys(S.comps).some((k) => k.indexOf(RO + "_") === 0);
+      if (mut(() => { S.ttc = ttc; Object.keys(S.comps).forEach((k) => { if (k.indexOf(RO + "_") === 0) delete S.comps[k]; }); }))
+        toast("Règlement " + (ttc ? "TTC" : "HT") + " : vétusté recalculée" + (had ? ", ventilations de l'indemnisation remises à zéro" : ""));
     },
-    send: () => { mut(() => { S.sent = true; }, true); S.verifyMsg = { tone: "ok", html: "Envoi simulé : le chiffrage vérifié part vers Sinapps (commande chiffrerDommages) et vers Eureka." }; render(); toast("Envoi simulé vers Sinapps"); }
+    stance: (el) => {
+      const cv = S.coverages.find((x) => x.id === el.dataset.cov), v = +el.dataset.v; let gone = 0;
+      if (mut(() => { cv.stance = v; if (!STANCES[v].ok) { const before = S.beneficiaries.length; S.beneficiaries = S.beneficiaries.filter((b) => b.stanceId !== cv.id); gone = before - S.beneficiaries.length; storeGroups(groupsOf(calc())); } }) && gone) toast("Les bénéficiaires rattachés à cette garantie ont été retirés.");
+    },
+    "sel-ben": (el) => { S.benId = el.dataset.id; render(); },
+    "ben-add": () => { S.benForm = {}; render(); const i = document.getElementById("bf-name"); if (i) i.focus(); },
+    "ben-cancel": () => { S.benForm = null; render(); },
+    option: (el) => { S.option = +el.dataset.v; render(); },
+    "apply-gen": () => { if (mutateGroups((gs) => applyGenericPct(gs, S.benId, S.genericPct, S.option))) toast("Vétusté contractuelle appliquée aux lignes de ce bénéficiaire"); },
+    recalc: (el) => mutateGroups((gs) => { const g = gs.find((x) => x.key === el.dataset.key); setContractPct(g, numv(g.cPct), S.option); }),
+    verify: () => {
+      const M = model(), v = verifyEstimate(M.c, M.gs), cErr = S.beneficiaries.length && M.gs.some((g) => g.beneficiaryId) ? compensationError(M.gs, S.beneficiaries) : "";
+      const errors = v.errors.concat(cErr ? [cErr] : [], stanceIssues().map((x) => x.text), sinappsIssues(M.c).map((x) => "Sinapps (" + x.rule + ") : " + x.text));
+      if (errors.length) { S.verifyMsg = { tone: "warn", html: "<b>Vérification refusée.</b><br>" + errors.map(esc).join("<br>") }; render(); return; }
+      if (!v.status) { toast("Rien à vérifier : saisissez des dommages ou une prise de position."); return; }
+      if (mut(() => { S.status = v.status; }, true)) { S.verifyMsg = { tone: "ok", html: "Statut : <b>" + esc(STATUS[v.status]) + "</b>." }; render(); }
+    },
+    advance: () => { if (S.status < 2 || S.status > 13) return; const n = S.status + 4; undo.push(snapshot()); S.status = n; S.verifyMsg = { tone: "ok", html: "Statut : <b>" + esc(STATUS[n]) + "</b>" + (n >= 10 && n <= 13 ? ". Envoi vers Sinapps simulé (commande chiffrerDommages)." : ".") + " L'estimation est maintenant en lecture seule." }; render(); toast(STATUS[n]); }
   };
 
   document.addEventListener("click", (e) => {
-    const el = e.target.closest("[data-act]"); if (!el) return;
-    if (el.closest("#dlg")) return;
+    const el = e.target.closest("[data-act]"); if (!el || el.closest("#dlg")) return;
     const f = ACT[el.dataset.act]; if (f) { e.preventDefault(); f(el); }
   });
+  /** saisie numérique : vide = null ; undefined = refusée */
+  function numIn(el, max) { const t = el.value.trim(); if (t === "") return null; const v = num(t); if (!(v >= 0) || (max != null && v > max)) { toast("Valeur invalide" + (max != null ? " : entre 0 et " + String(max).replace(".", ",") : "")); render(); return undefined; } return v; }
   document.addEventListener("change", (e) => {
     const el = e.target, k = el.dataset && el.dataset.chg; if (!k) return;
     const v = num(el.value), id = +el.dataset.id;
-    const line = () => S.lines.find((x) => x.id === id);
     if (k === "room-name") { const val = el.value.trim(); if (val) mut(() => { room(S.sel).name = val; }); return; }
     if (k === "room-h") { if (!(v > 1 && v < 10)) { toast("Hauteur entre 1 et 10 m"); render(); return; } mut(() => { room(S.sel).H = v; }); return; }
     if (k === "wall-len") { const i = +el.dataset.wall; if (!(v > 0.05 && v < 60)) { toast("Cote invalide : écrivez une longueur en mètres, par exemple 3,60"); render(); return; } S.lastWall = i; S.selWall = i; mut(() => { room(S.sel).walls[i].len = r2(v); }); return; }
     if (k === "open-w" || k === "open-h") { if (!(v > 0.1 && v < 10)) { render(); return; } mut(() => { S.rooms.forEach((r) => r.openings.forEach((o) => { if (o.id === el.dataset.id || o.twin === el.dataset.id) o[k === "open-w" ? "w" : "h"] = r2(v); })); }); return; }
-    if (k === "qty") { if (!(v >= 0)) { render(); return; } mut(() => { line().qty = v; }); return; }
-    if (k === "pu") { if (!(v >= 0)) { render(); return; } mut(() => { line().pu = v; }); return; }
-    if (k === "vat") { mut(() => { line().vat = parseFloat(el.value); }); return; }
-    if (k === "vet") { if (!(v >= 0 && v <= 100)) { toast("Vétusté entre 0 et 100 %"); render(); return; } mut(() => { line().vet = v; }); return; }
+    if (k === "qty") { if (!(v >= 0)) { render(); return; } mut(() => { line(id).qty = v; }); return; }
+    if (k === "pu") { if (!(v >= 0)) { render(); return; } mut(() => { line(id).pu = v; }); return; }
+    if (k === "vat") { mut(() => { line(id).vat = parseFloat(el.value); }); return; }
+    if (k === "vet") { const x = numIn(el, 100); if (x === undefined) return; mut(() => { const l = line(id); l.vet = r1(numv(x)); l.obsIn = null; }); return; }
+    if (k === "obs-in") { const x = numIn(el); if (x === undefined) return; mut(() => { const l = line(id); l.obsIn = x; if (x === null) l.vet = 0; }); return; }
+    if (k === "mode") { mut(() => { const l = line(id); l.mode = el.value; l.beneficiaryName = el.value === "REN" ? (l.beneficiaryName || "Réno Services") : ""; }); return; }
     if (k === "hb-n") { S.hb.n = el.value; S.hb.d = ""; S.hb.kw = ""; ["name", "qty", "unit", "pu", "co2"].forEach((f) => { const i = document.getElementById("hb-" + f); if (i) S.hb[f] = i.value; }); render(); return; }
-    if (k === "cov-comment") { mut(() => { S.coverages.find((x) => x.id === el.dataset.cov).comment = el.value; }); return; }
-    if (k === "ben") { mut(() => { S.comp[el.dataset.k] = Object.assign({}, S.comp[el.dataset.k], { ben: el.value }); }); return; }
-    if (k === "franchise") { if (!(v >= 0)) { render(); return; } mut(() => { S.beneficiaries.find((b) => b.id === el.dataset.id).franchise = v; }); return; }
+    if (k === "cov-comment") { mut(() => { S.coverages.find((x) => x.id === el.dataset.cov).comment = el.value.trim(); }); return; }
+    if (k === "position") { mut(() => { S.position = el.value || null; }); return; }
+    if (k === "comp-check") { mutateGroups((gs) => { const g = gs.find((x) => x.key === el.dataset.key); if (el.checked) assignGroup(g, S.benId, S.genericPct, S.option); else unassignGroup(g); }); return; }
+    if (k === "comp-l1") { mutateGroups((gs) => { const all = gs.filter((g) => g.l1 === el.dataset.l1); if (el.checked) all.filter((g) => !g.beneficiaryId).forEach((g) => assignGroup(g, S.benId, S.genericPct, S.option)); else all.filter((g) => g.beneficiaryId === S.benId).forEach(unassignGroup); }); return; }
+    if (k === "comp-l1ceil") { const x = numIn(el); if (x === undefined) return; mutateGroups((gs) => setLevel1Ceiling(gs, el.dataset.l1, S.benId, x, S.option)); return; }
+    if (k === "comp") {
+      const f = el.dataset.k, x = numIn(el, f === "cPct" ? 100 : null); if (x === undefined) return;
+      mutateGroups((gs) => { const g = gs.find((y) => y.key === el.dataset.key);
+        if (f === "cPct") setContractPct(g, numv(x), S.option); else if (f === "cAmt") setContractAmount(g, numv(x), S.option);
+        else if (f === "ceiling") { if (g.beneficiaryId) setCeiling(g, x, blank(g.cPct) ? S.genericPct : g.cPct, S.option); else g.ceiling = x; }
+        else if (f === "immediate") g.immediate = numv(x); else g.deferred = r2(numv(x)); });
+      return;
+    }
+    if (k === "ben") { const f = el.dataset.k, x = numIn(el, f === "discount" ? 99.99 : null); if (x === undefined) return; mut(() => { S.beneficiaries.find((b) => b.id === S.benId)[f] = x; }); return; }
+    if (k === "gen-pct") { const x = numIn(el, 100); if (x === undefined) return; S.genericPct = x === null ? null : r1(x); render(); return; }
+    if (k === "only-mine") { S.onlyMine = el.checked; render(); return; }
   });
   document.addEventListener("submit", (e) => {
+    if (e.target.id === "ben-form") {
+      e.preventDefault();
+      const type = document.getElementById("bf-type").value, name = document.getElementById("bf-name").value.trim(), cov = document.getElementById("bf-cov").value, err = document.getElementById("bf-err");
+      const msg = !name ? "Écrivez le nom du bénéficiaire." : !cov ? "Aucune garantie applicable : prenez d'abord position." : S.beneficiaries.some((b) => b.type === type && b.name === name && b.stanceId === cov) ? "Ce bénéficiaire existe déjà pour cette garantie." : "";
+      if (msg) { err.hidden = false; err.textContent = msg; return; }
+      S.benForm = null;
+      mut(() => { const id = "b" + (S.nextObj++); S.beneficiaries.push({ id, type, name, stanceId: cov, discount: null, penalization: null, deferredPenalization: null, deductible: null, deferredDeductible: null }); S.benId = id; });
+      toast(name + " ajouté : saisissez sa franchise (0 si non applicable) puis cochez ses lignes");
+      return;
+    }
     if (e.target.id !== "hb-form") return; e.preventDefault();
     const g = (f) => document.getElementById("hb-" + f).value, err = document.getElementById("hb-err");
     const name = g("name").trim(), qty = num(g("qty")), pu = num(g("pu")), n = g("n"), d = g("d"), co2 = num(g("co2"));
     const msg = !name ? "Écrivez la désignation." : !(qty > 0) ? "Indiquez une quantité." : !(pu >= 0) ? "Indiquez le prix unitaire HT." : !n || !d ? "Choisissez la nature et le détail : Sinapps les exige." : "";
     if (msg) { err.hidden = false; err.textContent = msg; return; }
     S.hb = null;
-    mut(() => { S.lines.push({ id: S.nextId++, room: S.estRoom, cat: null, name, n, d, unit: g("unit"), link: null, qty, pu, vat: parseFloat(g("vat")), vet: 0, co2: co2 >= 0 ? co2 : 0, source: "Hors bordereau" }); });
-    toast("Ligne hors bordereau ajoutée : " + n + " › " + d);
+    if (mut(() => { S.lines.push({ id: S.nextId++, lineIndex: nextLineIndex(S.lines, n, d), room: S.estRoom, cat: null, name, n, d, unit: g("unit"), link: null, qty, pu, vat: parseFloat(g("vat")), vet: 0, obsIn: null, mode: "IP", beneficiaryName: "", co2: co2 >= 0 ? co2 : 0, source: "Hors bordereau" }); }))
+      toast("Ligne hors bordereau ajoutée : " + n + " › " + d);
   });
   document.addEventListener("input", (e) => {
     if (e.target.id !== "cmd") return;
@@ -1127,7 +1379,7 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
   });
 
   // ================= interactions du plan =================
-  function toPlan(e, svg) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const m = svg.getScreenCTM(); const p = pt.matrixTransform(m.inverse()); return [p.x / K, p.y / K]; }
+  function toPlan(e, svg) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); return [p.x / K, p.y / K]; }
   function zoomAt(k, at) {
     const v = S.view, cx = at ? at[0] * K : v.x + v.w / 2, cy = at ? at[1] * K : v.y + v.h / 2;
     const nw = Math.min(6000, Math.max(250, v.w * k)), f = nw / v.w;
@@ -1144,32 +1396,26 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
     const w = type === "door" ? 0.83 : 1.2, wall = h.r.walls[h.i];
     if (wall.len < w + 0.1) { toast("Mur trop court pour cette ouverture"); return; }
     const pos = r2(Math.max(0.05, Math.min(wall.len - w - 0.05, h.t - w / 2)));
-    const ok = !h.r.openings.some((o) => o.wall === h.i && pos < o.pos + o.w && o.pos < pos + w);
-    if (!ok) { toast("Une ouverture occupe déjà cet endroit"); return; }
-    mut(() => {
+    if (h.r.openings.some((o) => o.wall === h.i && pos < o.pos + o.w && o.pos < pos + w)) { toast("Une ouverture occupe déjà cet endroit"); return; }
+    let shared = false;
+    const ok = mut(() => {
       const id = "o" + (S.nextObj++), op = { id, wall: h.i, pos, w, h: type === "door" ? 2.04 : 1.25, type };
       h.r.openings.push(op);
       if (type === "door") {
         const P = verts(h.r), a = P[h.i], u = U(wall.dir), mid = [a[0] + u[0] * (pos + w / 2), a[1] + u[1] * (pos + w / 2)];
-        S.rooms.forEach((q) => { if (q === h.r || op.twin) return; const Q = verts(q); q.walls.forEach((qw, j) => { if (op.twin) return; const qu = U(qw.dir); if (Math.abs(qu[0] + u[0]) > 0.01 || Math.abs(qu[1] + u[1]) > 0.01) return; const d = distSeg(mid, Q[j], Q[j + 1]); if (d.d > 0.05) return; const p2 = r2(d.t * qw.len - w / 2); if (p2 < 0 || p2 + w > qw.len) return; const id2 = "o" + (S.nextObj++); q.openings.push({ id: id2, wall: j, pos: p2, w, h: 2.04, type: "door", twin: id }); op.twin = id2; }); });
+        S.rooms.forEach((q) => { if (q === h.r || op.twin) return; const Q = verts(q); q.walls.forEach((qw, j) => { if (op.twin) return; const qu = U(qw.dir); if (Math.abs(qu[0] + u[0]) > 0.01 || Math.abs(qu[1] + u[1]) > 0.01) return; const d = distSeg(mid, Q[j], Q[j + 1]); if (d.d > 0.05) return; const p2 = r2(d.t * qw.len - w / 2); if (p2 < 0 || p2 + w > qw.len) return; const id2 = "o" + (S.nextObj++); q.openings.push({ id: id2, wall: j, pos: p2, w, h: 2.04, type: "door", twin: id }); op.twin = id2; shared = true; }); });
       }
       S.sel = h.r.id;
     });
-    toast((type === "door" ? "Porte" : "Fenêtre") + " posée sur le mur " + (h.i + 1) + " de " + h.r.name + (type === "door" && h.r.openings[h.r.openings.length - 1].twin ? " : commune avec la pièce voisine, déduite des deux côtés" : ""));
+    if (ok) toast((type === "door" ? "Porte" : "Fenêtre") + " posée sur le mur " + (h.i + 1) + " de " + h.r.name + (shared ? " : commune avec la pièce voisine, déduite des deux côtés" : ""));
   }
   let drag = null;
   document.addEventListener("pointerdown", (e) => {
-    const svg = e.target.closest && e.target.closest("#plan-svg");
-    const elev = e.target.closest && e.target.closest("#elev-svg");
-    if (elev) return elevDown(e, elev);
-    if (!svg || S.pending) return;
-    if (e.target.closest("[data-act]")) return;
+    const svg = e.target.closest && e.target.closest("#plan-svg"), elev = e.target.closest && e.target.closest("#elev-svg");
+    if (elev) { if (isReadOnly(S.status)) return; e.preventDefault(); elev.setPointerCapture(e.pointerId); drag = { mode: "elev", svg: elev, p1: elevPt(e, elev) }; return; }
+    if (!svg || S.pending || e.target.closest("[data-act]")) return;
     const pt = toPlan(e, svg);
-    if (S.tool === "draw" && e.pointerType !== "touch") {
-      e.preventDefault(); svg.setPointerCapture(e.pointerId);
-      drag = { mode: "draw", pts: [pt], svg };
-      return;
-    }
+    if (S.tool === "draw" && e.pointerType !== "touch") { e.preventDefault(); svg.setPointerCapture(e.pointerId); drag = { mode: "draw", pts: [pt], svg }; return; }
     if ((S.tool === "door" || S.tool === "window") && e.pointerType !== "touch") { placeOpening(pt, S.tool); return; }
     svg.setPointerCapture(e.pointerId);
     drag = { mode: "pan", x: e.clientX, y: e.clientY, v: Object.assign({}, S.view), moved: false, pt, svg };
@@ -1185,9 +1431,9 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       drag.svg.setAttribute("viewBox", S.view.x + " " + S.view.y + " " + S.view.w + " " + S.view.h);
       return;
     }
-    if (drag.mode === "elev") { const p = elevPt(e, drag.svg); drag.p2 = p; const x = Math.min(drag.p1[0], p[0]), y = Math.min(drag.p1[1], p[1]); const r = document.getElementById("elev-drag"); r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", Math.abs(p[0] - drag.p1[0])); r.setAttribute("height", Math.abs(p[1] - drag.p1[1])); }
+    if (drag.mode === "elev") { const p = elevPt(e, drag.svg); drag.p2 = p; const r = document.getElementById("elev-drag"); r.setAttribute("x", Math.min(drag.p1[0], p[0])); r.setAttribute("y", Math.min(drag.p1[1], p[1])); r.setAttribute("width", Math.abs(p[0] - drag.p1[0])); r.setAttribute("height", Math.abs(p[1] - drag.p1[1])); }
   });
-  document.addEventListener("pointerup", (e) => {
+  document.addEventListener("pointerup", () => {
     if (!drag) return; const d = drag; drag = null;
     if (d.mode === "draw") { finishStroke(d.pts); return; }
     if (d.mode === "pan") {
@@ -1199,39 +1445,32 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       return;
     }
     if (d.mode === "elev") {
-      const r = room(S.sel), H = r.H, L = r.walls[S.selWall].len, p2 = d.p2 || d.p1;
-      const sn = (v) => Math.round(v * 10) / 10;
-      let x1 = sn(Math.max(0, Math.min(L, Math.min(d.p1[0], p2[0]) / K))), x2 = sn(Math.max(0, Math.min(L, Math.max(d.p1[0], p2[0]) / K)));
-      let yTop = sn(Math.max(0, Math.min(H, H - Math.min(d.p1[1], p2[1]) / K))), yBot = sn(Math.max(0, Math.min(H, H - Math.max(d.p1[1], p2[1]) / K)));
+      const r = room(S.sel), H = r.H, L = r.walls[S.selWall].len, p2 = d.p2 || d.p1, sn = (v) => Math.round(v * 10) / 10;
+      const x1 = sn(Math.max(0, Math.min(L, Math.min(d.p1[0], p2[0]) / K))), x2 = sn(Math.max(0, Math.min(L, Math.max(d.p1[0], p2[0]) / K)));
+      const yTop = sn(Math.max(0, Math.min(H, H - Math.min(d.p1[1], p2[1]) / K))), yBot = sn(Math.max(0, Math.min(H, H - Math.max(d.p1[1], p2[1]) / K)));
       if (x2 - x1 < 0.1 || yTop - yBot < 0.1) { render(); return; }
-      mut(() => { r.zones.push({ id: "z" + (S.nextObj++), wall: S.selWall, x: r2(x1), y: r2(yBot), w: r2(x2 - x1), h: r2(yTop - yBot) }); });
-      toast("Zone abîmée : " + fr((x2 - x1) * (yTop - yBot)) + " m² sur le mur " + (S.selWall + 1));
+      if (mut(() => { r.zones.push({ id: "z" + (S.nextObj++), wall: S.selWall, x: r2(x1), y: r2(yBot), w: r2(x2 - x1), h: r2(yTop - yBot) }); })) toast("Zone abîmée : " + fr((x2 - x1) * (yTop - yBot)) + " m² sur le mur " + (S.selWall + 1));
     }
   });
-  document.addEventListener("wheel", (e) => {
-    const svg = e.target.closest && e.target.closest("#plan-svg"); if (!svg) return;
-    e.preventDefault(); zoomAt(e.deltaY > 0 ? 1.12 : 0.89, toPlan(e, svg));
-  }, { passive: false });
+  document.addEventListener("wheel", (e) => { const svg = e.target.closest && e.target.closest("#plan-svg"); if (!svg) return; e.preventDefault(); zoomAt(e.deltaY > 0 ? 1.12 : 0.89, toPlan(e, svg)); }, { passive: false });
   function elevPt(e, svg) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(svg.getScreenCTM().inverse()); return [p.x, p.y]; }
-  function elevDown(e, svg) { e.preventDefault(); svg.setPointerCapture(e.pointerId); drag = { mode: "elev", svg, p1: elevPt(e, svg) }; }
   function finishStroke(pts) {
-    const res = strokeToRoom(pts);
-    const st = document.getElementById("stroke"); if (st) st.setAttribute("points", "");
+    const res = strokeToRoom(pts), st = document.getElementById("stroke"); if (st) st.setAttribute("points", "");
     if (res.err) { toast(res.err); return; }
+    if (isReadOnly(S.status)) { toast("Estimation en lecture seule"); return; }
     S.pending = res.room; S.pendingType = null; S.pendingName = ""; render();
   }
   function demoDraw() {
     if (S.tab !== "localisation") return;
     const b = bbox(S.rooms), x0 = b.x1 + 0.04, y0 = 0.05, w = 3.42, h = 3.38;
-    const corners = [[x0, y0], [x0 + w, y0 - 0.04], [x0 + w - 0.03, y0 + h], [x0 - 0.02, y0 + h + 0.03], [x0 + 0.05, y0 + 0.08]];
-    const pts = [];
-    for (let i = 0; i < corners.length - 1; i++) { const a = corners[i], c2 = corners[i + 1], L = Math.hypot(c2[0] - a[0], c2[1] - a[1]), n = Math.ceil(L / 0.07); for (let j = 0; j < n; j++) { const t = j / n, wob = 0.045 * Math.sin((i * 7 + j) * 0.7) + 0.025 * Math.sin((i * 3 + j) * 1.9); const nx = -(c2[1] - a[1]) / L, ny = (c2[0] - a[0]) / L; pts.push([a[0] + (c2[0] - a[0]) * t + nx * wob, a[1] + (c2[1] - a[1]) * t + ny * wob]); } }
+    const corners = [[x0, y0], [x0 + w, y0 - 0.04], [x0 + w - 0.03, y0 + h], [x0 - 0.02, y0 + h + 0.03], [x0 + 0.05, y0 + 0.08]], pts = [];
+    for (let i = 0; i < corners.length - 1; i++) { const a = corners[i], c2 = corners[i + 1], L = Math.hypot(c2[0] - a[0], c2[1] - a[1]), n = Math.ceil(L / 0.07); for (let j = 0; j < n; j++) { const t = j / n, wob = 0.045 * Math.sin((i * 7 + j) * 0.7) + 0.025 * Math.sin((i * 3 + j) * 1.9), nx = -(c2[1] - a[1]) / L, ny = (c2[0] - a[0]) / L; pts.push([a[0] + (c2[0] - a[0]) * t + nx * wob, a[1] + (c2[1] - a[1]) * t + ny * wob]); } }
     pts.push(corners[corners.length - 1]);
     const B2 = bbox(S.rooms.concat([{ x: x0, y: y0, walls: [{ len: w, dir: 0 }, { len: h, dir: 90 }, { len: w, dir: 180 }, { len: h, dir: 270 }] }])), m = 1.2;
     S.view = { x: (B2.x0 - m) * K, y: (B2.y0 - m) * K, w: (B2.x1 - B2.x0 + 2 * m) * K, h: (B2.y1 - B2.y0 + 2 * m) * K };
     S.tool = "draw"; S.pending = null; render();
-    const line = document.getElementById("stroke"), dur = reduced() ? 0 : 1500, t0 = performance.now();
-    const step = (t) => { const k = dur ? Math.min(1, (t - t0) / dur) : 1, n = Math.max(2, Math.round(pts.length * k)); if (line) line.setAttribute("points", pts.slice(0, n).map((p) => (p[0] * K).toFixed(1) + "," + (p[1] * K).toFixed(1)).join(" ")); if (k < 1) requestAnimationFrame(step); else setTimeout(() => { finishStroke(pts); S.pendingType = "Chambre"; S.pendingName = "Chambre"; render(); }, dur ? 350 : 0); };
+    const ln = document.getElementById("stroke"), dur = reduced() ? 0 : 1500, t0 = performance.now();
+    const step = (t) => { const k = dur ? Math.min(1, (t - t0) / dur) : 1, n = Math.max(2, Math.round(pts.length * k)); if (ln) ln.setAttribute("points", pts.slice(0, n).map((p) => (p[0] * K).toFixed(1) + "," + (p[1] * K).toFixed(1)).join(" ")); if (k < 1) requestAnimationFrame(step); else setTimeout(() => { finishStroke(pts); if (S.pending) { S.pendingType = "Chambre"; S.pendingName = "Chambre"; render(); } }, dur ? 350 : 0); };
     requestAnimationFrame(step);
   }
 
@@ -1244,26 +1483,25 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       const t = ln.trim(); if (!t) return;
       const tm = t.match(/^total\s*ht\D*?(\d[\d\s]*[.,]\d{2})\s*$/i); if (tm) { total = num(tm[1]); return; }
       const m = t.match(re); if (!m) return;
-      const g = guess(m[1]);
-      items.push({ on: true, name: m[1].trim(), qty: num(m[2]), unit: m[3].replace("m2", "m²").toUpperCase() === "FFT" ? "FFT" : m[3].replace("m2", "m²"), pu: num(m[4]), total: num(m[5]), n: g ? g.n : "", d: g ? g.d : "", kw: g ? g.kw : "" });
+      const g = guess(m[1]), u = m[3] === "m2" ? "m²" : /^fft$/i.test(m[3]) ? "FFT" : m[3];
+      items.push({ on: true, name: m[1].trim(), qty: num(m[2]), unit: u, pu: num(m[4]), total: num(m[5]), n: g ? g.n : "", d: g ? g.d : "", kw: g ? g.kw : "" });
     });
     return { items, total };
   }
-  function openImport() { S.imp = { text: SAMPLE, res: null }; drawImport(); const d = document.getElementById("dlg"); if (!d.open) d.showModal(); }
+  function openImport() { if (isReadOnly(S.status)) { toast("Estimation en lecture seule"); return; } S.imp = { text: SAMPLE, res: null }; drawImport(); const d = document.getElementById("dlg"); if (!d.open) d.showModal(); }
   function drawImport() {
     const d = document.getElementById("dlg"), im = S.imp, tr = room(S.estRoom);
     let body = '<div class="dlg"><div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1"><h2>Importer un devis ou une facture</h2><p class="small muted">Collez le texte du document ou choisissez un fichier texte ou CSV. L\'application finale lit aussi les PDF. Rien n\'est envoyé : la lecture se fait dans le navigateur.</p></div><button type="button" class="x" data-dlg="close" aria-label="Fermer">×</button></div>';
-    if (!im.res) {
-      body += '<textarea id="imp-text" aria-label="Texte du devis">' + esc(im.text) + '</textarea><div class="dlg-foot"><input type="file" id="imp-file" accept=".txt,.csv,text/plain,text/csv" style="margin-right:auto;max-width:100%"><button type="button" class="btn" data-dlg="close">Annuler</button><button type="button" class="btn primary" data-dlg="read">Lire les lignes</button></div>';
-    } else {
-      const s = r2(im.res.items.reduce((a, x) => a + x.total, 0)), ok = im.res.total != null && Math.abs(s - im.res.total) < 0.02;
+    if (!im.res) body += '<textarea id="imp-text" aria-label="Texte du devis">' + esc(im.text) + '</textarea><div class="dlg-foot"><input type="file" id="imp-file" accept=".txt,.csv,text/plain,text/csv" style="margin-right:auto;max-width:100%"><button type="button" class="btn" data-dlg="close">Annuler</button><button type="button" class="btn primary" data-dlg="read">Lire les lignes</button></div>';
+    else {
+      const s = r2(sumf(im.res.items, "total")), ok = im.res.total != null && Math.abs(s - im.res.total) < 0.02, nOn = im.res.items.filter((x) => x.on).length;
       const opts = (o, v) => o.map((x) => "<option" + (x === v ? " selected" : "") + ">" + esc(x) + "</option>").join("");
       body += (im.res.items.length ? '<div class="alert ' + (ok ? "ok" : "warn") + '"><span>' + im.res.items.length + " lignes lues · somme " + eur(s) + " HT" + (im.res.total != null ? (ok ? " = total du devis ✓" : " ≠ total du devis " + eur(im.res.total)) : " · total du devis non trouvé") + "</span></div>" +
         '<div class="tw"><table class="imp"><thead><tr><th></th><th>Désignation</th><th class="r">Qté</th><th class="r">P.U. HT</th><th>Nature Sinapps</th><th>Détail</th></tr></thead><tbody>' +
         im.res.items.map((x, i) => '<tr><td><input type="checkbox" data-imp="on" data-i="' + i + '"' + (x.on ? " checked" : "") + ' aria-label="Intégrer la ligne"></td><td>' + esc(x.name) + (x.kw ? '<div class="small faint">proposé d\'après « ' + esc(x.kw) + " »</div>" : '<div class="small" style="color:var(--bad)">nature à choisir</div>') + '</td><td class="r mono">' + fr(x.qty) + " " + esc(x.unit) + '</td><td class="r mono">' + eur(x.pu) + '</td><td><select data-imp="n" data-i="' + i + '" aria-label="Nature"><option value="">Choisir…</option>' + opts(Object.keys(NATURES), x.n) + '</select></td><td><select data-imp="d" data-i="' + i + '" aria-label="Détail"><option value="">Choisir…</option>' + (x.n ? opts(NATURES[x.n], x.d) : "") + "</select></td></tr>").join("") + "</tbody></table></div>"
         : '<div class="alert warn"><span>Aucune ligne chiffrée reconnue. Vérifiez que chaque ligne porte une quantité, une unité, un prix unitaire et un total.</span></div>') +
         '<p class="small muted" id="imp-err">Les lignes iront dans : <b>' + esc(tr ? tr.name : "sans pièce") + "</b> (pièce choisie dans Estimations).</p>" +
-        '<div class="dlg-foot"><button type="button" class="btn" data-dlg="back">Modifier le texte</button><button type="button" class="btn primary" data-dlg="integrate"' + (im.res.items.length ? "" : " disabled") + ">Intégrer " + im.res.items.filter((x) => x.on).length + " ligne" + (im.res.items.filter((x) => x.on).length > 1 ? "s" : "") + "</button></div>";
+        '<div class="dlg-foot"><button type="button" class="btn" data-dlg="back">Modifier le texte</button><button type="button" class="btn primary" data-dlg="integrate"' + (nOn ? "" : " disabled") + ">Intégrer " + nOn + " ligne" + (nOn > 1 ? "s" : "") + "</button></div>";
     }
     d.innerHTML = body + "</div>";
   }
@@ -1278,18 +1516,25 @@ dialog::backdrop { background: rgba(6, 11, 21, .55); }
       const items = S.imp.res.items.filter((x) => x.on);
       if (items.some((x) => !x.n || !x.d)) { const p = document.getElementById("imp-err"); p.style.color = "var(--bad)"; p.textContent = "Choisissez la nature et le détail de chaque ligne cochée : Sinapps les exige."; return; }
       dlg.close();
-      mut(() => { items.forEach((x) => { const g = guess(x.name), cat = CAT.find((c) => norm(x.name).indexOf(norm(c.name.split(",")[0])) === 0); S.lines.push({ id: S.nextId++, room: S.estRoom, cat: null, name: x.name, n: x.n, d: x.d, unit: x.unit, link: null, qty: x.qty, pu: x.pu, vat: 10, vet: 0, co2: cat ? cat.co2 : (g && g.n === "Immobilier" ? 2 : 4), source: "Devis D-2026-0188", bordereau: cat ? cat.pu : undefined }); }); });
-      toast(items.length + " lignes du devis intégrées à " + nameOfRoom(S.estRoom));
+      if (mut(() => { items.forEach((x) => { const cat = CAT.find((c) => norm(x.name).indexOf(norm(c.name.split(",")[0])) === 0); S.lines.push({ id: S.nextId++, lineIndex: nextLineIndex(S.lines, x.n, x.d), room: S.estRoom, cat: null, name: x.name, n: x.n, d: x.d, unit: x.unit, link: null, qty: x.qty, pu: x.pu, vat: 10, vet: 0, obsIn: null, mode: "IP", beneficiaryName: "", co2: cat ? cat.co2 : (x.n === "Immobilier" ? 2 : 4), source: "Devis D-2026-0188", bordereau: cat ? cat.pu : undefined }); }); }))
+        toast(items.length + " lignes du devis intégrées à " + nameOfRoom(S.estRoom));
     }
   });
   dlg.addEventListener("change", (e) => {
     const el = e.target;
-    if (el.id === "imp-file" && el.files[0]) { const fr2 = new FileReader(); fr2.onload = () => { S.imp.text = String(fr2.result || ""); S.imp.res = parseQuote(S.imp.text); drawImport(); }; fr2.readAsText(el.files[0]); return; }
+    if (el.id === "imp-file" && el.files[0]) { const rd = new FileReader(); rd.onload = () => { S.imp.text = String(rd.result || ""); S.imp.res = parseQuote(S.imp.text); drawImport(); }; rd.readAsText(el.files[0]); return; }
     const k = el.dataset.imp; if (!k) return; const x = S.imp.res.items[+el.dataset.i];
     if (k === "on") x.on = el.checked; if (k === "n") { x.n = el.value; x.d = ""; x.kw = ""; } if (k === "d") x.d = el.value;
     drawImport();
   });
 
+  // ventilation de départ : les lignes de l'assuré vers Camille Exemple, la peinture en réparation en nature vers Réno Services ; la recherche de fuite reste à ventiler
+  function initComps() {
+    const gs = groupsOf(calc());
+    gs.forEach((g) => { if (g.l2 === "Recherche de fuite") return; assignGroup(g, g.mode === "REN" ? "b2" : "b1", S.genericPct, S.option); });
+    storeGroups(gs);
+  }
+  initComps();
   window.addEventListener("hashchange", setTab);
   setTab();
 })();
